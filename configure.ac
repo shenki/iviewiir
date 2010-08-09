@@ -11,6 +11,7 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_C_CONST
 AC_C_INLINE
-AC_CHECK_LIB(neon, ne_get_response_header)
+AC_CHECK_LIB([neon], [ne_get_response_header], ,
+             AC_MSG_ERROR([neon headers not found.]))
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT
