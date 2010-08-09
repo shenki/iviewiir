@@ -1,4 +1,4 @@
-dnl configure.ac for wiiview
+dnl configure.ac for iviewiir
 
 AC_INIT([iviewiir], [0.1])
 AC_PREREQ(2.65)
