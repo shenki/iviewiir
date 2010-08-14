@@ -10,7 +10,8 @@ void wv_get_program() {
 void configure() {
     struct iv_config config;
     char *config_buf;
-    size_t config_buf_len = iv_get_config(&config_buf);
+    size_t config_buf_len = iv_get_xml_buffer("http", IVIEW_CONFIG_HOST,
+            IVIEW_CONFIG_PORT, IVIEW_CONFIG_PATH, &config_buf);
     printf("info: parse result = %d\n",
             iv_parse_config(&config, config_buf, config_buf_len));
 }

@@ -28,7 +28,8 @@ struct iv_config {
     char *feedback_url;
 };
 
-ssize_t iv_get_config(char **buf_ptr);
+ssize_t iv_get_xml_buffer(const char *scheme, const char *host, int port,
+        const char *path, char **buf_ptr);
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 void iv_destroy_config(struct iv_config *config);
 
