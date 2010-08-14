@@ -49,7 +49,7 @@ ssize_t iv_get_config(char *config_url, char **buf_ptr) {
             *buf_ptr = realloc_result;
             *buf_ptr[new_len-1] = '\0';
         }
-        pdrintf("info: read %zd bytes\n", read_len);
+        printf("info: read %zd bytes\n", read_len);
     } while(ne_end_request(config_request));
     printf("%s\n", *buf_ptr);
 done:
