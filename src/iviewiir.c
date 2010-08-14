@@ -13,5 +13,6 @@ void configure() {
 }
 
 int main(int argc, char *argv) {
+    configure();
     return 0;
 }
