@@ -36,20 +36,21 @@ static int parse_param_attrs(struct iv_config *config,
         return XML_PARAM_STATE;
     }
     if(!strcmp("server_streaming", attrs[1])) {
-        /* url should look like:
-         * "rtmp://cp53909.edgefcs.net/ondemand"
-         */
-        char *tok, *dptr;
-        config->server_streaming.url = strdup(attrs[3]);
-        strtok_r(attrs[3], "/", &dptr); // ditch "rtmp:"
-        config->server_streaming.host = strdup(strtok_r(NULL, "/", &dptr));
-        config->server_streaming.app = strdup(strtok_r(NULL, "/", &dptr));
+        if(ne_uri_parse(attrs[3], &(config->server_streaming))) {
+            printf("error: uri parsing failed on %s\n", attrs[3]);
+            return NE_XML_ABORT;
+        }
+        return XML_PARAM_STATE;
+    }
+    if(!strcmp("api", attrs[1])) {
+        if(ne_uri_parse(attrs[3], &(config->api))) {
+            printf("error: uri parsing failed on %s\n", attrs[3]);
+            return NE_XML_ABORT;
+        }
         return XML_PARAM_STATE;
     }
     char **param;
-    if(!strcmp("api", attrs[1])) {
-        param = &(config->api);
-    } else if(!strcmp("auth", attrs[1])) {
+    if(!strcmp("auth", attrs[1])) {
         param = &(config->auth);
     } else if(!strcmp("tray", attrs[1])) {
         param = &(config->tray);
@@ -104,5 +105,9 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
             accept_cdata_config, accept_end_config, (void *)config);
     ne_xml_push_handler(config_parser, accept_start_param,
             accept_cdata_param, accept_end_param, (void *)config);
-    return ne_xml_parse(config_parser, buf, len);
+    int result = ne_xml_parse(config_parser, buf, len);
+    if(0 != result) {
+        printf("info: parse error %s\n", ne_xml_get_error(config_parser));
+    }
+    return result;
 }
