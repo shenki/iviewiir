@@ -8,7 +8,7 @@
 #include <neon/ne_request.h>
 #include "../iviewiir.h"
 
-ssize_t iv_get_config(char *config_url, char **buf_ptr) {
+ssize_t iv_get_config(char **buf_ptr) {
     int init_result = ne_sock_init();
     ne_session *config_session = ne_session_create(IVIEW_CONFIG_SCHEME,
             IVIEW_CONFIG_HOST, IVIEW_CONFIG_PORT);
