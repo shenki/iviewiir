@@ -31,13 +31,6 @@ struct iv_index {
     const char *title;
 };
 
-ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr);
-int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
-ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
-ssize_t iv_parse_index(const char *buf, size_t len,
-        struct iv_index **index_ptr);
-void iv_destroy_config(struct iv_config *config);
-
 #if __STDC_VERSION__ == 199901L
 #define INLINE inline
 #elif __GNUC__
@@ -45,5 +38,14 @@ void iv_destroy_config(struct iv_config *config);
 #else
 #define INLINE
 #endif
+
+ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr);
+INLINE void iv_destroy_xml_buffer(char *buf) {
+    free(buf);
+}
+int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
+ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
+ssize_t iv_parse_index(const char *buf, size_t len,
+        struct iv_index **index_ptr);
 
 #endif /* LIBIVIEW_H */

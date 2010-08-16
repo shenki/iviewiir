@@ -13,6 +13,7 @@ void iviewiir_configure(struct iv_config *config) {
     }
     size_t config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
     int result = iv_parse_config(config, config_buf, config_buf_len);
+    iv_destroy_xml_buffer(config_buf);
 }
 
 void iviewiir_index(struct iv_config *config) {
@@ -22,6 +23,7 @@ void iviewiir_index(struct iv_config *config) {
     printf("index:\n%s\n", index_xml_buf);
     printf("info: parse result = %zd\n",
             iv_parse_index(index_xml_buf, len, &index));
+    iv_destroy_xml_buffer(index_xml_buf);
 }
 
 int main(int argc, char **argv) {
