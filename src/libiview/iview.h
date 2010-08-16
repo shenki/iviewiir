@@ -47,5 +47,8 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 ssize_t iv_parse_index(const char *buf, size_t len,
         struct iv_index **index_ptr);
+INLINE void iv_destroy_index(struct iv_index *index) {
+    free(index);
+}
 
 #endif /* LIBIVIEW_H */

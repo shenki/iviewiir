@@ -24,6 +24,7 @@ void iviewiir_index(struct iv_config *config) {
     printf("info: parse result = %zd\n",
             iv_parse_index(index_xml_buf, len, &index));
     iv_destroy_xml_buffer(index_xml_buf);
+    iv_destroy_index(index);
 }
 
 int main(int argc, char **argv) {
