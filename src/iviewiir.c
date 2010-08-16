@@ -20,6 +20,8 @@ void iviewiir_index(struct iv_config *config) {
     struct iv_index *index;
     ssize_t len = iv_get_index(config, &index_xml_buf);
     printf("index:\n%s\n", index_xml_buf);
+    printf("info: parse result = %zd\n",
+            iv_parse_index(index_xml_buf, len, &index));
 }
 
 int main(int argc, char **argv) {
