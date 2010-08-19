@@ -1,4 +1,5 @@
 #include <neon/ne_uri.h>
+#include <stdlib.h>
 
 #ifndef LIBIVIEW_H
 #define LIBIVIEW_H
@@ -7,6 +8,7 @@
 #define IV_MAX(a,b) (a >= b ? a : b)
 
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
+#define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
 
 struct iv_config {
     ne_uri api;
@@ -50,5 +52,7 @@ ssize_t iv_parse_index(const char *buf, size_t len,
 INLINE void iv_destroy_index(struct iv_index *index) {
     free(index);
 }
+ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_index *series,
+        char **buf_ptr);
 
 #endif /* LIBIVIEW_H */

@@ -23,6 +23,7 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     unsigned int i = 1;
     size_t total_len = 0;
     size_t new_len = getpagesize();
+    char *realloc_result;
     do {
         *buf_ptr = (char *)malloc(new_len);
         if(!*buf_ptr) {
@@ -31,9 +32,9 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
         }
         size_t read_len = 0;
         char *index = *buf_ptr;
-        char *realloc_result;
         if(NE_OK != ne_begin_request(config_request)) {
             printf("error: failed to begin request\n");
+            free(*buf_ptr);
             goto done;
         }
         if(200 != ne_get_status(config_request)->code) {
@@ -42,6 +43,7 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
             if(NE_RETRY == ne_end_request(config_request)) {
             printf("warning: ne_end_request returned NE_RETRY\n");
             }
+            free(*buf_ptr);
             goto done;
         }
         // Maybe use ne_buffer here instead?
@@ -61,6 +63,14 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
             index = &((*buf_ptr)[total_len]);
         }
     } while(0 < ne_end_request(config_request));
+    /* Trim to size and add NULL terminator */
+    realloc_result = realloc(*buf_ptr, ++total_len);
+    if(!realloc_result) {
+        perror("realloc");
+        goto done;
+    }
+    *buf_ptr = realloc_result;
+    (*buf_ptr)[total_len-1] = '\0';
 done:
     ne_session_destroy(config_session);
     ne_sock_exit();

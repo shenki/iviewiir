@@ -12,24 +12,34 @@ void iviewiir_configure(struct iv_config *config) {
         printf("error: uri parsing failed on %s\n", IV_CONFIG_URI);
     }
     size_t config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
+    printf("%s\n", config_buf);
     int result = iv_parse_config(config, config_buf, config_buf_len);
     iv_destroy_xml_buffer(config_buf);
 }
 
-void iviewiir_index(struct iv_config *config) {
+ssize_t iviewiir_index(struct iv_config *config, struct iv_index **index) {
     char *index_xml_buf;
-    struct iv_index *index;
-    ssize_t len = iv_get_index(config, &index_xml_buf);
+    ssize_t index_buf_len = iv_get_index(config, &index_xml_buf);
     printf("index:\n%s\n", index_xml_buf);
-    printf("info: parse result = %zd\n",
-            iv_parse_index(index_xml_buf, len, &index));
+    ssize_t index_len = iv_parse_index(index_xml_buf, index_buf_len, index);
     iv_destroy_xml_buffer(index_xml_buf);
-    iv_destroy_index(index);
+    return index_len;
+}
+
+void iviewiir_series(struct iv_config *config, struct iv_index *series) {
+    char *series_buf;
+    ssize_t len =
+        iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
+    printf("series:\n%s\n", series_buf);
+    iv_destroy_xml_buffer(series_buf);
 }
 
 int main(int argc, char **argv) {
+    struct iv_index *index;
     struct iv_config config;
     iviewiir_configure(&config);
-    iviewiir_index(&config);
+    iviewiir_index(&config, &index);
+    iviewiir_series(&config, index);
+    iv_destroy_index(index);
     return 0;
 }
