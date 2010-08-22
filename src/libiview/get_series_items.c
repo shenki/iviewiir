@@ -4,7 +4,7 @@
 #include "iview.h"
 
 ssize_t iv_get_series_items(struct iv_config *config, char *uri,
-        struct iv_index *series, char **buf_ptr) {
+        struct iv_series *series, char **buf_ptr) {
     ne_uri series_uri;
     if(ne_uri_parse(uri, &series_uri)) {
         printf("error: Failed parsing URI %s\n", IV_SERIES_URI);

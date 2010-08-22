@@ -17,7 +17,7 @@ void iviewiir_configure(struct iv_config *config) {
     iv_destroy_xml_buffer(config_buf);
 }
 
-ssize_t iviewiir_index(struct iv_config *config, struct iv_index **index) {
+ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
     char *index_xml_buf;
     ssize_t index_buf_len = iv_get_index(config, &index_xml_buf);
     printf("index:\n%s\n", index_xml_buf);
@@ -26,7 +26,7 @@ ssize_t iviewiir_index(struct iv_config *config, struct iv_index **index) {
     return index_len;
 }
 
-void iviewiir_series(struct iv_config *config, struct iv_index *series) {
+void iviewiir_series(struct iv_config *config, struct iv_series *series) {
     char *series_buf;
     ssize_t len =
         iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
@@ -35,7 +35,7 @@ void iviewiir_series(struct iv_config *config, struct iv_index *series) {
 }
 
 int main(int argc, char **argv) {
-    struct iv_index *index;
+    struct iv_series *index;
     struct iv_config config;
     iviewiir_configure(&config);
     iviewiir_index(&config, &index);

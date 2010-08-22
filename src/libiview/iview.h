@@ -28,7 +28,7 @@ struct iv_config {
     char *feedback_url;
 };
 
-struct iv_index {
+struct iv_series {
     int id;
     const char *title;
 };
@@ -48,11 +48,11 @@ INLINE void iv_destroy_xml_buffer(char *buf) {
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 ssize_t iv_parse_index(const char *buf, size_t len,
-        struct iv_index **index_ptr);
-INLINE void iv_destroy_index(struct iv_index *index) {
+        struct iv_series **index_ptr);
+INLINE void iv_destroy_index(struct iv_series *index) {
     free(index);
 }
-ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_index *series,
+ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_series *series,
         char **buf_ptr);
 
 #endif /* LIBIVIEW_H */
