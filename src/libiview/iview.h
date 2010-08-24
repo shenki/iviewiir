@@ -10,6 +10,10 @@
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
 
+/* Return values */
+#define IV_OK 0
+#define IV_EURIPARSE 1
+
 struct iv_config {
     ne_uri api;
     char *auth;
