@@ -11,8 +11,7 @@ ssize_t iv_parse_index(const char *buf, size_t len,
     const size_t index_len = json_object_array_length(json_index);
     *index_ptr = (struct iv_series *)malloc(index_len * sizeof(struct iv_series));
     if(!*index_ptr) {
-        perror("malloc");
-        return -1;
+        return -IV_ENOMEM;
     }
     int i;
     for(i=0; i<index_len; i++) {
