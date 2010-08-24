@@ -1,5 +1,6 @@
 #include <neon/ne_uri.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #ifndef LIBIVIEW_H
 #define LIBIVIEW_H
@@ -13,6 +14,8 @@
 /* Return values */
 #define IV_OK 0
 #define IV_EURIPARSE 1
+#define IV_EREQUEST 2
+#define IV_ENOMEM ENOMEM
 
 struct iv_config {
     ne_uri api;

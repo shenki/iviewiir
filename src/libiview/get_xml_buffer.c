@@ -9,8 +9,10 @@
 #include <neon/ne_uri.h>
 #include <neon/ne_string.h>
 #include "../iviewiir.h"
+#include "iview.h"
 
 ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
+    int return_val;
     int init_result = ne_sock_init();
     ne_session *config_session = ne_session_create(uri->scheme, uri->host,
             0 == uri->port ? ne_uri_defaultport(uri->scheme) : uri->port);
@@ -18,7 +20,6 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     path = ne_concat(uri->path, "?", uri->query, NULL);
     ne_request *config_request = ne_request_create(config_session,
             "GET", path);
-    printf("info: requesting data from %s\n", path);
     free(path);
     unsigned int i = 1;
     size_t total_len = 0;
@@ -27,23 +28,19 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     do {
         *buf_ptr = (char *)malloc(new_len);
         if(!*buf_ptr) {
-            perror("malloc");
+            return_val = -IV_ENOMEM;
             goto done;
         }
         size_t read_len = 0;
         char *index = *buf_ptr;
         if(NE_OK != ne_begin_request(config_request)) {
-            printf("error: failed to begin request\n");
             free(*buf_ptr);
+            return_val = -IV_EREQUEST;
             goto done;
         }
         if(200 != ne_get_status(config_request)->code) {
-            printf("error: Response status code was %d\n",
-                ne_get_status(config_request)->code);
-            if(NE_RETRY == ne_end_request(config_request)) {
-            printf("warning: ne_end_request returned NE_RETRY\n");
-            }
             free(*buf_ptr);
+            return_val = -IV_EREQUEST;
             goto done;
         }
         // Maybe use ne_buffer here instead?
@@ -54,7 +51,7 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
             if(0 == new_len) {
                 realloc_result = realloc(*buf_ptr, ++i*getpagesize());
                 if(!realloc_result) {
-                    perror("realloc");
+                    return_val = -IV_ENOMEM;
                     goto done;
                 }
                 *buf_ptr = realloc_result;
@@ -66,13 +63,14 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     /* Trim to size and add NULL terminator */
     realloc_result = realloc(*buf_ptr, ++total_len);
     if(!realloc_result) {
-        perror("realloc");
+        return_val = -IV_ENOMEM;
         goto done;
     }
     *buf_ptr = realloc_result;
     (*buf_ptr)[total_len-1] = '\0';
+    return_val = total_len;
 done:
     ne_session_destroy(config_session);
     ne_sock_exit();
-    return total_len;
+    return return_val;
 }
