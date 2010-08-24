@@ -37,14 +37,12 @@ static int parse_param_attrs(struct iv_config *config,
     }
     if(!strcmp("server_streaming", attrs[1])) {
         if(ne_uri_parse(attrs[3], &(config->server_streaming))) {
-            printf("error: uri parsing failed on %s\n", attrs[3]);
             return NE_XML_ABORT;
         }
         return XML_PARAM_STATE;
     }
     if(!strcmp("api", attrs[1])) {
         if(ne_uri_parse(attrs[3], &(config->api))) {
-            printf("error: uri parsing failed on %s\n", attrs[3]);
             return NE_XML_ABORT;
         }
         return XML_PARAM_STATE;
@@ -73,7 +71,6 @@ static int parse_param_attrs(struct iv_config *config,
     } else if(!strcmp("feedback_url", attrs[1])) {
         param = &(config->feedback_url);
     } else {
-        printf("error: parse_param_attrs found no match for %s\n", attrs[1]);
         return NE_XML_ABORT;
     }
     *param = strdup(attrs[3]);
@@ -105,9 +102,5 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
             accept_cdata_config, accept_end_config, (void *)config);
     ne_xml_push_handler(config_parser, accept_start_param,
             accept_cdata_param, accept_end_param, (void *)config);
-    int result = ne_xml_parse(config_parser, buf, len);
-    if(0 != result) {
-        printf("info: parse error %s\n", ne_xml_get_error(config_parser));
-    }
-    return result;
+    return ne_xml_parse(config_parser, buf, len) ? -IV_ESAXPARSE : 0;
 }
