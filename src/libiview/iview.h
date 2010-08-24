@@ -33,6 +33,17 @@ struct iv_series {
     const char *title;
 };
 
+struct iv_item {
+    char *title;
+    char *url;
+    char *description;
+    char *thumbnail;
+    char *date;
+    char *rating;
+    char *link; /* link to play on iView site */
+    char *home; /* Program website */
+};
+
 #if __STDC_VERSION__ == 199901L
 #define INLINE inline
 #elif __GNUC__
@@ -54,5 +65,9 @@ INLINE void iv_destroy_index(struct iv_series *index) {
 }
 ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_series *series,
         char **buf_ptr);
+ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
+INLINE void iv_destroy_series_items(struct iv_item *index) {
+    free(index);
+}
 
 #endif /* LIBIVIEW_H */

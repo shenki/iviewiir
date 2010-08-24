@@ -31,6 +31,29 @@ void iviewiir_series(struct iv_config *config, struct iv_series *series) {
     ssize_t len =
         iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
     printf("series:\n%s\n", series_buf);
+    struct iv_item *items;
+    const ssize_t items_len = iv_parse_series_items(series_buf, len, &items);
+    int i;
+    printf("items_len = %zd\n", items_len);
+    for(i=0; i<items_len; i++) {
+        printf("items[%d].title: %s\n"
+               "items[%d].url: %s\n"
+               "items[%d].description: %s\n"
+               "items[%d].thumbnail: %s\n"
+               "items[%d].date: %s\n"
+               "items[%d].rating: %s\n"
+               "items[%d].link: %s\n"
+               "items[%d].home: %s\n\n",
+               i, items[i].title,
+               i, items[i].url,
+               i, items[i].description,
+               i, items[i].thumbnail,
+               i, items[i].date,
+               i, items[i].rating,
+               i, items[i].link,
+               i, items[i].home);
+    }
+    iv_destroy_series_items(items);
     iv_destroy_xml_buffer(series_buf);
 }
 
