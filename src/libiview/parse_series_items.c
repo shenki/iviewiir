@@ -207,7 +207,7 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
             accept_cdata_home, NULL, (void *)&item_list);
     int result = ne_xml_parse(item_parser, buf, len);
     if(0 != result) {
-        printf("info: parse error %s\n", ne_xml_get_error(item_parser));
+        return -IV_ESAXPARSE;
     }
     *items = item_list.head;
     return item_list.len;
