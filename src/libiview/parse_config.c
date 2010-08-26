@@ -97,6 +97,7 @@ static int accept_end_param(void *userdata, int state, const char *nspace,
 }
 
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
+    memset(config, 0, sizeof(struct iv_config));
     ne_xml_parser *config_parser = ne_xml_create();
     ne_xml_push_handler(config_parser, accept_start_config,
             accept_cdata_config, accept_end_config, (void *)config);

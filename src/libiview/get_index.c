@@ -4,6 +4,7 @@
 #include "iview.h"
 
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr) {
-    config->api.query = "seriesIndex";
+    /* must strdup so ne_uri_free() can be used */
+    config->api.query = strdup("seriesIndex");
     return iv_get_xml_buffer(&(config->api), buf_ptr);
 }

@@ -64,5 +64,6 @@ int main(int argc, char **argv) {
     iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
     iv_destroy_index(index);
+    iv_destroy_config(&config);
     return 0;
 }

@@ -65,6 +65,7 @@ INLINE void iv_destroy_xml_buffer(char *buf) {
     free(buf);
 }
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
+void iv_destroy_config(struct iv_config *config);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 ssize_t iv_parse_index(const char *buf, size_t len,
         struct iv_series **index_ptr);
