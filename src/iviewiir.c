@@ -5,6 +5,26 @@
 #include "iviewiir.h"
 #include "libiview/iview.h"
 
+#define CONFIG_FILE "iview.config"
+#define INDEX_FILE  "iview.index"
+static char *cache_dir;
+
+void dump_buff(void *buf, size_t buf_len, char *fname) {
+    /* Dump config to disk. */
+    char *fpath = malloc(strlen(cache_dir) + strlen(fname));
+    strcpy(fpath, cache_dir);
+    strncat(fpath, fname, 14);
+    FILE *fs = fopen(fpath, "w");
+    if(fs==NULL) {
+      perror(fpath);
+    } else {
+      fwrite(buf, sizeof(char), buf_len, fs);
+    }
+    fwrite("\n", sizeof(char), 1, fs);
+    free(fpath);
+    fclose(fs);
+}
+
 void iviewiir_configure(struct iv_config *config) {
     char *config_buf;
     ne_uri config_uri;
@@ -15,6 +35,7 @@ void iviewiir_configure(struct iv_config *config) {
     ne_uri_free(&config_uri);
     printf("%s\n", config_buf);
     int result = iv_parse_config(config, config_buf, config_buf_len);
+    dump_buff(config_buf, config_buf_len, CONFIG_FILE);
     iv_destroy_xml_buffer(config_buf);
 }
 
@@ -23,6 +44,7 @@ ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
     ssize_t index_buf_len = iv_get_index(config, &index_xml_buf);
     printf("index:\n%s\n", index_xml_buf);
     ssize_t index_len = iv_parse_index(index_xml_buf, index_buf_len, index);
+    dump_buff(index_xml_buf, index_buf_len, INDEX_FILE);
     iv_destroy_xml_buffer(index_xml_buf);
     return index_len;
 }
@@ -61,10 +83,12 @@ void iviewiir_series(struct iv_config *config, struct iv_series *series) {
 int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
+    cache_dir = xdg_user_dir_lookup_with_fallback("XDG_CACHE_DIR", "/tmp/");
     iviewiir_configure(&config);
     ssize_t index_len = iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
     iv_destroy_index(index, index_len);
     iv_destroy_config(&config);
+    free(cache_dir);
     return 0;
 }
