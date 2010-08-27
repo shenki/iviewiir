@@ -19,7 +19,8 @@ ssize_t iv_parse_index(const char *buf, size_t len,
         json_object *json_id = json_object_object_get(json_element, "a");
         (*index_ptr)[i].id = json_object_get_int(json_id);
         json_series = json_object_object_get(json_element, "b");
-        (*index_ptr)[i].title = json_object_to_json_string(json_series);
+        (*index_ptr)[i].title = strdup(json_object_to_json_string(json_series));
     }
+    array_list_free(json_object_get_array(json_index));
     return index_len;
 }
