@@ -13,5 +13,7 @@ ssize_t iv_get_series_items(struct iv_config *config, char *uri,
     char query_buf[QUERY_BUF_SZ];
     snprintf(query_buf, QUERY_BUF_SZ, "id=%d", series->id);
     series_uri.query = query_buf;
-    return iv_get_xml_buffer(&series_uri, buf_ptr);
+    int result = iv_get_xml_buffer(&series_uri, buf_ptr);
+    ne_uri_free(&series_uri);
+    return result;
 }
