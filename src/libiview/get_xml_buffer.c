@@ -70,6 +70,7 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     (*buf_ptr)[total_len-1] = '\0';
     return_val = total_len;
 done:
+    ne_request_destroy(config_request);
     ne_session_destroy(config_session);
     ne_sock_exit();
     return return_val;
