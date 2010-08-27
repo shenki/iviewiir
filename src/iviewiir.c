@@ -12,6 +12,7 @@ void iviewiir_configure(struct iv_config *config) {
         printf("error: uri parsing failed on %s\n", IV_CONFIG_URI);
     }
     size_t config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
+    ne_uri_free(&config_uri);
     printf("%s\n", config_buf);
     int result = iv_parse_config(config, config_buf, config_buf_len);
     iv_destroy_xml_buffer(config_buf);
