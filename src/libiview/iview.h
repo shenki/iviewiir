@@ -10,6 +10,8 @@
 
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
+#define IV_AUTH_URI "http://www2b.abc.net.au/iViewHandshaker/services/iviewhandshaker.asmx/isp"
+#define IV_AKAMAI_PREFIX "/flash/playback/_definst_/"
 
 /* Return values */
 #define IV_OK 0
@@ -27,7 +29,7 @@ struct iv_config {
     char *captions;
     int captions_offset;
     unsigned short live_streaming;
-    ne_uri server_streaming;
+    ne_uri server_streaming; //rtmp uri
     char *server_fallback;
     char *highlights;
     char *home;
@@ -50,6 +52,13 @@ struct iv_item {
     char *rating;
     char *link; /* link to play on iView site */
     char *home; /* Program website */
+};
+
+struct iv_auth {
+    ne_uri server;
+    char *prefix;
+    char *token;
+    short free;
 };
 
 #if __STDC_VERSION__ == 199901L
@@ -75,6 +84,12 @@ ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_serie
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 INLINE void iv_destroy_series_items(struct iv_item *index) {
     free(index);
+}
+int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
+        struct iv_auth *auth);
+INLINE void iv_destroy_auth(struct iv_auth *auth) {
+    ne_uri_free(&auth->server);
+    free(auth->token);
 }
 
 #endif /* LIBIVIEW_H */
