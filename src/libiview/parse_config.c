@@ -103,5 +103,7 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
             accept_cdata_config, accept_end_config, (void *)config);
     ne_xml_push_handler(config_parser, accept_start_param,
             accept_cdata_param, accept_end_param, (void *)config);
-    return ne_xml_parse(config_parser, buf, len) ? -IV_ESAXPARSE : 0;
+    int result = ne_xml_parse(config_parser, buf, len);
+    ne_xml_parse(config_parser, buf, 0);
+    return result ? -IV_ESAXPARSE : 0;
 }
