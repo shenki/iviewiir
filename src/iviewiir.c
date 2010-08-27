@@ -61,9 +61,9 @@ int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
     iviewiir_configure(&config);
-    iviewiir_index(&config, &index);
+    ssize_t index_len = iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
-    iv_destroy_index(index);
+    iv_destroy_index(index, index_len);
     iv_destroy_config(&config);
     return 0;
 }
