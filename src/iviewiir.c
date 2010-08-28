@@ -11,14 +11,17 @@ static char *cache_dir;
 
 void dump_buff(void *buf, size_t buf_len, char *fname) {
     /* Dump config to disk. */
-    char *fpath = malloc(strlen(cache_dir) + strlen(fname));
+    char *fpath = malloc(strlen(cache_dir) + strlen(fname) + 1);
     strcpy(fpath, cache_dir);
+    if(fpath[strlen(fpath)-1] != '/') {
+        strcat(fpath, "/");
+    }
     strncat(fpath, fname, 14);
     FILE *fs = fopen(fpath, "w");
     if(fs==NULL) {
-      perror(fpath);
+        perror(fpath);
     } else {
-      fwrite(buf, sizeof(char), buf_len, fs);
+        fwrite(buf, sizeof(char), buf_len, fs);
     }
     fwrite("\n", sizeof(char), 1, fs);
     free(fpath);
@@ -83,7 +86,7 @@ void iviewiir_series(struct iv_config *config, struct iv_series *series) {
 int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
-    cache_dir = xdg_user_dir_lookup_with_fallback("XDG_CACHE_DIR", "/tmp/");
+    cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
     iviewiir_configure(&config);
     ssize_t index_len = iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
