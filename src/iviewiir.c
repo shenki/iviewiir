@@ -9,6 +9,15 @@
 #define INDEX_FILE  "iview.index"
 static char *cache_dir;
 
+#if defined(DEBUG)
+#define debug(format, ...) \
+        fprintf(stderr, "DEBUG (L%d): " format, __LINE__, ##__VA_ARGS__)
+#else
+#define debug(...) do {} while (0)
+#endif
+
+#define error(format, ...) fprintf(stderr, "ERROR: " format, ##__VA_ARGS__)
+
 void dump_buff(void *buf, size_t buf_len, char *fname) {
     /* Dump config to disk. */
     char *fpath = malloc(strlen(cache_dir) + strlen(fname) + 1);
