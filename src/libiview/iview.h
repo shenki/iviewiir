@@ -22,7 +22,7 @@
 
 struct iv_config {
     ne_uri api;
-    char *auth;
+    ne_uri auth;
     char *tray;
     char *categories;
     char *classifications;

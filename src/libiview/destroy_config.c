@@ -6,7 +6,7 @@
 
 void iv_destroy_config(struct iv_config *config) {
     ne_uri_free(&(config->api));
-    free(config->auth);
+    ne_uri_free(&(config->auth));
     free(config->tray);
     free(config->categories);
     free(config->classifications);

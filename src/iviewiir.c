@@ -138,6 +138,23 @@ void iviewiir_series(struct iv_config *config, struct iv_series *series) {
     iv_destroy_xml_buffer(series_buf);
 }
 
+void iviewiir_download(const struct iv_config *config) {
+    char *auth_xml_buf;
+    struct iv_auth auth;
+    memset(&auth, 0, sizeof(auth));
+    ne_uri auth_uri;
+    if(ne_uri_parse(IV_AUTH_URI, &auth_uri)) {
+        printf("error: uri parsing failed on %s\n", IV_AUTH_URI);
+    }
+    ssize_t auth_buf_len = iv_get_xml_buffer(&auth_uri, &auth_xml_buf);
+    debug("%s\n", auth_xml_buf);
+    if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
+        error("iv_parse_auth failed");
+    }
+    iv_destroy_auth(&auth);
+    iv_destroy_xml_buffer(auth_xml_buf);
+}
+
 int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
@@ -145,6 +162,7 @@ int main(int argc, char **argv) {
     iviewiir_configure(&config);
     ssize_t index_len = iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
+    iviewiir_download(&config);
     iv_destroy_index(index, index_len);
     iv_destroy_config(&config);
     free(cache_dir);

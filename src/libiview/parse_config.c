@@ -47,10 +47,14 @@ static int parse_param_attrs(struct iv_config *config,
         }
         return XML_PARAM_STATE;
     }
-    char **param;
     if(!strcmp("auth", attrs[1])) {
-        param = &(config->auth);
-    } else if(!strcmp("tray", attrs[1])) {
+        if(ne_uri_parse(attrs[3], &(config->auth))) {
+            return NE_XML_ABORT;
+        }
+        return XML_PARAM_STATE;
+    }
+    char **param;
+    if(!strcmp("tray", attrs[1])) {
         param = &(config->tray);
     } else if(!strcmp("categories", attrs[1])) {
         param = &(config->categories);
