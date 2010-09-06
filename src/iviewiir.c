@@ -76,7 +76,7 @@ void dump_buf(void *buf, size_t buf_len, char *fname) {
     fclose(fs);
 }
 
-void iviewiir_configure(struct iv_config *config) {
+int iviewiir_configure(struct iv_config *config) {
     char *config_buf = NULL;
     ne_uri config_uri;
     size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
@@ -84,14 +84,21 @@ void iviewiir_configure(struct iv_config *config) {
         /* Cache was stale or did not exist, so re-fetch. */
         if(ne_uri_parse(IV_CONFIG_URI, &config_uri)) {
             error("uri parsing failed on %s\n", IV_CONFIG_URI);
+            return -IV_EURIPARSE;
         }
         config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
         ne_uri_free(&config_uri);
+        if(0 >= config_buf_len) {
+            error("error retrieving config xml\n");
+            return config_buf_len;
+        }
         dump_buf(config_buf, config_buf_len, CONFIG_FILE);
     }
     debug("%s\n", config_buf);
     int result = iv_parse_config(config, config_buf, config_buf_len);
+    debug("iv_parse_config: %d\n", result);
     iv_destroy_xml_buffer(config_buf);
+    return result;
 }
 
 ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
@@ -149,7 +156,7 @@ void iviewiir_download(const struct iv_config *config) {
     ssize_t auth_buf_len = iv_get_xml_buffer(&auth_uri, &auth_xml_buf);
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
-        error("iv_parse_auth failed");
+        error("iv_parse_auth failed\n");
     }
     iv_destroy_auth(&auth);
     iv_destroy_xml_buffer(auth_xml_buf);
@@ -159,7 +166,10 @@ int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
-    iviewiir_configure(&config);
+    if(IV_OK != iviewiir_configure(&config)) {
+        error("Couldn't configure iviewiir, exiting\n");
+        return 1;
+    }
     ssize_t index_len = iviewiir_index(&config, &index);
     iviewiir_series(&config, index);
     iviewiir_download(&config);

@@ -61,13 +61,13 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
         }
     } while(0 < ne_end_request(config_request));
     /* Trim to size and add NULL terminator */
-    realloc_result = realloc(*buf_ptr, ++total_len);
+    realloc_result = realloc(*buf_ptr, total_len+1);
     if(!realloc_result) {
         return_val = -IV_ENOMEM;
         goto done;
     }
     *buf_ptr = realloc_result;
-    (*buf_ptr)[total_len-1] = '\0';
+    (*buf_ptr)[total_len] = '\0';
     return_val = total_len;
 done:
     ne_request_destroy(config_request);

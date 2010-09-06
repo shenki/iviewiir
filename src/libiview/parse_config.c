@@ -15,16 +15,6 @@ static int accept_start_config(void *userdata, int parent, const char *nspace,
     return XML_CONFIG_STATE;
 }
 
-static int accept_cdata_config(void *userdata, int state, const char *cdata,
-    size_t len) {
-    return 0;
-}
-
-static int accept_end_config(void *userdata, int state, const char *nspace,
-        const char *name) {
-    return 0;
-}
-
 static int parse_param_attrs(struct iv_config *config,
         const char **attrs) {
     if(!strcmp("captions_offset", attrs[1])) {
@@ -90,24 +80,14 @@ static int accept_start_param(void *userdata, int parent, const char *nspace,
     return r;
 }
 
-static int accept_cdata_param(void *userdata, int state, const char *cdata,
-    size_t len) {
-    return 0;
-}
-
-static int accept_end_param(void *userdata, int state, const char *nspace,
-        const char *name) {
-    return 0;
-}
-
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
     memset(config, 0, sizeof(struct iv_config));
     ne_xml_parser *config_parser = ne_xml_create();
     ne_xml_push_handler(config_parser, accept_start_config,
-            accept_cdata_config, accept_end_config, (void *)config);
+            NULL, NULL, (void *)config);
     ne_xml_push_handler(config_parser, accept_start_param,
-            accept_cdata_param, accept_end_param, (void *)config);
+            NULL, NULL, (void *)config);
     int result = ne_xml_parse(config_parser, buf, len);
     ne_xml_parse(config_parser, buf, 0);
-    return result ? -IV_ESAXPARSE : 0;
+    return result ? -IV_ESAXPARSE : IV_OK;
 }
