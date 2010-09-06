@@ -114,56 +114,60 @@ ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
     return index_len;
 }
 
-void iviewiir_series(struct iv_config *config, struct iv_series *series) {
+ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
+        struct iv_item **items) {
     char *series_buf;
-    ssize_t len =
+    const ssize_t len =
         iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
     debug("series:\n%s\n", series_buf);
-    struct iv_item *items;
-    const ssize_t items_len = iv_parse_series_items(series_buf, len, &items);
+    const ssize_t items_len = iv_parse_series_items(series_buf, len, items);
     int i;
     debug("items_len = %zd\n", items_len);
     for(i=0; i<items_len; i++) {
-        debug("items[%d].title: %s\n"
-               "items[%d].url: %s\n"
-               "items[%d].description: %s\n"
-               "items[%d].thumbnail: %s\n"
-               "items[%d].date: %s\n"
-               "items[%d].rating: %s\n"
-               "items[%d].link: %s\n"
-               "items[%d].home: %s\n\n",
-               i, items[i].title,
-               i, items[i].url,
-               i, items[i].description,
-               i, items[i].thumbnail,
-               i, items[i].date,
-               i, items[i].rating,
-               i, items[i].link,
-               i, items[i].home);
+        debug("(*items)[%d].title: %s\n"
+               "(*items)[%d].url: %s\n"
+               "(*items)[%d].description: %s\n"
+               "(*items)[%d].thumbnail: %s\n"
+               "(*items)[%d].date: %s\n"
+               "(*items)[%d].rating: %s\n"
+               "(*items)[%d].link: %s\n"
+               "(*items)[%d].home: %s\n\n",
+               i, (*items)[i].title,
+               i, (*items)[i].url,
+               i, (*items)[i].description,
+               i, (*items)[i].thumbnail,
+               i, (*items)[i].date,
+               i, (*items)[i].rating,
+               i, (*items)[i].link,
+               i, (*items)[i].home);
     }
-    iv_destroy_series_items(items);
     iv_destroy_xml_buffer(series_buf);
+    return items_len;
 }
 
-void iviewiir_download(const struct iv_config *config) {
+void iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
     char *auth_xml_buf;
     struct iv_auth auth;
     memset(&auth, 0, sizeof(auth));
     ne_uri auth_uri;
     if(ne_uri_parse(IV_AUTH_URI, &auth_uri)) {
-        printf("error: uri parsing failed on %s\n", IV_AUTH_URI);
+        error("uri parsing failed on %s\n", IV_AUTH_URI);
     }
     ssize_t auth_buf_len = iv_get_xml_buffer(&auth_uri, &auth_xml_buf);
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
     }
+    char *streaming_uri = iv_generate_video_uri(&auth, item);
+    debug("streaming_uri: %s\n", streaming_uri);
+    iv_destroy_video_uri(streaming_uri);
     iv_destroy_auth(&auth);
     iv_destroy_xml_buffer(auth_xml_buf);
 }
 
 int main(int argc, char **argv) {
     struct iv_series *index;
+    struct iv_item *items;
     struct iv_config config;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
     if(IV_OK != iviewiir_configure(&config)) {
@@ -171,8 +175,17 @@ int main(int argc, char **argv) {
         return 1;
     }
     ssize_t index_len = iviewiir_index(&config, &index);
-    iviewiir_series(&config, index);
-    iviewiir_download(&config);
+    if(0 == index_len) {
+        error("No items in index, exiting\n");
+        return 1;
+    }
+    ssize_t items_len = iviewiir_series(&config, index, &items);
+    if(1 > items_len) {
+        error("No items in series, exiting\n");
+        return 1;
+    }
+    iviewiir_download(&config, &(items[1]));
+    iv_destroy_series_items(items);
     iv_destroy_index(index, index_len);
     iv_destroy_config(&config);
     free(cache_dir);
