@@ -91,5 +91,9 @@ INLINE void iv_destroy_auth(struct iv_auth *auth) {
     ne_uri_free(&auth->server);
     free(auth->token);
 }
+char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item);
+INLINE void iv_destroy_video_uri(char *uri) {
+    free(uri);
+}
 
 #endif /* LIBIVIEW_H */

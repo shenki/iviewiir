@@ -11,4 +11,5 @@ iviewiir_SOURCES = src/iviewiir.c \
 		   src/libiview/destroy_config.c \
 		   src/libiview/destroy_index.c \
 		   src/libiview/parse_auth.c \
-		   src/xdg-user-dir-lookup.c
+		   src/xdg-user-dir-lookup.c \
+		   src/libiview/generate_video_uri.c
