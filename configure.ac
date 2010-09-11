@@ -15,5 +15,7 @@ AC_CHECK_LIB([neon], [ne_get_response_header], ,
              AC_MSG_ERROR([neon headers not found.]))
 AC_CHECK_LIB([json], [json_tokener_parse], ,
              AC_MSG_ERROR([json-c headers not found.]))
+AC_CHECK_LIB([rtmp], [RTMP_Alloc], ,
+             AC_MSG_ERROR([RTMP headers not found.]))
 AM_CONFIG_HEADER(config.h)
 AC_OUTPUT

@@ -12,6 +12,9 @@
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
 #define IV_AUTH_URI "http://www2b.abc.net.au/iViewHandshaker/services/iviewhandshaker.asmx/isp"
 #define IV_AKAMAI_PREFIX "/flash/playback/_definst_/"
+#define IV_SWF_HASH "96cc76f1d5385fb5cda6e2ce5c73323a399043d0bb6c687edd807e5c73c42b37"
+#define IV_SWF_SIZE "2122"
+#define IV_SWF_URL "http://www.abc.net.au/iview/images/iview.jpg"
 
 /* Return values */
 #define IV_OK 0
@@ -95,5 +98,6 @@ char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *it
 INLINE void iv_destroy_video_uri(char *uri) {
     free(uri);
 }
+int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
 
 #endif /* LIBIVIEW_H */

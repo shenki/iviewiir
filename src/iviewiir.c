@@ -158,9 +158,7 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
     }
-    char *streaming_uri = iv_generate_video_uri(&auth, item);
-    debug("streaming_uri: %s\n", streaming_uri);
-    iv_destroy_video_uri(streaming_uri);
+    iv_fetch_video(&auth, item, "/tmp/something.flv");
     iv_destroy_auth(&auth);
     iv_destroy_xml_buffer(auth_xml_buf);
 }

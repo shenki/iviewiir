@@ -1,20 +1,33 @@
 #include <stdio.h>
-
-#include "iview.h"
 #include <string.h>
+#include <neon/ne_string.h>
+#include <neon/ne_alloc.h>
+#include "iview.h"
 
 char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item) {
+    char *rtmp_uri;
+    char *uri;
     if(auth->free) {
-        return item->url;
+        uri = ne_concat(item->url, NULL);
+    } else {
+        uri = ne_concat(auth->prefix, item->url, NULL);
     }
-    char *prefixed_video_uri = malloc(strlen(item->url)+strlen(auth->prefix)+1);
-    if(NULL == prefixed_video_uri) {
-        return NULL;
+    uri[strlen(uri)-4] = '\0';
+    if(!strcmp("flv", &item->url[strlen(item->url)-3])) {
+        rtmp_uri = ne_concat(auth->server.scheme, "://", auth->server.host,
+                auth->server.path, "?auth=", auth->token,
+                " playpath=", uri,
+                " swfUrl=", IV_SWF_URL,
+                " swfVfy=1",
+                " swfAge=0", NULL);
+    } else {
+        rtmp_uri = ne_concat(auth->server.scheme, "://", auth->server.host,
+                auth->server.path, "?auth=", auth->token,
+                " playpath=", "mp4:", uri,
+                " swfUrl=", IV_SWF_URL,
+                " swfVfy=1",
+                " swfAge=0", NULL);
     }
-    prefixed_video_uri = strcpy(prefixed_video_uri, auth->prefix);
-    prefixed_video_uri = strcat(prefixed_video_uri, item->url);
-    if(strcmp("flv", &prefixed_video_uri[strlen(prefixed_video_uri)-3])) {
-        prefixed_video_uri[strlen(prefixed_video_uri)-3] = '\0';
-    }
-    return prefixed_video_uri;
+    ne_free(uri);
+    return rtmp_uri;
 }
