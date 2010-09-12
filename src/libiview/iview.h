@@ -47,6 +47,7 @@ struct iv_series {
 };
 
 struct iv_item {
+    int id;
     char *title;
     char *url;
     char *description;

@@ -16,6 +16,7 @@ enum item_parse_state {
     PS_RSS = 1,
     PS_CHANNEL,
     PS_ITEM,
+    PS_ID,
     PS_TITLE,
     PS_URL,
     PS_DESCRIPTION,
@@ -55,6 +56,25 @@ static int accept_start_item(void *userdata, int parent, const char *nspace,
     }
     memset(&(item_list->head[item_list->len-1]), 0, sizeof(struct iv_item));
     return PS_ITEM;
+}
+
+static int accept_start_id(void *userdata, int parent, const char *nspace,
+        const char *name, const char **attrs) {
+    if(0 != strcmp("http://www.abc.net.au/tv/mrss", nspace)) {
+        return NE_XML_DECLINE;
+    }
+    if(0 != strcmp("id", name)) {
+        return NE_XML_DECLINE;
+    }
+    return PS_ID;
+}
+
+static int accept_cdata_id(void *userdata, int state, const char *cdata,
+    size_t len) {
+    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
+    /* possible portability issues with strndup */
+    (item_list->head[item_list->len-1]).id = atoi(cdata);
+    return 0;
 }
 
 static int accept_start_title(void *userdata, int parent, const char *nspace,
@@ -189,6 +209,8 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
             NULL, NULL, NULL);
     ne_xml_push_handler(item_parser, accept_start_item,
             NULL, NULL, (void *)&item_list);
+    ne_xml_push_handler(item_parser, accept_start_id,
+            accept_cdata_id, NULL, (void *)&item_list);
     ne_xml_push_handler(item_parser, accept_start_title,
             accept_cdata_title, NULL, (void *)&item_list);
     ne_xml_push_handler(item_parser, accept_start_url,
