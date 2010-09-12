@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <neon/ne_uri.h>
+#include <libgen.h>
 #include "iviewiir.h"
 #include "libiview/iview.h"
 
@@ -158,7 +159,10 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
     }
-    iv_fetch_video(&auth, item, "/tmp/something.flv");
+    char *path = strdup(item->url);
+    char *flvname = basename(path);
+    iv_fetch_video(&auth, item, flvname);
+    free(path);
     iv_destroy_auth(&auth);
     iv_destroy_xml_buffer(auth_xml_buf);
 }
