@@ -158,10 +158,14 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 
 int main(int argc, char **argv) {
     long bsopts = 0;
-#define OPT_SERIES_LIST 1 << 1
-#define OPT_ITEMS_LIST 1 << 2
-#define OPT_DOWNLOAD 1 << 3
-#define OPT_SERIES 1 << 4
+#define OPT_SERIES_LIST (1 << 1)
+#define OPT_ITEMS_LIST (1 << 2)
+#define OPT_DOWNLOAD (1 << 3)
+#define OPT_SERIES (1 << 4)
+#define OPT_s(opts) (opts & OPT_SERIES_LIST)
+#define OPT_i(opts) (opts & OPT_ITEMS_LIST)
+#define OPT_S(opts) (opts & OPT_SERIES)
+#define OPT_d(opts) (opts & OPT_DOWNLOAD)
     char *opts = "ad:fi:sS";
     int series_id, download_id;
     int lflag;
@@ -206,15 +210,14 @@ int main(int argc, char **argv) {
         error("No items in index, exiting\n");
         return 1;
     }
-    if(bsopts & OPT_SERIES_LIST) {
+    if(OPT_s(bsopts)) {
         int i;
         for(i=0; i<index_len; i++) {
             printf("%d : %s\n", index[i].id, index[i].title);
         }
         return 0;
     }
-    if(bsopts & OPT_ITEMS_LIST ||
-            (bsopts & OPT_DOWNLOAD && bsopts & OPT_SERIES)) {
+    if(OPT_i(bsopts) || (OPT_d(bsopts) && OPT_S(bsopts))) {
         debug("series_id: %d\n", series_id);
         int i;
         for(i=0; i<index_len; i++) {
@@ -228,13 +231,13 @@ int main(int argc, char **argv) {
             error("No items in series, exiting\n");
             return 1;
         }
-        if(bsopts & OPT_ITEMS_LIST) {
+        if(OPT_i(bsopts)) {
             for(i=1; i<items_len; i++) {
                 printf("%d -- %s -- %s\n",
                         items[i].id, items[i].title, items[i].url);
             }
         }
-        if(bsopts & OPT_DOWNLOAD) {
+        if(OPT_d(bsopts)) {
             for(i=0; i<items_len; i++) {
                 if(download_id == items[i].id) {
                     break;
