@@ -157,6 +157,7 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 }
 
 int main(int argc, char **argv) {
+    int return_val = 0;
     long bsopts = 0;
 #define OPT_SERIES_LIST (1 << 1)
 #define OPT_ITEMS_LIST (1 << 2)
@@ -197,6 +198,10 @@ int main(int argc, char **argv) {
                 break;
         }
     }
+    if(!bsopts) {
+        error("Please specify an option\n");
+        return 1;
+    }
     struct iv_series *index;
     struct iv_item *items;
     struct iv_config config;
@@ -208,14 +213,16 @@ int main(int argc, char **argv) {
     ssize_t index_len = iviewiir_index(&config, &index);
     if(0 == index_len) {
         error("No items in index, exiting\n");
-        return 1;
+        return_val = 1;
+        goto config_cleanup;
     }
     if(OPT_s(bsopts)) {
         int i;
         for(i=0; i<index_len; i++) {
             printf("%d : %s\n", index[i].id, index[i].title);
         }
-        return 0;
+        return_val = 0;
+        goto index_cleanup;
     }
     if(OPT_i(bsopts) || (OPT_d(bsopts) && OPT_S(bsopts))) {
         debug("series_id: %d\n", series_id);
@@ -229,7 +236,8 @@ int main(int argc, char **argv) {
         ssize_t items_len = iviewiir_series(&config, &index[i], &items);
         if(1 > items_len) {
             error("No items in series, exiting\n");
-            return 1;
+            return_val = 1;
+            goto index_cleanup;
         }
         if(OPT_i(bsopts)) {
             for(i=1; i<items_len; i++) {
@@ -246,11 +254,14 @@ int main(int argc, char **argv) {
             debug("downloading %s\n", items[i].title);
             iviewiir_download(&config, &(items[i]));
         }
-        return 0;
+        return_val = 0;
     }
+items_cleanup:
     iv_destroy_series_items(items);
+index_cleanup:
     iv_destroy_index(index, index_len);
+config_cleanup:
     iv_destroy_config(&config);
     free(cache_dir);
-    return 0;
+    return return_val;
 }
