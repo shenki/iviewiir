@@ -160,24 +160,36 @@ int main(int argc, char **argv) {
     long bsopts = 0;
 #define OPT_SERIES_LIST 1 << 1
 #define OPT_ITEMS_LIST 1 << 2
-    char *opts = "ad:fi:s";
-    int series_id;
+#define OPT_DOWNLOAD 1 << 3
+#define OPT_SERIES 1 << 4
+    char *opts = "ad:fi:sS";
+    int series_id, download_id;
     int lflag;
     struct option lopts[] = {
+        {"download", 1, NULL, 'd'},
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
+        {"series", 1, NULL, 'S'},
         {0, 0, 0, 0}
     };
     int lindex;
     char opt;
     while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
         switch(opt) {
+            case 'd':
+                bsopts |= OPT_DOWNLOAD;
+                download_id = atoi(optarg);
+                break;
             case 'i':
                 bsopts |= OPT_ITEMS_LIST;
                 series_id = atoi(optarg);
                 break;
             case 's':
                 bsopts |= OPT_SERIES_LIST;
+                break;
+            case 'S':
+                bsopts |= OPT_SERIES;
+                series_id = atoi(optarg);
                 break;
         }
     }
@@ -201,7 +213,8 @@ int main(int argc, char **argv) {
         }
         return 0;
     }
-    if(bsopts & OPT_ITEMS_LIST) {
+    if(bsopts & OPT_ITEMS_LIST ||
+            (bsopts & OPT_DOWNLOAD && bsopts & OPT_SERIES)) {
         debug("series_id: %d\n", series_id);
         int i;
         for(i=0; i<index_len; i++) {
@@ -215,13 +228,23 @@ int main(int argc, char **argv) {
             error("No items in series, exiting\n");
             return 1;
         }
-        for(i=1; i<items_len; i++) {
-            printf("%d -- %s -- %s\n",
-                    items[i].id, items[i].title, items[i].url);
+        if(bsopts & OPT_ITEMS_LIST) {
+            for(i=1; i<items_len; i++) {
+                printf("%d -- %s -- %s\n",
+                        items[i].id, items[i].title, items[i].url);
+            }
+        }
+        if(bsopts & OPT_DOWNLOAD) {
+            for(i=0; i<items_len; i++) {
+                if(download_id == items[i].id) {
+                    break;
+                }
+            }
+            debug("downloading %s\n", items[i].title);
+            iviewiir_download(&config, &(items[i]));
         }
         return 0;
     }
-    iviewiir_download(&config, &(items[1]));
     iv_destroy_series_items(items);
     iv_destroy_index(index, index_len);
     iv_destroy_config(&config);
