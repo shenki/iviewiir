@@ -159,9 +159,12 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 int main(int argc, char **argv) {
     long bsopts = 0;
 #define OPT_SERIES_LIST 1 << 1
+#define OPT_ITEMS_LIST 1 << 2
     char *opts = "ad:fi:s";
+    int series_id;
     int lflag;
     struct option lopts[] = {
+        {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
         {0, 0, 0, 0}
     };
@@ -169,6 +172,10 @@ int main(int argc, char **argv) {
     char opt;
     while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
         switch(opt) {
+            case 'i':
+                bsopts |= OPT_ITEMS_LIST;
+                series_id = atoi(optarg);
+                break;
             case 's':
                 bsopts |= OPT_SERIES_LIST;
                 break;
@@ -194,15 +201,25 @@ int main(int argc, char **argv) {
         }
         return 0;
     }
-    ssize_t items_len = iviewiir_series(&config, index, &items);
-    if(1 > items_len) {
-        error("No items in series, exiting\n");
-        return 1;
-    }
-    int i;
-    for(i=1; i<items_len; i++) {
-        printf("%d -- %s -- %s\n",
-                items[i].id, items[i].title, items[i].url);
+    if(bsopts & OPT_ITEMS_LIST) {
+        debug("series_id: %d\n", series_id);
+        int i;
+        for(i=0; i<index_len; i++) {
+            if(series_id == index[i].id) {
+                break;
+            }
+        }
+        debug("series index: %d\n", i);
+        ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+        if(1 > items_len) {
+            error("No items in series, exiting\n");
+            return 1;
+        }
+        for(i=1; i<items_len; i++) {
+            printf("%d -- %s -- %s\n",
+                    items[i].id, items[i].title, items[i].url);
+        }
+        return 0;
     }
     iviewiir_download(&config, &(items[1]));
     iv_destroy_series_items(items);
