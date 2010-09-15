@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <getopt.h>
 #include <neon/ne_uri.h>
 #include <libgen.h>
 #include "iviewiir.h"
@@ -156,6 +157,23 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 }
 
 int main(int argc, char **argv) {
+    long bsopts = 0;
+#define OPT_SERIES_LIST 1 << 1
+    char *opts = "ad:fi:s";
+    int lflag;
+    struct option lopts[] = {
+        {"series-list", 0, NULL, 's'},
+        {0, 0, 0, 0}
+    };
+    int lindex;
+    char opt;
+    while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
+        switch(opt) {
+            case 's':
+                bsopts |= OPT_SERIES_LIST;
+                break;
+        }
+    }
     struct iv_series *index;
     struct iv_item *items;
     struct iv_config config;
@@ -168,6 +186,13 @@ int main(int argc, char **argv) {
     if(0 == index_len) {
         error("No items in index, exiting\n");
         return 1;
+    }
+    if(bsopts & OPT_SERIES_LIST) {
+        int i;
+        for(i=0; i<index_len; i++) {
+            printf("%d : %s\n", index[i].id, index[i].title);
+        }
+        return 0;
     }
     ssize_t items_len = iviewiir_series(&config, index, &items);
     if(1 > items_len) {
