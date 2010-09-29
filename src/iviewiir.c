@@ -26,10 +26,11 @@ static char *cache_dir;
 #define error(format, ...) fprintf(stderr, "ERROR: " format, ##__VA_ARGS__)
 
 char* join_path(char *dirname, char *fname) {
-    char *fpath = malloc(strlen(dirname) + strlen(fname) + 1);
+    /* Two extra characters: one for the null, one for the path seperator. */
+    char *fpath = malloc(strlen(dirname) + strlen(fname) + 2);
     strcpy(fpath, dirname);
     if(fpath[strlen(fpath)-1] != '/') {
-        strcat(fpath, "/");
+        strncat(fpath, "/", 1);
     }
     strncat(fpath, fname, 14);
     return fpath;
