@@ -156,51 +156,65 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
     iv_destroy_xml_buffer(auth_xml_buf);
 }
 
+void usage(void) {
+    printf("Usage: iviewiir [-ihs] [SID:PID]\n\n"
+           "\t-i --items-list=SID: List episodes in a series. "
+           "Requires a SID as a parameter. "
+           "The first element on each output line is a SID:PID tuple\n"
+           "\t-s --series-list: List the series available. "
+           "The first element on each output line is the SID\n"
+           "\t-h --help: Show this help\n\n"
+           "Without any parameters a SID:PID tuple should be supplied, "
+           "which will download the associated video\n");
+}
+
 int main(int argc, char **argv) {
     int return_val = 0;
     long bsopts = 0;
 #define OPT_SERIES_LIST (1 << 1)
 #define OPT_ITEMS_LIST (1 << 2)
-#define OPT_DOWNLOAD (1 << 3)
-#define OPT_SERIES (1 << 4)
+#define OPT_HELP (1 << 3)
+#define OPT_h(opts) (opts & OPT_HELP)
 #define OPT_s(opts) (opts & OPT_SERIES_LIST)
 #define OPT_i(opts) (opts & OPT_ITEMS_LIST)
-#define OPT_S(opts) (opts & OPT_SERIES)
-#define OPT_d(opts) (opts & OPT_DOWNLOAD)
-    char *opts = "ad:fi:sS";
-    int series_id, download_id;
+    char *opts = "i:sh";
+    int sid, pid;
     int lflag;
     struct option lopts[] = {
-        {"download", 1, NULL, 'd'},
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
-        {"series", 1, NULL, 'S'},
+        {"help", 0, NULL, 'h'},
         {0, 0, 0, 0}
     };
     int lindex;
     char opt;
     while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
         switch(opt) {
-            case 'd':
-                bsopts |= OPT_DOWNLOAD;
-                download_id = atoi(optarg);
-                break;
             case 'i':
                 bsopts |= OPT_ITEMS_LIST;
-                series_id = atoi(optarg);
+                sid = atoi(optarg);
                 break;
             case 's':
                 bsopts |= OPT_SERIES_LIST;
                 break;
-            case 'S':
-                bsopts |= OPT_SERIES;
-                series_id = atoi(optarg);
+            case 'h':
+                bsopts |= OPT_HELP;
                 break;
         }
     }
-    if(!bsopts) {
-        error("Please specify an option\n");
-        return 1;
+    if(0 == bsopts) {
+        if(NULL == argv[optind] || NULL == strchr(argv[optind], ':')) {
+            error("please supply SID:PID parameter\n\n");
+            usage();
+            return 1;
+        }
+        char *sp_tuple = strdup(argv[optind]);
+        sid = atoi(strtok(sp_tuple, ":"));
+        pid = atoi(strtok(NULL, ":"));
+    }
+    if(OPT_h(bsopts)) {
+        usage();
+        return 0;
     }
     struct iv_series *index;
     struct iv_item *items;
@@ -216,6 +230,7 @@ int main(int argc, char **argv) {
         return_val = 1;
         goto config_cleanup;
     }
+    // Check if they wanted a series list
     if(OPT_s(bsopts)) {
         int i;
         for(i=0; i<index_len; i++) {
@@ -224,14 +239,32 @@ int main(int argc, char **argv) {
         return_val = 0;
         goto index_cleanup;
     }
-    if(OPT_i(bsopts) || (OPT_d(bsopts) && OPT_S(bsopts))) {
-        debug("series_id: %d\n", series_id);
-        int i;
-        for(i=0; i<index_len; i++) {
-            if(series_id == index[i].id) {
-                break;
-            }
+    // Fetch episode lists for the SID
+    debug("sid: %d\n", sid);
+    int i;
+    for(i=0; i<index_len; i++) {
+        if(sid == index[i].id) {
+            break;
         }
+    }
+    debug("series index: %d\n", i);
+    ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+    if(1 > items_len) {
+        error("No items in series, exiting\n");
+        return_val = 1;
+        goto index_cleanup;
+    }
+    // Check if they want an episode list
+    if(OPT_i(bsopts)) {
+        for(i=1; i<items_len; i++) {
+            printf("%d:%d %s\n",
+                    sid, items[i].id, items[i].title);
+        }
+        return_val = 0;
+        goto items_cleanup;
+    }
+    // Otherwise, if they supplied a SID:PID tuple, download the PID
+    if(NULL != argv[optind] && NULL != strchr(argv[optind], ':')) {
         debug("series index: %d\n", i);
         ssize_t items_len = iviewiir_series(&config, &index[i], &items);
         if(1 > items_len) {
@@ -239,22 +272,14 @@ int main(int argc, char **argv) {
             return_val = 1;
             goto index_cleanup;
         }
-        if(OPT_i(bsopts)) {
-            for(i=1; i<items_len; i++) {
-                printf("%d -- %s -- %s\n",
-                        items[i].id, items[i].title, items[i].url);
+        for(i=0; i<items_len; i++) {
+            if(pid == items[i].id) {
+                break;
             }
         }
-        if(OPT_d(bsopts)) {
-            for(i=0; i<items_len; i++) {
-                if(download_id == items[i].id) {
-                    break;
-                }
-            }
-            debug("downloading %s\n", items[i].title);
-            iviewiir_download(&config, &(items[i]));
-        }
-        return_val = 0;
+        debug("downloading %s\n", items[i].title);
+        iviewiir_download(&config, &(items[i]));
+        debug("download complete\n");
     }
 items_cleanup:
     iv_destroy_series_items(items);
