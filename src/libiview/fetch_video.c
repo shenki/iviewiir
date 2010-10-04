@@ -24,7 +24,7 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     RTMP_UpdateBufferMS(rtmp);
     int read;
     size_t wrote;
-    while(0 <= (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
+    while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
         wrote = fwrite(buf, 1, read, outfile);
         if(wrote != read) {
             return_val = -IV_ENOMEM;
