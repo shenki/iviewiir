@@ -228,10 +228,11 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     ne_xml_push_handler(item_parser, accept_start_home,
             accept_cdata_home, NULL, (void *)&item_list);
     int result = ne_xml_parse(item_parser, buf, len);
+    ne_xml_parse(item_parser, buf, 0);
+    ne_xml_destroy(item_parser);
     if(0 != result) {
         return -IV_ESAXPARSE;
     }
-    ne_xml_parse(item_parser, buf, 0);
     *items = item_list.head;
     return item_list.len;
 }

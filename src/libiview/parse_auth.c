@@ -77,6 +77,7 @@ int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
             accept_cdata_free, NULL, (void *)auth);
     int result = ne_xml_parse(auth_parser, buf, len);
     ne_xml_parse(auth_parser, buf, 0);
+    ne_xml_destroy(auth_parser);
     if(result) {
         return -IV_ESAXPARSE;
     }
