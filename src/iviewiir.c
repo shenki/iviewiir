@@ -122,7 +122,7 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
     char *series_buf;
     const ssize_t len =
         iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
-    if(0 > len) {
+    if(0 >= len) {
         iv_destroy_xml_buffer(series_buf);
         return len;
     }
@@ -175,15 +175,18 @@ int main(int argc, char **argv) {
 #define OPT_SERIES_LIST (1 << 1)
 #define OPT_ITEMS_LIST (1 << 2)
 #define OPT_HELP (1 << 3)
+#define OPT_ALL (1 << 4)
 #define OPT_h(opts) (opts & OPT_HELP)
 #define OPT_s(opts) (opts & OPT_SERIES_LIST)
 #define OPT_i(opts) (opts & OPT_ITEMS_LIST)
-    char *opts = "i:sh";
+#define OPT_a(opts) (opts & OPT_ALL)
+    char *opts = "ai:sh";
     int sid, pid;
     int lflag;
     struct option lopts[] = {
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
+        {"all", 0, NULL, 'a'},
         {"help", 0, NULL, 'h'},
         {0, 0, 0, 0}
     };
@@ -191,6 +194,9 @@ int main(int argc, char **argv) {
     char opt;
     while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
         switch(opt) {
+            case 'a':
+                bsopts |= OPT_ALL;
+                break;
             case 'i':
                 bsopts |= OPT_ITEMS_LIST;
                 sid = atoi(optarg);
@@ -231,6 +237,31 @@ int main(int argc, char **argv) {
         return_val = 1;
         goto config_cleanup;
     }
+    // Check if they want everything listed
+    int i;
+    if(OPT_a(bsopts)) {
+        for(i=0; i<index_len; i++) {
+            ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+            if(0 > items_len) {
+                error("iviewiir_series returned %zd\n", items_len);
+                continue;
+            }
+            if(0 == items_len) {
+                continue;
+            }
+            if(1 < items_len) {
+                printf("%s\n", index[i].title);
+                int j;
+                for(j=1; j<items_len; j++) {
+                    printf("%d:%d - %s\n", index[i].id, items[j].id, items[j].title);
+                }
+                printf("\n");
+            }
+            iv_destroy_series_items(items, items_len);
+        }
+        return_val = 0;
+        goto index_cleanup;
+    }
     // Check if they wanted a series list
     if(OPT_s(bsopts)) {
         int i;
@@ -242,7 +273,6 @@ int main(int argc, char **argv) {
     }
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
-    int i;
     for(i=0; i<index_len; i++) {
         if(sid == index[i].id) {
             break;
@@ -258,7 +288,7 @@ int main(int argc, char **argv) {
     // Check if they want an episode list
     if(OPT_i(bsopts)) {
         for(i=1; i<items_len; i++) {
-            printf("%d:%d %s\n",
+            printf("%d:%d - %s\n",
                     sid, items[i].id, items[i].title);
         }
         return_val = 0;
