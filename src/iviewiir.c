@@ -250,7 +250,7 @@ int main(int argc, char **argv) {
     debug("series index: %d\n", i);
     ssize_t items_len = iviewiir_series(&config, &index[i], &items);
     if(1 > items_len) {
-        error("No items in series, exiting\n");
+        printf("No items in series.\n");
         return_val = 1;
         goto index_cleanup;
     }
