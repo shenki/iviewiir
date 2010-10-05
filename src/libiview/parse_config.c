@@ -89,5 +89,6 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
             NULL, NULL, (void *)config);
     int result = ne_xml_parse(config_parser, buf, len);
     ne_xml_parse(config_parser, buf, 0);
+    ne_xml_destroy(config_parser);
     return result ? -IV_ESAXPARSE : IV_OK;
 }

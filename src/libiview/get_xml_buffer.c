@@ -68,6 +68,7 @@ ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
     }
     *buf_ptr = realloc_result;
     (*buf_ptr)[total_len] = '\0';
+    ne_strclean(*buf_ptr);
     return_val = total_len;
 done:
     ne_request_destroy(config_request);
