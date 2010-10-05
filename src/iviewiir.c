@@ -313,7 +313,7 @@ int main(int argc, char **argv) {
         debug("download complete\n");
     }
 items_cleanup:
-    iv_destroy_series_items(items);
+    iv_destroy_series_items(items, items_len);
 index_cleanup:
     iv_destroy_index(index, index_len);
 config_cleanup:
