@@ -53,6 +53,10 @@ size_t load_buf(char **buf, char *fname) {
     }
     *buf = malloc(fstats.st_size);
     FILE *fs = fopen(fpath, "r");
+    if (fs == NULL) {
+      perror(fpath);
+      goto end;
+    }
     sz = fread(*buf, sizeof(char), fstats.st_size, fs);
     fclose(fs);
     if (sz == fstats.st_size) {
