@@ -1,17 +1,17 @@
 bin_PROGRAMS = iviewiir
-iviewiir_SOURCES = src/iviewiir.c \
-		   src/iviewiir.h \
-		   src/libiview/iview.h \
-		   src/libiview/get_xml_buffer.c \
-		   src/libiview/parse_config.c \
-		   src/libiview/get_index.c \
-		   src/libiview/parse_index.c \
-		   src/libiview/get_series_items.c \
-		   src/libiview/parse_series_items.c \
-		   src/libiview/destroy_config.c \
-		   src/libiview/destroy_index.c \
-		   src/libiview/parse_auth.c \
-		   src/xdg-user-dir-lookup.c \
-		   src/libiview/generate_video_uri.c \
-		   src/libiview/fetch_video.c \
-		   src/libiview/destroy_series_items.c
+iviewiir_SOURCES = iviewiir.c \
+		   iviewiir.h \
+		   libiview/iview.h \
+		   libiview/get_xml_buffer.c \
+		   libiview/parse_config.c \
+		   libiview/get_index.c \
+		   libiview/parse_index.c \
+		   libiview/get_series_items.c \
+		   libiview/parse_series_items.c \
+		   libiview/destroy_config.c \
+		   libiview/destroy_index.c \
+		   libiview/parse_auth.c \
+		   xdg-user-dir-lookup.c \
+		   libiview/generate_video_uri.c \
+		   libiview/fetch_video.c \
+		   libiview/destroy_series_items.c

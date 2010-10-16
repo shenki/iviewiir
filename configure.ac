@@ -2,7 +2,7 @@ dnl configure.ac for iviewiir
 
 AC_INIT([iviewiir], [0.1])
 AC_PREREQ(2.65)
-AC_CONFIG_SRCDIR([src/iviewiir.c])
+AC_CONFIG_SRCDIR([iviewiir.c])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE([1.11.1])
