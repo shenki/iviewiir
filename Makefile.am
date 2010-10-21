@@ -15,7 +15,9 @@ libiview_la_SOURCES = \
 		   libiview/fetch_video.c \
 		   libiview/destroy_series_items.c
 
-libiview_la_LDFLAGS = -version-info 0:0:0
+libiview_la_CFLAGS = $(DEPS_CFLAGS)
+libiview_la_LIBADD = $(DEPS_LIBS)
+libiview_la_LDFLAGS = -version-info 0:1:0
 
 library_includedir=$(includedir)/libiview-0.1/libiview
 library_include_HEADERS = libiview/iview.h
