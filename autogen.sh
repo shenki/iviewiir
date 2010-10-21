@@ -1,5 +1,4 @@
 #!/bin/sh
-mkdir config 2> /dev/null
-aclocal
-automake --add-missing
-autoreconf
+mkdir m4
+libtoolize --force --install
+autoreconf --install
