@@ -163,6 +163,7 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 
 void usage(void) {
     printf("Usage: iviewiir [-ihs] [SID:PID]\n\n"
+           "\t-a --all: List all items in all non-empty series.\n"
            "\t-i --items-list=SID: List episodes in a series. "
            "Requires a SID as a parameter. "
            "The first element on each output line is a SID:PID tuple\n"
