@@ -17,10 +17,12 @@ libiview_la_SOURCES = \
 
 libiview_la_CFLAGS = $(DEPS_CFLAGS)
 libiview_la_LIBADD = $(DEPS_LIBS)
-libiview_la_LDFLAGS = -version-info 0:1:0
+libiview_la_LDFLAGS = -version-info @LIBIVIEW_SO_VERSION@
 
-library_includedir=$(includedir)/libiview-0.1/libiview
+library_includedir=$(includedir)/libiview-@LIBIVIEW_API_VERSION@/libiview
 library_include_HEADERS = libiview/iview.h
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libiview/libiview-@LIBIVIEW_API_VERSION@.pc
 
 bin_PROGRAMS = iviewiir
 iviewiir_SOURCES = \
