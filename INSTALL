@@ -1,1 +1,11 @@
-/usr/share/automake-1.11/INSTALL
+= Dependencies
+    1. neon:    http://www.webdav.org/neon/
+    2. c-json:  http://oss.metaparadigm.com/json-c/
+    3. librtmp: http://rtmpdump.mplayerhq.hu/
+
+= Building:
+
+Note: You can ignore the libtool warnings spouted during the execution of
+autogen.sh.
+
+$ ./autogen.sh && ./configure && make

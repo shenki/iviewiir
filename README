@@ -1,3 +1,38 @@
-Building:
+        Description:
 
-$ ./autogen.sh; ./configure && make
+iviewiir is an application for listing and downloading episodes from ABC's
+iView platform. Plenty of these already exist, however the point of
+differentiation for iviewiir is that the end goal is to create a homebrew Wii
+application, hence the C implementation.
+
+        Example Usage:
+
+$ ./iviewiir --help
+Usage: iviewiir [-ihs] [SID:PID]
+
+        -a --all: List all items in all non-empty series.
+        -i --items-list=SID: List episodes in a series. Requires a SID as a parameter. The first element on each output line is a SID:PID tuple
+        -s --series-list: List the series available. The first element on each output line is the SID
+        -h --help: Show this help
+
+Without any parameters a SID:PID tuple should be supplied, which will download the associated video
+
+$ ./iviewiir --series-list
+2716511 : "Hope Springs Series 1"
+3032922 : "New Tricks Series 6"
+2752253 : "Rush TV Series 1"
+...
+
+$ ./iviewiir --items-list 2716511
+2716511:472085 - Hope Springs Series 1 Episode 6
+2716511:472087 - Hope Springs Series 1 Episode 7
+
+$ ./iviewiir 2716511:472085 # downloads "Hope Springs Series 1 Episode 6"
+
+        Thanks:
+
+iviewiir owes most of its design and implementation to the python-iview[1]
+project. The abstractions aren't followed completely but a lot of the
+implementation ideas were borrowed from there. Many thanks to Jeremy Visser!
+
+[1] https://jeremy.visser.name/2009/08/30/python-iview/
