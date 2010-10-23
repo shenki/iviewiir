@@ -13,7 +13,8 @@ libiview_la_SOURCES = \
 		   libiview/parse_auth.c \
 		   libiview/generate_video_uri.c \
 		   libiview/fetch_video.c \
-		   libiview/destroy_series_items.c
+		   libiview/destroy_series_items.c \
+		   libiview/destroy_auth.c
 
 libiview_la_CFLAGS = $(DEPS_CFLAGS)
 libiview_la_LIBADD = $(DEPS_LIBS)

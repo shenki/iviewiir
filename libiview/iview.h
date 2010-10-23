@@ -74,9 +74,7 @@ struct iv_auth {
 #endif
 
 ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr);
-INLINE void iv_destroy_xml_buffer(char *buf) {
-    free(buf);
-}
+#define iv_destroy_xml_buffer(buf) free(buf)
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 void iv_destroy_config(struct iv_config *config);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
@@ -89,14 +87,9 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 void iv_destroy_series_items(struct iv_item *items, size_t items_len);
 int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
         struct iv_auth *auth);
-INLINE void iv_destroy_auth(struct iv_auth *auth) {
-    ne_uri_free(&auth->server);
-    free(auth->token);
-}
+void iv_destroy_auth(struct iv_auth *auth);
 char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item);
-INLINE void iv_destroy_video_uri(char *uri) {
-    free(uri);
-}
+#define iv_destroy_video_uri(uri) free(uri)
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
 
 #endif /* LIBIVIEW_H */
