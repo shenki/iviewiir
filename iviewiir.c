@@ -76,9 +76,9 @@ void dump_buf(void *buf, size_t buf_len, char *fname) {
     FILE *fs = fopen(fpath, "w");
     if(fs==NULL) {
         perror(fpath);
-    } else {
-        fwrite(buf, sizeof(char), buf_len, fs);
+        return;
     }
+    fwrite(buf, sizeof(char), buf_len, fs);
     fwrite("\n", sizeof(char), 1, fs);
     fclose(fs);
 }
