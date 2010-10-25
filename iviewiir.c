@@ -312,7 +312,7 @@ int main(int argc, char **argv) {
                 break;
             }
         }
-        debug("downloading %s\n", items[i].title);
+        printf("%s : %s\n", items[i].title, basename(items[i].url));
         iviewiir_download(&config, &(items[i]));
         debug("download complete\n");
     }

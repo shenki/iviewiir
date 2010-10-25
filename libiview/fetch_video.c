@@ -13,7 +13,6 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
         return -IV_ENOMEM;
     }
     char *rtmp_uri = iv_generate_video_uri(auth, item);
-    printf("rtmp_uri: %s\n", rtmp_uri);
     FILE *outfile = fopen(outpath, "w");
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
