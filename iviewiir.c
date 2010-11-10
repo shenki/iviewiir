@@ -18,12 +18,15 @@ static char *cache_dir;
 
 #if defined(DEBUG)
 #define debug(format, ...) \
-        fprintf(stderr, "DEBUG (L%d): " format, __LINE__, ##__VA_ARGS__)
+        fprintf(stderr, "DEBUG (%s:%d): " format, \
+                __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define debug(...) do {} while (0)
 #endif
 
-#define error(format, ...) fprintf(stderr, "ERROR: " format, ##__VA_ARGS__)
+#define error(format, ...) \
+        fprintf(stderr, "ERROR (%s:%d):" format, \
+                __FILE__, __LINE__, ##__VA_ARGS__)
 
 char* join_path(char *dirname, char *fname) {
     /* Two extra characters: one for the null, one for the path seperator. */
