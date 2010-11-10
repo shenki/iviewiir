@@ -144,11 +144,7 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
     char *auth_xml_buf;
     struct iv_auth auth;
     memset(&auth, 0, sizeof(auth));
-    ne_uri auth_uri;
-    if(ne_uri_parse(IV_AUTH_URI, &auth_uri)) {
-        error("uri parsing failed on %s\n", IV_AUTH_URI);
-    }
-    ssize_t auth_buf_len = iv_get_xml_buffer(&auth_uri, &auth_xml_buf);
+    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
