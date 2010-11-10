@@ -241,7 +241,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
 }
 
 void usage(void) {
-    printf("Usage: iviewiir [-ihs] [SID:PID]\n\n"
+    printf("Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
            "\t-a --all: List all items in all non-empty series.\n"
            "\t-i --items-list=SID: List episodes in a series. "
            "Requires a SID as a parameter. "
@@ -293,12 +293,10 @@ int main(int argc, char **argv) {
                 break;
         }
     }
-    if(0 == bsopts) {
-        if(argc == optind || NULL == strchr(argv[optind], ':')) {
-            error("please supply SID:PID parameter\n\n");
-            usage();
-            return 1;
-        }
+    if(0 == bsopts && argc == optind) {
+        error("please supply SID or SID:PID parameter\n\n");
+        usage();
+        return 1;
     }
     if(OPT_h(bsopts)) {
         usage();
@@ -339,11 +337,38 @@ int main(int argc, char **argv) {
         return_val = list_items(&config, index, index_len, i_sid);
         goto index_cleanup;
     }
-    // Otherwise, if they supplied a SID:PID tuple, download the PID
-    while(optind < argc && NULL != strchr(argv[optind], ':')) {
-        const int sid = atoi(strtok(argv[optind], ":"));
-        const int pid = atoi(strtok(NULL, ":"));
-        return_val += download_item(&config, index, index_len, sid, pid);
+    // Otherwise, if they supplied a SID or SID:PID tuple, download the PID
+    while(optind < argc) {
+        if(NULL != strchr(argv[optind], ':')) {
+            // SID:PID
+            const int sid = atoi(strtok(argv[optind], ":"));
+            const int pid = atoi(strtok(NULL, ":"));
+            return_val += download_item(&config, index, index_len, sid, pid);
+        } else {
+            // Check if it's a valid SID
+            const int sid = atoi(argv[optind]);
+            struct iv_item *items;
+            // Fetch episode lists for the SID
+            debug("sid: %d\n", sid);
+            int i;
+            for(i=0; i<index_len; i++) {
+                if(sid == index[i].id) {
+                    break;
+                }
+            }
+            // Fetch items in series
+            ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+            if(1 > items_len) {
+                printf("No items in series.\n");
+                return_val += 1;
+            } else {
+                for(i=1; i<items_len; i++) {
+                    return_val += download_item(&config, index, index_len, sid,
+                            items[i].id);
+                }
+                iv_destroy_series_items(items, items_len);
+            }
+        }
         optind++;
     }
 index_cleanup:
