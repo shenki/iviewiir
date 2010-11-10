@@ -11,7 +11,7 @@
 #include "../iviewiir.h"
 #include "iview.h"
 
-ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr) {
+ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr) {
     int return_val;
     int init_result = ne_sock_init();
     ne_session *config_session = ne_session_create(uri->scheme, uri->host,

@@ -72,7 +72,7 @@ struct iv_auth {
 #define INLINE
 #endif
 
-ssize_t iv_get_xml_buffer(ne_uri *uri, char **buf_ptr);
+ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr);
 #define iv_destroy_xml_buffer(buf) free(buf)
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 void iv_destroy_config(struct iv_config *config);
