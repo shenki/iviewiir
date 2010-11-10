@@ -5,8 +5,20 @@
 #ifndef LIBIVIEW_H
 #define LIBIVIEW_H
 
-#define IV_MIN(a,b) (a <= b ? a : b)
-#define IV_MAX(a,b) (a >= b ? a : b)
+
+/* Typesafe min/max macros from Linux: include/linux/kernel.h */
+#define IV_MIN(x, y) ({        \
+            typeof(x) _min1 = (x);      \
+            typeof(y) _min2 = (y);      \
+            (void) (&_min1 == &_min2);    \
+            _min1 < _min2 ? _min1 : _min2; })
+
+#define IV_MAX(x, y) ({        \
+            typeof(x) _max1 = (x);      \
+            typeof(y) _max2 = (y);      \
+            (void) (&_max1 == &_max2);    \
+            _max1 > _max2 ? _max1 : _max2; })
+
 
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
