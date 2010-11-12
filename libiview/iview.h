@@ -98,9 +98,8 @@ ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr);
 int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
 void iv_destroy_config(struct iv_config *config);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
-ssize_t iv_parse_index(const char *buf, size_t len,
-        struct iv_series **index_ptr);
-void iv_destroy_index(struct iv_series *index, size_t len);
+int iv_parse_index(const char *buf, struct iv_series **index_ptr);
+void iv_destroy_index(struct iv_series *index, int len);
 ssize_t iv_get_series_items(struct iv_config *config, const char *uri, struct
         iv_series *series, char **buf_ptr);
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);

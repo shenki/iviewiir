@@ -110,7 +110,7 @@ int iviewiir_configure(struct iv_config *config) {
     return result;
 }
 
-ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
+int iviewiir_index(struct iv_config *config, struct iv_series **index) {
     char *index_xml_buf;
     ssize_t index_buf_len = load_buf(&index_xml_buf, INDEX_FILE);
     if(index_buf_len == 0) {
@@ -118,7 +118,7 @@ ssize_t iviewiir_index(struct iv_config *config, struct iv_series **index) {
         dump_buf(index_xml_buf, index_buf_len, INDEX_FILE);
     }
     debug("index:\n%s\n", index_xml_buf);
-    ssize_t index_len = iv_parse_index(index_xml_buf, index_buf_len, index);
+    int index_len = iv_parse_index(index_xml_buf, index);
     iv_destroy_xml_buffer(index_xml_buf);
     return index_len;
 }
@@ -160,7 +160,7 @@ void iviewiir_download(const struct iv_config *config, const struct iv_item *ite
 }
 
 void list_all(struct iv_config *config, struct iv_series *index,
-        size_t index_len) {
+        int index_len) {
     struct iv_item *items;
     int i;
     for(i=0; i<index_len; i++) {
@@ -186,7 +186,7 @@ void list_all(struct iv_config *config, struct iv_series *index,
 }
 
 int list_items(struct iv_config *config, struct iv_series *index,
-        size_t index_len, int sid) {
+        int index_len, int sid) {
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
@@ -211,7 +211,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
 }
 
 int download_item(struct iv_config *config, struct iv_series *index,
-        const size_t index_len, const int sid, const int pid) {
+        const int index_len, const int sid, const int pid) {
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
@@ -307,7 +307,7 @@ int main(int argc, char **argv) {
         error("Couldn't configure iviewiir, exiting\n");
         return 1;
     }
-    ssize_t index_len = iviewiir_index(&config, &index);
+    int index_len = iviewiir_index(&config, &index);
     if(0 == index_len) {
         error("No items in index, exiting\n");
         return_val = 1;
