@@ -13,7 +13,10 @@
 
 ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr) {
     int return_val;
-    int init_result = ne_sock_init();
+    int res;
+    if (0 == (res = ne_sock_init())) {
+        return res;
+    }
     ne_session *config_session = ne_session_create(uri->scheme, uri->host,
             0 == uri->port ? ne_uri_defaultport(uri->scheme) : uri->port);
     char *path;
