@@ -28,7 +28,7 @@ static char *cache_dir;
         fprintf(stderr, "ERROR (%s:%d):" format, \
                 __FILE__, __LINE__, ##__VA_ARGS__)
 
-char* join_path(char *dirname, char *fname) {
+char* join_path(const char *dirname, const char *fname) {
     /* Two extra characters: one for the null, one for the path seperator. */
     char *fpath = malloc(strlen(dirname) + strlen(fname) + 2);
     strcpy(fpath, dirname);
@@ -43,7 +43,7 @@ char* join_path(char *dirname, char *fname) {
  * CACHE_VALID_SECONDS.  |buf| is malloced here and the caller must free if
  * size is non-zero.
  * Return value is the size of file read, or zero if it was not read. */
-size_t load_buf(char **buf, char *fname) {
+size_t load_buf(char **buf, const char *fname) {
     struct stat fstats;
     size_t sz = 0;
     char* fpath = join_path(cache_dir, fname);
@@ -72,7 +72,7 @@ end:
     return sz;
 }
 
-void dump_buf(void *buf, size_t buf_len, char *fname) {
+void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
     /* Dump config to disk. */
     char *fpath = join_path(cache_dir, fname);
     FILE *fs = fopen(fpath, "w");
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
 #define OPT_s(opts) (opts & OPT_SERIES_LIST)
 #define OPT_i(opts) (opts & OPT_ITEMS_LIST)
 #define OPT_a(opts) (opts & OPT_ALL)
-    char *opts = "ai:sh";
+    const char *opts = "ai:sh";
     int i_sid;
     struct option lopts[] = {
         {"items-list", 1, NULL, 'i'},

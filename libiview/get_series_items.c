@@ -3,8 +3,8 @@
 #include <neon/ne_string.h>
 #include "iview.h"
 
-ssize_t iv_get_series_items(struct iv_config *config IV_UNUSED, char *uri,
-        struct iv_series *series, char **buf_ptr) {
+ssize_t iv_get_series_items(struct iv_config *config IV_UNUSED,
+        const char *uri, struct iv_series *series, char **buf_ptr) {
     ne_uri series_uri;
     if(ne_uri_parse(uri, &series_uri)) {
         return -IV_EURIPARSE;

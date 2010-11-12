@@ -101,8 +101,8 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 ssize_t iv_parse_index(const char *buf, size_t len,
         struct iv_series **index_ptr);
 void iv_destroy_index(struct iv_series *index, size_t len);
-ssize_t iv_get_series_items(struct iv_config *config, char *uri, struct iv_series *series,
-        char **buf_ptr);
+ssize_t iv_get_series_items(struct iv_config *config, const char *uri, struct
+        iv_series *series, char **buf_ptr);
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 void iv_destroy_series_items(struct iv_item *items, size_t items_len);
 int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,

@@ -4,7 +4,7 @@
 #include <json/json.h>
 #include "iview.h"
 
-ssize_t iv_parse_index(const char *buf, size_t len,
+ssize_t iv_parse_index(const char *buf, size_t len IV_UNUSED,
         struct iv_series **index_ptr) {
     json_object *json_index, *json_element, *json_series;
     json_index = json_tokener_parse(buf);
