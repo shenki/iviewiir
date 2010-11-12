@@ -85,7 +85,9 @@ int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
     if(result) {
         return -IV_ESAXPARSE;
     }
-    auth->prefix = IV_AKAMAI_PREFIX;
+    /* Discard const qualifier, as |auth| is of type ne_uri, and we can't
+     * change ->server to be a const string (even though it is). */
+    auth->prefix = (char*)IV_AKAMAI_PREFIX;
     if(0 == auth->server.host) {
         if(ne_uri_copy(&auth->server, &config->server_streaming)) {
             return -IV_EURIPARSE;
