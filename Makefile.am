@@ -1,6 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libiview.la
 
+CFLAGS += -Wall -Wextra -Wwrite-strings
+
 libiview_la_SOURCES = \
 		   libiview/get_xml_buffer.c \
 		   libiview/parse_config.c \
