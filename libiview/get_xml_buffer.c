@@ -14,8 +14,9 @@
 ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr) {
     int return_val;
     int res;
-    if (0 == (res = ne_sock_init())) {
-        return res;
+    if (0 != (res = ne_sock_init())) {
+        fprintf(stderr, "FATAL: neon failed socket initialisation.\n");
+        exit(EXIT_FAILURE);
     }
     ne_session *config_session = ne_session_create(uri->scheme, uri->host,
             0 == uri->port ? ne_uri_defaultport(uri->scheme) : uri->port);
