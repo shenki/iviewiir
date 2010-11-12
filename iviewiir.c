@@ -25,7 +25,7 @@ static char *cache_dir;
 #endif
 
 #define error(format, ...) \
-        fprintf(stderr, "ERROR (%s:%d):" format, \
+        fprintf(stderr, "ERROR (%s:%d): " format, \
                 __FILE__, __LINE__, ##__VA_ARGS__)
 
 char* join_path(const char *dirname, const char *fname) {
@@ -47,6 +47,7 @@ size_t load_buf(char **buf, const char *fname) {
     struct stat fstats;
     int sz = 0;
     char* fpath = join_path(cache_dir, fname);
+    debug("Loading from cache: %s\n", fpath);
     if (stat(fpath, &fstats) == -1) {
         goto end;
     }
@@ -111,13 +112,14 @@ int iviewiir_configure(struct iv_config *config) {
 }
 
 int iviewiir_index(struct iv_config *config, struct iv_series **index) {
-    char *index_xml_buf;
+    char *index_xml_buf = NULL;
     ssize_t index_buf_len = load_buf(&index_xml_buf, INDEX_FILE);
     if(index_buf_len == 0) {
+        debug("Didn't load index from cache, fetching it\n");
         index_buf_len = iv_get_index(config, &index_xml_buf);
         dump_buf(index_xml_buf, index_buf_len, INDEX_FILE);
     }
-    debug("index:\n%s\n", index_xml_buf);
+    debug("index length %zd:\n%s\n", index_buf_len, index_xml_buf);
     int index_len = iv_parse_index(index_xml_buf, index);
     iv_destroy_xml_buffer(index_xml_buf);
     return index_len;
