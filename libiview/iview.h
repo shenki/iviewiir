@@ -29,7 +29,7 @@
 #define IV_UNUSED __attribute__((unused))
 
 
-#define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
+#define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=374"
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
 #define IV_AKAMAI_PREFIX "/flash/playback/_definst_/"
 #define IV_SWF_HASH "96cc76f1d5385fb5cda6e2ce5c73323a399043d0bb6c687edd807e5c73c42b37"
