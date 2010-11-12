@@ -164,9 +164,9 @@ void list_all(struct iv_config *config, struct iv_series *index,
     struct iv_item *items;
     int i;
     for(i=0; i<index_len; i++) {
-        ssize_t items_len = iviewiir_series(config, &index[i], &items);
+        int items_len = iviewiir_series(config, &index[i], &items);
         if(0 > items_len) {
-            error("iviewiir_series returned %zd\n", items_len);
+            error("iviewiir_series returned %d\n", items_len);
             continue;
         }
         if(0 == items_len) {
