@@ -19,6 +19,15 @@
             (void) (&_max1 == &_max2);    \
             _max1 > _max2 ? _max1 : _max2; })
 
+/*
+ * IV_UNUSED - a parameter is unused
+ *
+ * Some compilers (eg. gcc with -W or -Wunused) warn about unused
+ * function parameters.  This suppresses such warnings and indicates
+ * to the reader that it's deliberate.
+ */
+#define IV_UNUSED __attribute__((unused))
+
 
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=359"
 #define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"

@@ -8,38 +8,41 @@
 #define XML_SERVER_STATE 3
 #define XML_FREE_STATE 4
 
-static int accept_start_iview(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_iview(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("iview", name)) {
         return NE_XML_DECLINE;
     }
     return XML_IVIEW_STATE;
 }
 
-static int accept_start_token(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_token(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("token", name)) {
         return NE_XML_DECLINE;
     }
     return XML_TOKEN_STATE;
 }
 
-static int accept_cdata_token(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_token(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     (*(struct iv_auth *)userdata).token = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_server(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_server(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("server", name)) {
         return NE_XML_DECLINE;
     }
     return XML_SERVER_STATE;
 }
 
-static int accept_cdata_server(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_server(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     char *server_uri = strndup(cdata, len);
     if(ne_uri_parse(server_uri, &(*(struct iv_auth *)userdata).server)) {
         return NE_XML_ABORT;
@@ -48,16 +51,17 @@ static int accept_cdata_server(void *userdata, int state, const char *cdata,
     return 0;
 }
 
-static int accept_start_free(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_free(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("free", name)) {
         return NE_XML_DECLINE;
     }
     return XML_FREE_STATE;
 }
 
-static int accept_cdata_free(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_free(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     char *free_str = strndup(cdata, len);
     (*(struct iv_auth *)userdata).free = !strcmp("yes", free_str);
     free(free_str);

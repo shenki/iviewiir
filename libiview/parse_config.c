@@ -7,8 +7,9 @@
 #define XML_CONFIG_STATE 1
 #define XML_PARAM_STATE 2
 
-static int accept_start_config(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_config(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strncmp("config", name, 6)) {
         return NE_XML_DECLINE;
     }
@@ -71,8 +72,8 @@ static int parse_param_attrs(struct iv_config *config,
     return XML_PARAM_STATE;
 }
 
-static int accept_start_param(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_param(void *userdata, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name, const char **attrs) {
     if(0 != strncmp("param", name, 6)) {
         return NE_XML_DECLINE;
     }

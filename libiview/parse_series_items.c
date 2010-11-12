@@ -27,24 +27,27 @@ enum item_parse_state {
     PS_HOME
 };
 
-static int accept_start_rss(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_rss(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("rss", name)) {
         return NE_XML_DECLINE;
     }
     return PS_RSS;
 }
 
-static int accept_start_channel(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_channel(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("channel", name)) {
         return NE_XML_DECLINE;
     }
     return PS_CHANNEL;
 }
 
-static int accept_start_item(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_item(void *userdata, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("item", name)) {
         return NE_XML_DECLINE;
     }
@@ -58,8 +61,8 @@ static int accept_start_item(void *userdata, int parent, const char *nspace,
     return PS_ITEM;
 }
 
-static int accept_start_id(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_id(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace, const char *name, const char **attrs IV_UNUSED) {
     if(0 != strcmp("http://www.abc.net.au/tv/mrss", nspace)) {
         return NE_XML_DECLINE;
     }
@@ -69,64 +72,67 @@ static int accept_start_id(void *userdata, int parent, const char *nspace,
     return PS_ID;
 }
 
-static int accept_cdata_id(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_id(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len IV_UNUSED) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).id = atoi(cdata);
     return 0;
 }
 
-static int accept_start_title(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_title(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("title", name)) {
         return NE_XML_DECLINE;
     }
     return PS_TITLE;
 }
 
-static int accept_cdata_title(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_title(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).title = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_url(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_url(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("videoAsset", name)) {
         return NE_XML_DECLINE;
     }
     return PS_URL;
 }
 
-static int accept_cdata_url(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_url(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).url = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_description(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_description(void *userdata IV_UNUSED,
+        int parent IV_UNUSED, const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("description", name)) {
         return NE_XML_DECLINE;
     }
     return PS_DESCRIPTION;
 }
 
-static int accept_cdata_description(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_description(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).description = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_thumbnail(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_thumbnail(void *userdata, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name, const char **attrs) {
     if(0 != strcmp("thumbnail", name)) {
         return NE_XML_DECLINE;
     }
@@ -136,40 +142,42 @@ static int accept_start_thumbnail(void *userdata, int parent, const char *nspace
     return PS_THUMBNAIL;
 }
 
-static int accept_start_date(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_date(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("transmitDate", name)) {
         return NE_XML_DECLINE;
     }
     return PS_DATE;
 }
 
-static int accept_cdata_date(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_date(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).date = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_rating(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_rating(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("rating", name)) {
         return NE_XML_DECLINE;
     }
     return PS_RATING;
 }
 
-static int accept_cdata_rating(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_rating(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).rating = strndup(cdata, len);
     return 0;
 }
 
-static int accept_start_link(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_link(void *userdata, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name, const char **attrs) {
     if(0 != strcmp("player", name)) {
         return NE_XML_DECLINE;
     }
@@ -179,16 +187,17 @@ static int accept_start_link(void *userdata, int parent, const char *nspace,
     return PS_LINK;
 }
 
-static int accept_start_home(void *userdata, int parent, const char *nspace,
-        const char *name, const char **attrs) {
+static int accept_start_home(void *userdata IV_UNUSED, int parent IV_UNUSED,
+        const char *nspace IV_UNUSED, const char *name,
+        const char **attrs IV_UNUSED) {
     if(0 != strcmp("linkURL", name)) {
         return NE_XML_DECLINE;
     }
     return PS_HOME;
 }
 
-static int accept_cdata_home(void *userdata, int state, const char *cdata,
-    size_t len) {
+static int accept_cdata_home(void *userdata, int state IV_UNUSED,
+        const char *cdata, size_t len) {
     struct iv_item_list *item_list = (struct iv_item_list *)userdata;
     /* possible portability issues with strndup */
     (item_list->head[item_list->len-1]).home = strndup(cdata, len);
