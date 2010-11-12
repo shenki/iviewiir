@@ -45,7 +45,6 @@ char* join_path(char *dirname, char *fname) {
  * Return value is the size of file read, or zero if it was not read. */
 size_t load_buf(char **buf, char *fname) {
     struct stat fstats;
-    struct timeval curtime;
     size_t sz = 0;
     char* fpath = join_path(cache_dir, fname);
     if (stat(fpath, &fstats) == -1) {
@@ -266,7 +265,6 @@ int main(int argc, char **argv) {
 #define OPT_a(opts) (opts & OPT_ALL)
     char *opts = "ai:sh";
     int i_sid;
-    int lflag;
     struct option lopts[] = {
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
@@ -303,7 +301,6 @@ int main(int argc, char **argv) {
         return 0;
     }
     struct iv_series *index;
-    struct iv_item *items;
     struct iv_config config;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
     if(IV_OK != iviewiir_configure(&config)) {
@@ -317,7 +314,6 @@ int main(int argc, char **argv) {
         goto config_cleanup;
     }
     // Check if they want everything listed
-    int i;
     if(OPT_a(bsopts)) {
         list_all(&config, index, index_len);
         return_val = 0;
