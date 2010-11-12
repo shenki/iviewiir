@@ -5,7 +5,6 @@
 
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
         const char *outpath) {
-    int result;
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
@@ -21,8 +20,7 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     RTMP_ConnectStream(rtmp, 0);
     RTMP_SetBufferMS(rtmp, (uint32_t) (2 * 3600 * 1000)); // 2hrs
     RTMP_UpdateBufferMS(rtmp);
-    int read;
-    size_t wrote;
+    int read, wrote;
     while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
         wrote = fwrite(buf, 1, read, outfile);
         if(wrote != read) {
