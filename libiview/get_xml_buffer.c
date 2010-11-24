@@ -8,7 +8,7 @@
 #include <neon/ne_request.h>
 #include <neon/ne_uri.h>
 #include <neon/ne_string.h>
-#include "../iviewiir.h"
+
 #include "iview.h"
 
 ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr) {
