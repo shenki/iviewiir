@@ -37,6 +37,6 @@ libiview.a: $(LIBIVIEW_OBJ)
 	$(COMPILE.c) -MMD -MF $(subst .o,.d,$@) $(OUTPUT_OPTION) $<
 
 clean:
-	$(RM) $(LIBIVIEW_OBJ) $(LIBIVEW_OBJ:.o=.d) libiview.so libiview.a
+	$(RM) $(LIBIVIEW_OBJ) $(LIBIVIEW_OBJ:.o=.d) libiview.so libiview.a
 
 .PHONY: clean
