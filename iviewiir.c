@@ -81,9 +81,17 @@ void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
         perror(fpath);
         return;
     }
-    fwrite(buf, sizeof(char), buf_len, fs);
-    fwrite("\n", sizeof(char), 1, fs);
-    fclose(fs);
+    if(buf_len > fwrite(buf, sizeof(char), buf_len, fs)) {
+        error("Failed write to %s\n", fname);
+        return;
+    }
+    if(1 > fwrite("\n", sizeof(char), 1, fs)) {
+        error("Failed write to %s\n", fname);
+        return;
+    }
+    if(fclose(fs)) {
+        perror("fclose");
+    }
 }
 
 int iviewiir_configure(struct iv_config *config) {
