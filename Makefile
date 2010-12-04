@@ -8,7 +8,7 @@ LIBIVIEW := libiview/libiview.a
 
 PROGRAM := iviewiir
 
-CFLAGS := -Wall -Wextra -Wwrite-strings -Werror
+CFLAGS := $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
 LDFLAGS :=
 
 all: $(PROGRAM)
