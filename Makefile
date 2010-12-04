@@ -16,7 +16,10 @@ all: $(PROGRAM)
 $(PROGRAM): $(IVIEWIIR_OBJ) $(LIBIVIEW)
 	$(CC) $(LDFLAGS) $^ $> -o $@  $(IVIEWIIR_LIB)
 
-$(LIBIVIEW):
+# Hack to ensure recursive call is made
+FORCE:
+
+$(LIBIVIEW): FORCE
 	@cd libiview; $(MAKE) libiview.a
 
 %.o: %.c
