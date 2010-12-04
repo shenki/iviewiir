@@ -1,0 +1,11 @@
+Tag v0.2:
+--------
+
+* Update to work with latest iView
+* Use only make instead of autotools as a build system
+* Stricter CFLAGS
+
+Tag v0.1:
+--------
+
+* Initial release
