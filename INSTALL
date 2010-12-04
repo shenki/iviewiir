@@ -5,7 +5,4 @@
 
 = Building:
 
-Note: You can ignore the libtool warnings spouted during the execution of
-autogen.sh.
-
-$ ./autogen.sh && ./configure && make
+To build simply run `make`
