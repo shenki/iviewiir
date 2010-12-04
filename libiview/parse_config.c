@@ -18,6 +18,7 @@ static int accept_start_config(void *userdata IV_UNUSED, int parent IV_UNUSED,
 
 static int parse_param_attrs(struct iv_config *config,
         const char **attrs) {
+    int r;
     if(!strcmp("captions_offset", attrs[1])) {
         config->captions_offset = atoi(attrs[1]);
         return XML_PARAM_STATE;
@@ -27,19 +28,23 @@ static int parse_param_attrs(struct iv_config *config,
         return XML_PARAM_STATE;
     }
     if(!strcmp("server_streaming", attrs[1])) {
-        if(ne_uri_parse(attrs[3], &(config->server_streaming))) {
+        if(0 != (r = ne_uri_parse(attrs[3], &(config->server_streaming)))) {
+            IV_DEBUG("failed to parse 'server_streaming' URI: %d - %s\n",
+                    r, attrs[3]);
             return NE_XML_ABORT;
         }
         return XML_PARAM_STATE;
     }
     if(!strcmp("api", attrs[1])) {
-        if(ne_uri_parse(attrs[3], &(config->api))) {
+        if(0 != (r = ne_uri_parse(attrs[3], &(config->api)))) {
+            IV_DEBUG("failed to parse 'api' URI: %d - %s\n", r, attrs[3]);
             return NE_XML_ABORT;
         }
         return XML_PARAM_STATE;
     }
     if(!strcmp("auth", attrs[1])) {
-        if(ne_uri_parse(attrs[3], &(config->auth))) {
+        if(0 != (r = ne_uri_parse(attrs[3], &(config->auth)))) {
+            IV_DEBUG("failed to parse 'auth' URI: %d - %s\n", r, attrs[3]);
             return NE_XML_ABORT;
         }
         return XML_PARAM_STATE;
@@ -66,7 +71,8 @@ static int parse_param_attrs(struct iv_config *config,
     } else if(!strcmp("feedback_url", attrs[1])) {
         param = &(config->feedback_url);
     } else {
-        return NE_XML_ABORT;
+        IV_DEBUG("unhandled parameter: %s\n", attrs[1]);
+        return XML_PARAM_STATE;
     }
     *param = strdup(attrs[3]);
     return XML_PARAM_STATE;
@@ -89,6 +95,8 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
     ne_xml_push_handler(config_parser, accept_start_param,
             NULL, NULL, (void *)config);
     int result = ne_xml_parse(config_parser, buf, len);
+    IV_DEBUG("parse result: %d - %s\n",
+            result, ne_xml_get_error(config_parser));
     ne_xml_parse(config_parser, buf, 0);
     ne_xml_destroy(config_parser);
     return result ? -IV_ESAXPARSE : IV_OK;

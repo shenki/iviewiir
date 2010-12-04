@@ -5,6 +5,13 @@
 #ifndef LIBIVIEW_H
 #define LIBIVIEW_H
 
+#if defined(DEBUG)
+#define IV_DEBUG(format, ...) \
+        fprintf(stderr, "DEBUG (%s:%d): " format, \
+                __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define IV_DEBUG(...) do {} while (0)
+#endif
 
 /* Typesafe min/max macros from Linux: include/linux/kernel.h */
 #define IV_MIN(x, y) ({        \
