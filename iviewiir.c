@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
 #define OPT_i(opts) (opts & OPT_ITEMS_LIST)
 #define OPT_a(opts) (opts & OPT_ALL)
     const char *opts = "ai:sh";
-    int i_sid;
+    int i_sid = 0;
     struct option lopts[] = {
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
