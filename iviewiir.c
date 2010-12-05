@@ -73,31 +73,34 @@ end:
     return sz;
 }
 
-void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
+int dump_buf(const void const *buf, size_t buf_len, const char *fname) {
     /* Dump config to disk. */
     char *fpath = join_path(cache_dir, fname);
     FILE *fs = fopen(fpath, "w");
     if(fs==NULL) {
         perror(fpath);
-        return;
+        return -1;
     }
     if(buf_len > fwrite(buf, sizeof(char), buf_len, fs)) {
         error("Failed write to %s\n", fname);
-        return;
+        return -1;
     }
     if(1 > fwrite("\n", sizeof(char), 1, fs)) {
         error("Failed write to %s\n", fname);
-        return;
+        return -1;
     }
     if(fclose(fs)) {
         perror("fclose");
+        return -1;
     }
+    return 0;
 }
 
 struct iv_config *iviewiir_configure() {
+    struct iv_config *config;
     char *config_buf = NULL;
     ne_uri config_uri;
-    size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
+    ssize_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
     if(config_buf_len == 0) {
         /* Cache was stale or did not exist, so re-fetch. */
         if(ne_uri_parse(IV_CONFIG_URI, &config_uri)) {
@@ -110,10 +113,14 @@ struct iv_config *iviewiir_configure() {
             error("error retrieving config xml\n");
             return NULL;
         }
-        dump_buf(config_buf, config_buf_len, CONFIG_FILE);
+        if(-1 == dump_buf(config_buf, config_buf_len, CONFIG_FILE)) {
+            config = NULL;
+            goto config_cleanup;
+        }
     }
     debug("%s\n", config_buf);
-    struct iv_config *config = iv_get_config(config_buf, config_buf_len);
+    config = iv_get_config(config_buf, config_buf_len);
+config_cleanup:
     iv_destroy_xml_buffer(config_buf);
     return config;
 }
