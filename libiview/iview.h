@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <neon/ne_uri.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -50,23 +51,7 @@
 #define IV_ESAXPARSE 3
 #define IV_ENOMEM ENOMEM
 
-struct iv_config {
-    ne_uri api;
-    ne_uri auth;
-    char *tray;
-    char *categories;
-    char *classifications;
-    char *captions;
-    int captions_offset;
-    unsigned short live_streaming;
-    ne_uri server_streaming; //rtmp uri
-    char *server_fallback;
-    char *highlights;
-    char *home;
-    char *geo;
-    char *time;
-    char *feedback_url;
-};
+struct iv_config;
 
 struct iv_series {
     int id;
@@ -85,12 +70,7 @@ struct iv_item {
     char *home; /* Program website */
 };
 
-struct iv_auth {
-    ne_uri server;
-    char *prefix;
-    char *token;
-    short free;
-};
+struct iv_auth;
 
 #if __STDC_VERSION__ == 199901L
 #define INLINE inline
@@ -102,7 +82,7 @@ struct iv_auth {
 
 ssize_t iv_get_xml_buffer(const ne_uri *uri, char **buf_ptr);
 #define iv_destroy_xml_buffer(buf) free(buf)
-int iv_parse_config(struct iv_config *config, const char *buf, size_t len);
+struct iv_config *iv_get_config(const char *buf, size_t len);
 void iv_destroy_config(struct iv_config *config);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 int iv_parse_index(const char *buf, struct iv_series **index_ptr);
@@ -111,8 +91,7 @@ ssize_t iv_get_series_items(struct iv_config *config, const char *uri, struct
         iv_series *series, char **buf_ptr);
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 void iv_destroy_series_items(struct iv_item *items, int items_len);
-int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
-        struct iv_auth *auth);
+struct iv_auth *iv_get_auth(const struct iv_config *config);
 void iv_destroy_auth(struct iv_auth *auth);
 char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item);
 #define iv_destroy_video_uri(uri) free(uri)

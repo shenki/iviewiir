@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "iview.h"
+#include "internal.h"
 
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr) {
     /* must strdup so ne_uri_free() can be used */

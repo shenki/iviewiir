@@ -3,6 +3,7 @@
 #include <neon/ne_alloc.h>
 #include <neon/ne_uri.h>
 #include "iview.h"
+#include "internal.h"
 
 void iv_destroy_config(struct iv_config *config) {
     ne_uri_free(&(config->api));
@@ -18,4 +19,5 @@ void iv_destroy_config(struct iv_config *config) {
     free(config->geo);
     free(config->time);
     free(config->feedback_url);
+    free(config);
 }

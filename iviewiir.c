@@ -94,7 +94,7 @@ void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
     }
 }
 
-int iviewiir_configure(struct iv_config *config) {
+struct iv_config *iviewiir_configure() {
     char *config_buf = NULL;
     ne_uri config_uri;
     size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
@@ -102,21 +102,20 @@ int iviewiir_configure(struct iv_config *config) {
         /* Cache was stale or did not exist, so re-fetch. */
         if(ne_uri_parse(IV_CONFIG_URI, &config_uri)) {
             error("uri parsing failed on %s\n", IV_CONFIG_URI);
-            return -IV_EURIPARSE;
+            return NULL;
         }
         config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
         ne_uri_free(&config_uri);
         if(0 >= config_buf_len) {
             error("error retrieving config xml\n");
-            return config_buf_len;
+            return NULL;
         }
         dump_buf(config_buf, config_buf_len, CONFIG_FILE);
     }
     debug("%s\n", config_buf);
-    int result = iv_parse_config(config, config_buf, config_buf_len);
-    debug("iv_parse_config: %d\n", result);
+    struct iv_config *config = iv_get_config(config_buf, config_buf_len);
     iv_destroy_xml_buffer(config_buf);
-    return result;
+    return config;
 }
 
 int iviewiir_index(struct iv_config *config, struct iv_series **index) {
@@ -152,21 +151,18 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
     return items_len;
 }
 
-void iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
-    char *auth_xml_buf;
-    struct iv_auth auth;
-    memset(&auth, 0, sizeof(auth));
-    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
-    debug("%s\n", auth_xml_buf);
-    if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
-        error("iv_parse_auth failed\n");
+void
+iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
+    struct iv_auth *auth = iv_get_auth(config);
+    if(NULL == auth) {
+        error("Failed to get authentication information\n");
+        return;
     }
     char *path = strdup(item->url);
     char *flvname = basename(path);
-    iv_fetch_video(&auth, item, flvname);
+    iv_fetch_video(auth, item, flvname);
     free(path);
-    iv_destroy_auth(&auth);
-    iv_destroy_xml_buffer(auth_xml_buf);
+    iv_destroy_auth(auth);
 }
 
 void list_all(struct iv_config *config, struct iv_series *index,
@@ -311,13 +307,13 @@ int main(int argc, char **argv) {
         return 0;
     }
     struct iv_series *index;
-    struct iv_config config;
+    struct iv_config *config;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
-    if(IV_OK != iviewiir_configure(&config)) {
+    if(NULL == (config = iviewiir_configure())) {
         error("Couldn't configure iviewiir, exiting\n");
         return 1;
     }
-    int index_len = iviewiir_index(&config, &index);
+    int index_len = iviewiir_index(config, &index);
     if(0 == index_len) {
         error("No items in index, exiting\n");
         return_val = 1;
@@ -325,7 +321,7 @@ int main(int argc, char **argv) {
     }
     // Check if they want everything listed
     if(OPT_a(bsopts)) {
-        list_all(&config, index, index_len);
+        list_all(config, index, index_len);
         return_val = 0;
         goto index_cleanup;
     }
@@ -340,7 +336,7 @@ int main(int argc, char **argv) {
     }
     // Check if they want an episode list
     if(OPT_i(bsopts)) {
-        return_val = list_items(&config, index, index_len, i_sid);
+        return_val = list_items(config, index, index_len, i_sid);
         goto index_cleanup;
     }
     // Otherwise, if they supplied a SID or SID:PID tuple, download the PID
@@ -349,7 +345,7 @@ int main(int argc, char **argv) {
             // SID:PID
             const int sid = atoi(strtok(argv[optind], ":"));
             const int pid = atoi(strtok(NULL, ":"));
-            return_val += download_item(&config, index, index_len, sid, pid);
+            return_val += download_item(config, index, index_len, sid, pid);
         } else {
             // Check if it's a valid SID
             const int sid = atoi(argv[optind]);
@@ -363,13 +359,13 @@ int main(int argc, char **argv) {
                 }
             }
             // Fetch items in series
-            ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+            ssize_t items_len = iviewiir_series(config, &index[i], &items);
             if(1 > items_len) {
                 printf("No items in series.\n");
                 return_val += 1;
             } else {
                 for(i=1; i<items_len; i++) {
-                    return_val += download_item(&config, index, index_len, sid,
+                    return_val += download_item(config, index, index_len, sid,
                             items[i].id);
                 }
                 iv_destroy_series_items(items, items_len);
@@ -380,7 +376,7 @@ int main(int argc, char **argv) {
 index_cleanup:
     iv_destroy_index(index, index_len);
 config_cleanup:
-    iv_destroy_config(&config);
+    iv_destroy_config(config);
     free(cache_dir);
     return return_val;
 }

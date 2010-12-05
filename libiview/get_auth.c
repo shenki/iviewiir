@@ -2,6 +2,7 @@
 #include <neon/ne_xml.h>
 #include <neon/ne_uri.h>
 #include "iview.h"
+#include "internal.h"
 
 #define XML_IVIEW_STATE 1
 #define XML_TOKEN_STATE 2
@@ -68,8 +69,8 @@ static int accept_cdata_free(void *userdata, int state IV_UNUSED,
     return 0;
 }
 
-int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
-        struct iv_auth *auth) {
+static int iv_parse_auth(const struct iv_config *config, const char *buf,
+        size_t len, struct iv_auth *auth) {
     ne_xml_parser *auth_parser = ne_xml_create();
     ne_xml_push_handler(auth_parser, accept_start_iview,
             NULL, NULL, NULL);
@@ -83,6 +84,7 @@ int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
     ne_xml_parse(auth_parser, buf, 0);
     ne_xml_destroy(auth_parser);
     if(result) {
+        IV_DEBUG("auth xml parsing failed: %d\n", result);
         return -IV_ESAXPARSE;
     }
     /* Discard const qualifier, as |auth| is of type ne_uri, and we can't
@@ -90,8 +92,25 @@ int iv_parse_auth(const struct iv_config *config, const char *buf, size_t len,
     auth->prefix = (char*)IV_AKAMAI_PREFIX;
     if(0 == auth->server.host) {
         if(ne_uri_copy(&auth->server, &config->server_streaming)) {
+            IV_DEBUG("failed to complete auth struct initialisation\n");
             return -IV_EURIPARSE;
         }
     }
     return 0;
+}
+
+struct iv_auth *iv_get_auth(const struct iv_config *config) {
+    struct iv_auth *auth = malloc(sizeof(struct iv_auth));
+    if(NULL == auth) {
+        return NULL;
+    }
+    memset(auth, 0, sizeof(auth));
+    char *auth_xml_buf;
+    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
+    IV_DEBUG("%s\n", auth_xml_buf);
+    if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, auth)) {
+        auth = NULL;
+    }
+    iv_destroy_xml_buffer(auth_xml_buf);
+    return auth;
 }

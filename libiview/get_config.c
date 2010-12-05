@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <neon/ne_xml.h>
 #include "iview.h"
+#include "internal.h"
 
 #define XML_CONFIG_STATE 1
 #define XML_PARAM_STATE 2
@@ -87,7 +88,7 @@ static int accept_start_param(void *userdata, int parent IV_UNUSED,
     return r;
 }
 
-int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
+static int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
     memset(config, 0, sizeof(struct iv_config));
     ne_xml_parser *config_parser = ne_xml_create();
     ne_xml_push_handler(config_parser, accept_start_config,
@@ -100,4 +101,16 @@ int iv_parse_config(struct iv_config *config, const char *buf, size_t len) {
     ne_xml_parse(config_parser, buf, 0);
     ne_xml_destroy(config_parser);
     return result ? -IV_ESAXPARSE : IV_OK;
+}
+
+struct iv_config *iv_get_config(const char *buf, size_t len) {
+    struct iv_config *config = malloc(sizeof(struct iv_config));
+    if(NULL == config) {
+        return NULL;
+    }
+    int result;
+    if(0 != (result = iv_parse_config(config, buf, len))) {
+        return NULL;
+    }
+    return config;
 }

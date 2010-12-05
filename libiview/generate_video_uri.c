@@ -3,6 +3,7 @@
 #include <neon/ne_string.h>
 #include <neon/ne_alloc.h>
 #include "iview.h"
+#include "internal.h"
 
 char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item) {
     char *rtmp_uri;

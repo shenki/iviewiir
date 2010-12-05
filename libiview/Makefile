@@ -7,14 +7,14 @@ LIBIVEW_LDLIBS := $(shell pkg-config --libs $(LIBIVIEW_DEPS))
 LIBIVIEW_INC := 
 
 LIBIVIEW_SRC := get_xml_buffer.c \
-	parse_config.c \
+	get_config.c \
 	get_index.c \
 	parse_index.c \
 	get_series_items.c \
 	parse_series_items.c \
 	destroy_config.c \
 	destroy_index.c \
-	parse_auth.c \
+	get_auth.c \
 	generate_video_uri.c \
 	fetch_video.c \
 	destroy_series_items.c \
