@@ -329,6 +329,10 @@ int main(int argc, char **argv) {
     if(OPT_s(bsopts)) {
         int i;
         for(i=0; i<index_len; i++) {
+            // Heuristic to trim out empty series
+            if((int)9e6 < index[i].id) {
+                continue;
+            }
             printf("%d : %s\n", index[i].id, index[i].title);
         }
         return_val = 0;
