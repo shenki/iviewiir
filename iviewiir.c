@@ -96,14 +96,16 @@ void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
 
 int iviewiir_configure(struct iv_config *config) {
     char *config_buf = NULL;
-    size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
+    ssize_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
     if(config_buf_len == 0) {
         /* Cache was stale or did not exist, so re-fetch. */
+        debug("Fetching configuration\n");
         config_buf_len = iv_get_xml_buffer(IV_CONFIG_URI, &config_buf);
         if(0 >= config_buf_len) {
-            error("error retrieving config xml\n");
+            error("error retrieving config xml: %zd\n", config_buf_len);
             return config_buf_len;
         }
+        debug("configuration length: %zd\n", config_buf_len);
         dump_buf(config_buf, config_buf_len, CONFIG_FILE);
     }
     debug("%s\n", config_buf);

@@ -5,24 +5,32 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <libxml/nanohttp.h>
+#include <stdio.h>
 
 #include "iview.h"
 
 ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
     int return_val;
-    char *contentType;
     xmlNanoHTTPInit();
-    void *ctx = xmlNanoHTTPOpen(uri, &contentType);
-    if(200 != xmlNanoHTTPReturnCode(ctx)) {
-        return_val = -1;
+    IV_DEBUG("Initialised libxml2 nanohttp\n");
+    void *ctx = xmlNanoHTTPOpen(uri, NULL);
+    if(!ctx) {
+        IV_DEBUG("Failed to open %s\n", uri);
+        return_val = -IV_EREQUEST;
         goto done;
+    }
+    int http_code = -1;
+    if(200 != (http_code = xmlNanoHTTPReturnCode(ctx))) {
+        IV_DEBUG("Bad return code: %d\n", http_code);
+        return_val = -IV_EREQUEST;
+        goto close;
     }
     // Allocate buffer for response
     const int content_len = xmlNanoHTTPContentLength(ctx);
     *buf_ptr = (char *)malloc(content_len+1);
     if(!*buf_ptr) {
         return_val = -IV_ENOMEM;
-        goto done;
+        goto close;
     }
     char *buf = *buf_ptr;
     ssize_t read_len = 0;
@@ -36,12 +44,13 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
         return_val = -IV_EREQUEST;
         free(*buf_ptr);
         *buf_ptr = NULL;
-        goto done;
+        goto close;
     }
     (*buf_ptr)[content_len] = '\0';
     return_val = content_len;
-done:
+close:
     xmlNanoHTTPClose(ctx);
+done:
     xmlNanoHTTPCleanup();
     return return_val;
 }
