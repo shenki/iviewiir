@@ -11,7 +11,11 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     if(!buf) {
         return -IV_ENOMEM;
     }
-    char *rtmp_uri = iv_generate_video_uri(auth, item);
+    char *rtmp_uri;
+    ssize_t rtmp_uri_len;
+    if(0 >= (rtmp_uri_len = iv_generate_video_uri(auth, item, &rtmp_uri))) {
+        return rtmp_uri_len;
+    }
     FILE *outfile = fopen(outpath, "w");
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);

@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <getopt.h>
-#include <neon/ne_uri.h>
 #include <libgen.h>
+#include <libxml/xmlstring.h>
 #include "iviewiir.h"
 #include "libiview/iview.h"
 
@@ -96,16 +96,10 @@ void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
 
 int iviewiir_configure(struct iv_config *config) {
     char *config_buf = NULL;
-    ne_uri config_uri;
     size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
     if(config_buf_len == 0) {
         /* Cache was stale or did not exist, so re-fetch. */
-        if(ne_uri_parse(IV_CONFIG_URI, &config_uri)) {
-            error("uri parsing failed on %s\n", IV_CONFIG_URI);
-            return -IV_EURIPARSE;
-        }
-        config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
-        ne_uri_free(&config_uri);
+        config_buf_len = iv_get_xml_buffer(IV_CONFIG_URI, &config_buf);
         if(0 >= config_buf_len) {
             error("error retrieving config xml\n");
             return config_buf_len;
@@ -152,17 +146,19 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
     return items_len;
 }
 
-void iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
+void iviewiir_download(const struct iv_config *config,
+        const struct iv_item *item) {
     char *auth_xml_buf;
     struct iv_auth auth;
     memset(&auth, 0, sizeof(auth));
-    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
+    ssize_t auth_buf_len =
+        iv_get_xml_buffer((const char *)(&config->auth), &auth_xml_buf);
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
     }
-    char *path = strdup(item->url);
-    char *flvname = basename(path);
+    xmlChar *path = xmlStrdup(item->url);
+    char *flvname = basename((char *)path);
     iv_fetch_video(&auth, item, flvname);
     free(path);
     iv_destroy_auth(&auth);
@@ -242,7 +238,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
             break;
         }
     }
-    printf("%s : %s\n", items[i].title, basename(items[i].url));
+    printf("%s : %s\n", items[i].title, basename((char *)items[i].url));
     iviewiir_download(config, &(items[i]));
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);
