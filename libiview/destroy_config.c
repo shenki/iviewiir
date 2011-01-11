@@ -3,6 +3,8 @@
 #include "iview.h"
 
 void iv_destroy_config(struct iv_config *config) {
+    if (config == NULL)
+        return;
     free(config->api);
     free(config->auth);
     free(config->tray);
