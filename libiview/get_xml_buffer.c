@@ -44,8 +44,8 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
             return_val = -IV_ENOMEM;
             goto close;
         }
-        buf = *buf_ptr + total_len;
         total_len += read_len;
+        buf = *buf_ptr + total_len;
     }
     if(-1 == read_len) {
         return_val = -IV_EREQUEST;
