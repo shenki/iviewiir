@@ -19,6 +19,7 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
         return_val = -IV_EREQUEST;
         goto done;
     }
+    IV_DEBUG("Opened %s\n", uri);
     int http_code = -1;
     if(200 != (http_code = xmlNanoHTTPReturnCode(ctx))) {
         IV_DEBUG("Bad return code: %d\n", http_code);
@@ -60,6 +61,7 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
         goto close;
     }
     (*buf_ptr)[total_len] = '\0';
+    IV_DEBUG("HTTP read complete\n");
     return_val = total_len;
 close:
     xmlNanoHTTPClose(ctx);
