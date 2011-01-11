@@ -311,6 +311,7 @@ int main(int argc, char **argv) {
     struct iv_series *index;
     struct iv_config config;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
+    memset(&config, 0, sizeof(struct iv_config));
     if(IV_OK != iviewiir_configure(&config)) {
         error("Couldn't configure iviewiir, exiting\n");
         return 1;
