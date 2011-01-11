@@ -53,6 +53,7 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
         *buf_ptr = NULL;
         goto close;
     }
+    total_len += read_len;
     // Trim buffer to size
     if(NULL == (*buf_ptr = realloc(*buf_ptr, total_len+1))) {
         return_val = -IV_ENOMEM;
