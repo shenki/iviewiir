@@ -110,50 +110,35 @@ struct item_parse_ctx {
 };
 
 static void start_item_child_handler(struct item_parse_ctx *ctx,
-        const xmlChar *localname, const xmlChar *prefix,
-        const xmlChar **attrs) {
-    if(!(xmlStrcmp(BAD_CAST("abc"), prefix) ||
-                xmlStrcmp(BAD_CAST("id"), localname))) {
+        const xmlChar *name, const xmlChar **attrs) {
+    if(!xmlStrcmp(BAD_CAST("abc:id"), name)) {
         ctx->state = ps_id;
-    } else if(!xmlStrcmp(BAD_CAST("title"), localname)) {
+    } else if(!xmlStrcmp(BAD_CAST("title"), name)) {
         ctx->state = ps_title;
-    } else if(!(xmlStrcmp(BAD_CAST("media"), prefix) ||
-                xmlStrcmp(BAD_CAST("thumbnail"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("media:thumbnail"), name)) {
         ctx->state = ps_thumbnail;
         (ctx->items->head[ctx->items->len]).thumbnail =
             xmlStrdup(attrs[1]);
-    } else if(!(xmlStrcmp(BAD_CAST("media"), prefix) ||
-                xmlStrcmp(BAD_CAST("player"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("media:player"), name)) {
         ctx->state = ps_link;
         (ctx->items->head[ctx->items->len]).link =
             xmlStrdup(attrs[1]);
-    } else if(!xmlStrcmp(BAD_CAST("description"), localname)) {
+    } else if(!xmlStrcmp(BAD_CAST("description"), name)) {
         ctx->state = ps_description;
-    } else if(!(xmlStrcmp(BAD_CAST("abc"), prefix) ||
-                xmlStrcmp(BAD_CAST("linkURL"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("abc:linkURL"), name)) {
         ctx->state = ps_home;
-    } else if(!(xmlStrcmp(BAD_CAST("abc"), prefix) ||
-                xmlStrcmp(BAD_CAST("videoAsset"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("abc:videoAsset"), name)) {
         ctx->state = ps_url;
-    } else if(!(xmlStrcmp(BAD_CAST("abc"), prefix) ||
-                xmlStrcmp(BAD_CAST("transmitDate"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("abc:transmitDate"), name)) {
         ctx->state = ps_date;
-    } else if(!(xmlStrcmp(BAD_CAST("abc"), prefix) ||
-                xmlStrcmp(BAD_CAST("rating"), localname))) {
+    } else if(!xmlStrcmp(BAD_CAST("abc:rating"), name)) {
         ctx->state = ps_rating;
     } else {
-        IV_DEBUG("unhandled element: %s:%s", prefix, localname);
+        IV_DEBUG("unhandled element: %s\n", name);
     }
 }
 
-static void start_element_ns(void *_ctx,
-        const xmlChar *localname,
-        const xmlChar *prefix,
-        const xmlChar *uri IV_UNUSED,
-        int nb_namespaces IV_UNUSED,
-        const xmlChar **namespaces IV_UNUSED,
-        int nb_attributes IV_UNUSED,
-        int nb_defaulted IV_UNUSED,
+static void start_element(void *_ctx, const xmlChar *name,
         const xmlChar **attrs) {
     struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
     if(IV_OK != ctx->return_value) {
@@ -162,23 +147,25 @@ static void start_element_ns(void *_ctx,
     switch(ctx->state) {
         case ps_start:
             // Root element should be 'rss'
-            if(xmlStrcmp(BAD_CAST("rss"), localname)) {
+            if(xmlStrcmp(BAD_CAST("rss"), name)) {
                 ctx->return_value = IV_EXML;
+                IV_DEBUG("Found unexpected element %s\n", name);
                 return;
             }
             ctx->state = ps_rss;
             return;
         case ps_rss:
             // Shouldn't have any elemente except 'channel'
-            if(xmlStrcmp(BAD_CAST("channel"), localname)) {
+            if(xmlStrcmp(BAD_CAST("channel"), name)) {
                 ctx->return_value = IV_EXML;
+                IV_DEBUG("Found unexpected element %s\n", name);
                 return;
             }
             ctx->state = ps_channel;
             break;
         case ps_channel:
             // We only care about the 'item' element
-            if(!xmlStrcmp(BAD_CAST("item"), localname)) {
+            if(!xmlStrcmp(BAD_CAST("item"), name)) {
                 ctx->state = ps_item;
                 // Found new item, add another element to the list
                 if(!(ctx->items->head = realloc(ctx->items->head,
@@ -188,36 +175,40 @@ static void start_element_ns(void *_ctx,
                 }
                 memset(&(ctx->items->head[ctx->items->len-1]), 0,
                         sizeof(struct iv_item));
+            } else {
+                IV_DEBUG("Skipping non-item element %s\n", name);
             }
             break;
         case ps_item:
-            start_item_child_handler(ctx, localname, prefix, attrs);
+            start_item_child_handler(ctx, name, attrs);
             break;
         default:
             break;
     }
 }
 
-static void end_element_ns(void *_ctx,
-        const xmlChar *localname IV_UNUSED,
-        const xmlChar *prefix IV_UNUSED,
-        const xmlChar *uri IV_UNUSED) {
+static void end_element(void *_ctx, const xmlChar *name) {
     struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
     if(IV_OK != ctx->return_value) {
         return;
     }
-    switch(ctx->state) {
-        case ps_rss:
-             ctx->state = ps_end;
-             break;
-        case ps_channel:
-             ctx->state = ps_rss;
-             break;
-        case ps_item:
-             ctx->state = ps_channel;
-             break;
-        default:
-             break;
+    if(!xmlStrcmp(BAD_CAST("abc:id"), name) ||
+            !xmlStrcmp(BAD_CAST("title"), name) ||
+            !xmlStrcmp(BAD_CAST("media:thumbnail"), name) ||
+            !xmlStrcmp(BAD_CAST("media:player"), name) ||
+            !xmlStrcmp(BAD_CAST("description"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:linkURL"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:videoAsset"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:transmitDate"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:rating"), name)) {
+        ctx->state = ps_item;
+    } else if(!xmlStrcmp(BAD_CAST("item"), name)) {
+        ctx->state = ps_channel;
+    } else if(!xmlStrcmp(BAD_CAST("channel"), name)) {
+        ctx->state = ps_rss;
+    } else if(!xmlStrcmp(BAD_CAST("rss"), name)) {
+        ctx->state = ps_end;
+    } else {
     }
 }
 
@@ -259,8 +250,8 @@ static void cdata_block(void *_ctx, const xmlChar *data, int len) {
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
-    handler->startElementNs = start_element_ns;
-    handler->endElementNs = end_element_ns;
+    handler->startElement = start_element;
+    handler->endElement = end_element;
     handler->cdataBlock = cdata_block;
     // Initialise parser context
     struct iv_item_list item_list = { .len = 0, .head = NULL };
@@ -278,5 +269,6 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
         return -IV_ESAXPARSE;
     }
-    return ctx.return_value;
+    *items = ctx.items->head;
+    return ctx.items->len;
 }
