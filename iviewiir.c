@@ -15,6 +15,7 @@
 #define INDEX_FILE  "iview.index"
 #define CACHE_VALID_SECONDS (30*60)
 static char *cache_dir;
+static int use_cache = 1;
 
 #if defined(DEBUG)
 #define debug(format, ...) \
@@ -44,6 +45,8 @@ char* join_path(const char *dirname, const char *fname) {
  * size is non-zero.
  * Return value is the size of file read, or zero if it was not read. */
 size_t load_buf(char **buf, const char *fname) {
+    if (use_cache)
+        return 0;
     struct stat fstats;
     int sz = 0;
     char* fpath = join_path(cache_dir, fname);
@@ -267,16 +270,19 @@ int main(int argc, char **argv) {
 #define OPT_ITEMS_LIST (1 << 2)
 #define OPT_HELP (1 << 3)
 #define OPT_ALL (1 << 4)
+#define OPT_FORCE_NOCACHE (1 << 5)
 #define OPT_h(opts) (opts & OPT_HELP)
 #define OPT_s(opts) (opts & OPT_SERIES_LIST)
 #define OPT_i(opts) (opts & OPT_ITEMS_LIST)
 #define OPT_a(opts) (opts & OPT_ALL)
+#define OPT_f(opts) (opts & OPT_FORCE_NOCACHE)
     const char *opts = "ai:sh";
     int i_sid = 0;
     struct option lopts[] = {
         {"items-list", 1, NULL, 'i'},
         {"series-list", 0, NULL, 's'},
         {"all", 0, NULL, 'a'},
+        {"force", 0, NULL, 'f'},
         {"help", 0, NULL, 'h'},
         {0, 0, 0, 0}
     };
@@ -293,6 +299,9 @@ int main(int argc, char **argv) {
                 break;
             case 's':
                 bsopts |= OPT_SERIES_LIST;
+                break;
+            case 'f':
+                bsopts |= OPT_FORCE_NOCACHE;
                 break;
             case 'h':
                 bsopts |= OPT_HELP;
@@ -321,6 +330,10 @@ int main(int argc, char **argv) {
         error("No items in index, exiting\n");
         return_val = 1;
         goto config_cleanup;
+    }
+    // Check if they want to forcibly bypass the cache of metadata
+    if(OPT_f(bsopts)) {
+        use_cache = 0;
     }
     // Check if they want everything listed
     if(OPT_a(bsopts)) {
