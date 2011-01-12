@@ -82,16 +82,18 @@ void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
     FILE *fs = fopen(fpath, "w");
     if(fs==NULL) {
         perror(fpath);
+        free(fpath);
         return;
     }
     if(buf_len > fwrite(buf, sizeof(char), buf_len, fs)) {
         error("Failed write to %s\n", fname);
-        return;
+        goto cleanup;
     }
     if(1 > fwrite("\n", sizeof(char), 1, fs)) {
         error("Failed write to %s\n", fname);
-        return;
     }
+cleanup:
+    free(fpath);
     if(fclose(fs)) {
         perror("fclose");
     }
