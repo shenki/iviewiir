@@ -132,6 +132,7 @@ int iv_parse_config(struct iv_config *config, const char *buf,
     };
     // Parse document
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
+        free(handler);
         return -IV_ESAXPARSE;
     }
     free(handler);
