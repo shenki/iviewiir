@@ -41,5 +41,6 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
             BAD_CAST(strdup(json_object_to_json_string(json_series)));
     }
     array_list_free(json_object_get_array(json_index));
+    free(json_index);
     return index_len;
 }

@@ -134,5 +134,6 @@ int iv_parse_config(struct iv_config *config, const char *buf,
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
         return -IV_ESAXPARSE;
     }
+    free(handler);
     return ctx.return_value;
 }
