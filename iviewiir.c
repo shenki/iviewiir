@@ -134,7 +134,7 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
 
 ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
         struct iv_item **items) {
-    char *series_buf;
+    char *series_buf = NULL;
     const ssize_t len =
         iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
     if(0 >= len) {
