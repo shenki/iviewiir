@@ -256,10 +256,8 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     // Initialise parser context
     struct iv_item_list item_list = { .len = 0, .head = NULL };
     if(!(item_list.head = malloc(++(item_list.len)*sizeof(struct iv_item)))) {
-        perror("malloc");
-        return IV_ENOMEM;
+        return -IV_ENOMEM;
     }
-    *items = item_list.head;
     struct item_parse_ctx ctx = {
         .state = ps_start,
         .return_value = IV_OK,
