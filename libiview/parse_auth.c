@@ -24,13 +24,16 @@ enum parse_state { st_start, st_iview, st_token, st_server, st_free, st_end };
 
 struct auth_parse_ctx {
     enum parse_state state;
-    int return_val;
+    int return_value;
     struct iv_auth *auth;
 };
 
 static void start_element(void *_ctx, const xmlChar *name,
         const xmlChar **attrs IV_UNUSED) {
     struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
     if(!xmlStrcmp(BAD_CAST("iview"), name)) {
         ctx->state = st_iview;
         return;
@@ -51,6 +54,9 @@ static void start_element(void *_ctx, const xmlChar *name,
 
 static void end_element(void *_ctx, const xmlChar *name) {
     struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
     if(!xmlStrcmp(BAD_CAST("iview"), name)) {
         ctx->state = st_end;
         return;
@@ -61,14 +67,23 @@ static void end_element(void *_ctx, const xmlChar *name) {
     return;
 }
 
-static void cdata_block(void *_ctx, const xmlChar *data, int len) {
+static void content_handler(void *_ctx, const xmlChar *data, int len) {
     struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
     switch(ctx->state) {
         case st_token:
             ctx->auth->token = xmlStrndup(data, len);
+            if(!ctx->auth->token) {
+                ctx->return_value = IV_ENOMEM;
+            }
             break;
         case st_server:
             ctx->auth->server = xmlStrndup(data, len);
+            if(!ctx->auth->token) {
+                ctx->return_value = IV_ENOMEM;
+            }
             break;
         case st_free:
 #define FREE_VALUE "yes"
@@ -87,13 +102,14 @@ int iv_parse_auth(const struct iv_config *config IV_UNUSED, const char *buf,
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
     handler->startElement = start_element;
     handler->endElement = end_element;
-    handler->cdataBlock = cdata_block;
+    handler->characters = content_handler;
     struct auth_parse_ctx ctx = {
         .state = st_start,
+        .return_value = IV_OK,
         .auth = auth
     };
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
         return -IV_ESAXPARSE;
     }
-    return 0;
+    return ctx.return_value;
 }
