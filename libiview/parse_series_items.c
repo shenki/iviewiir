@@ -213,7 +213,14 @@ static void end_element(void *_ctx, const xmlChar *name) {
 
 static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
     struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
     xmlChar *ch = xmlStrndup(_ch, len);
+    if(!ch) {
+        ctx->return_value = -IV_ENOMEM;
+        return;
+    }
     struct iv_item *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
         case ps_id:
@@ -240,6 +247,10 @@ static void cdata_handler(void *_ctx, const xmlChar *data, int len) {
         return;
     }
     xmlChar *_data = xmlStrndup(data, len);
+    if(!_data) {
+        ctx->return_value = -IV_ENOMEM;
+        return;
+    }
     struct iv_item *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
         case ps_title:
