@@ -21,7 +21,8 @@ ssize_t iv_generate_video_uri(const struct iv_auth *auth,
             "" : "mp4:";
     const int rtmp_uri_len = asprintf(&rtmp_uri,
             "%s?auth=%s playpath=%s%s swfUrl=%s swfVfy=1 swfAge=0",
-            item->url, auth->token, prefix, playpath, IV_SWF_URL);
+            auth->server, auth->token, prefix, playpath, IV_SWF_URL);
+    IV_DEBUG("Video URI: %s\n", rtmp_uri);
     return_val = rtmp_uri_len;
     if(-1 == rtmp_uri_len) {
         return_val = -IV_ENOMEM;
