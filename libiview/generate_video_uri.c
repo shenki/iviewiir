@@ -15,7 +15,7 @@ ssize_t iv_generate_video_uri(const struct iv_auth *auth,
         return -IV_ENOMEM;
     }
     // Trim the extension for RTMP URI generation
-    uri[strlen(playpath)-4] = '\0';
+    playpath[strlen(playpath)-4] = '\0';
     const char *prefix =
         !xmlStrcmp(BAD_CAST("flv"), &item->url[xmlStrlen(item->url)-3]) ?
             "" : "mp4:";
