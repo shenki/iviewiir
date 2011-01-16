@@ -242,6 +242,7 @@ static void cdata_block(void *_ctx, const xmlChar *data, int len) {
             item->home = _data;
             break;
         default:
+            free(_data);
             break;
     }
 }
