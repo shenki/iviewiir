@@ -81,7 +81,7 @@ static void content_handler(void *_ctx, const xmlChar *data, int len) {
             break;
         case st_server:
             ctx->auth->server = xmlStrndup(data, len);
-            if(!ctx->auth->token) {
+            if(!ctx->auth->server) {
                 ctx->return_value = IV_ENOMEM;
             }
             break;
