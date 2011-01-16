@@ -225,7 +225,7 @@ static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
     }
 }
 
-static void cdata_block(void *_ctx, const xmlChar *data, int len) {
+static void cdata_handler(void *_ctx, const xmlChar *data, int len) {
     struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
     if(IV_OK != ctx->return_value) {
         return;
@@ -263,7 +263,7 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     handler->startElement = start_element;
     handler->characters = content_handler;
     handler->endElement = end_element;
-    handler->cdataBlock = cdata_block;
+    handler->cdataBlock = cdata_handler;
     // Initialise parser context
     struct iv_item_list item_list = { .len = 0, .head = NULL };
     if(!(item_list.head = calloc(++(item_list.len), sizeof(struct iv_item)))) {
