@@ -163,13 +163,15 @@ void iviewiir_download(const struct iv_config *config,
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
+        goto download_destroy_buf;
     }
     xmlChar *path = xmlStrdup(item->url);
     char *flvname = basename((char *)path);
     iv_fetch_video(&auth, item, flvname);
     free(path);
-    iv_destroy_auth(&auth);
+download_destroy_buf:
     iv_destroy_xml_buffer(auth_xml_buf);
+    iv_destroy_auth(&auth);
 }
 
 void list_all(struct iv_config *config, struct iv_series *index,
