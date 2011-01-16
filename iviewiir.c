@@ -159,7 +159,7 @@ void iviewiir_download(const struct iv_config *config,
     struct iv_auth auth;
     memset(&auth, 0, sizeof(auth));
     ssize_t auth_buf_len =
-        iv_get_xml_buffer((const char *)(&config->auth), &auth_xml_buf);
+        iv_get_xml_buffer((const char *)(config->auth), &auth_xml_buf);
     debug("%s\n", auth_xml_buf);
     if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
         error("iv_parse_auth failed\n");
