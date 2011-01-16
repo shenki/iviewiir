@@ -11,8 +11,6 @@
 
 ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
     int return_val;
-    xmlNanoHTTPInit();
-    IV_DEBUG("Initialised libxml2 nanohttp\n");
     void *ctx = xmlNanoHTTPOpen(uri, NULL);
     if(!ctx) {
         IV_DEBUG("Failed to open %s\n", uri);
