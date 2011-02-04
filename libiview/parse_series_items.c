@@ -220,6 +220,15 @@ static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
             item->id = atoi((char *)ch);
             free(ch);
             break;
+        case ps_url:
+            item->url = ch;
+            break;
+        case ps_date:
+            item->date = ch;
+            break;
+        case ps_rating:
+            item->rating = ch;
+            break;
         default:
             break;
     }
@@ -236,17 +245,8 @@ static void cdata_handler(void *_ctx, const xmlChar *data, int len) {
         case ps_title:
             item->title = _data;
             break;
-        case ps_url:
-            item->url = _data;
-            break;
         case ps_description:
             item->description = _data;
-            break;
-        case ps_date:
-            item->date = _data;
-            break;
-        case ps_rating:
-            item->rating = _data;
             break;
         case ps_home:
             item->home = _data;
