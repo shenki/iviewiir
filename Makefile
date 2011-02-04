@@ -2,13 +2,13 @@ IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c
 
 IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 
-IVIEWIIR_LIB := -lneon -ljson -lrtmp
+IVIEWIIR_LIB := -lxml2 -ljson -lrtmp
 
 LIBIVIEW := libiview/libiview.a
 
 PROGRAM := iviewiir
 
-CFLAGS := $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
+CFLAGS := $(CFLAGS) $(shell pkg-config --cflags libxml-2.0) -Wall -Wextra -Wwrite-strings -Werror
 LDFLAGS :=
 
 all: $(PROGRAM)

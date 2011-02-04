@@ -1,247 +1,294 @@
-#include <neon/ne_xml.h>
+#define _GNU_SOURCE
 #include <stdio.h>
+#undef _GNU_SOURCE
 #include <assert.h>
+#include <string.h>
+#include <libxml/parser.h>
 #include "iview.h"
 
-#define _GNU_SOURCE
-#include <string.h>
-#undef _GNU_SOURCE
+/* Sample series xml
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:abc="http://www.abc.net.au/tv/mrss">
+    <channel>
+        <title><![CDATA[Scrapheap Challenge Series 8]]></title>
+        <link>http://www.abc.net.au/iview/#/series/3094182</link>
+        <description><![CDATA[The Emmy nominated hit entertainment show where teams have just one day to build incredible machines using only materials they find on the scrapheap.]]></description>
+        <abc:keywords><![CDATA[Scrapheap Challenge lifestyle abc2 reality]]></abc:keywords>
+        <abc:seriesDownloadURL><![CDATA[]]></abc:seriesDownloadURL>
+        <copyright>2010 Australian Broadcasting Corporation</copyright>
+        <language>en-au</language>
+        <pubDate>Mon, 16 Aug 2010 12:58:54</pubDate>
+        <image>
+            <url>http://www.abc.net.au/reslib/201012/r690027_5187600.jpg</url>
+            <title></title>
+            <link></link>
+        </image>
+        <ttl>60</ttl>
+        <item>
+            <abc:seriesid>3094182</abc:seriesid>
+            <abc:id>689983</abc:id>
+            <guid isPermaLink="true">http://www.abc.net.au/iview/#/view/689983</guid>
+            <title><![CDATA[Scrapheap Challenge Series 8 Episode 1]]></title>
+            <category><![CDATA[Arts and Culture]]></category>
+
+            <description><![CDATA[The Emmy nominated hit entertainment show where teams have just one day to build incredible machines using only materials they find on the scrapheap.]]></description>
+            <pubDate>15/12/2010 19:30:00</pubDate>
+            <media:content fileSize="235" type="video/x-flv" duration="46.38" bitrate="650"></media:content>
+            <media:thumbnail url="http://www.abc.net.au/reslib/201012/r690027_5187600.jpg"></media:thumbnail>
+            <media:player url="http://www.abc.net.au/iview/#/view/689983"></media:player>
+            <media:restriction relationship="allow" type="country">au</media:restriction>
+            <abc:shortTitle><![CDATA[Underwater Cars]]></abc:shortTitle>
+            <abc:linkCopy><![CDATA[Go to website]]></abc:linkCopy>
+
+            <abc:linkURL><![CDATA[]]></abc:linkURL>
+            <abc:shopLinkCopy><![CDATA[]]></abc:shopLinkCopy>
+            <abc:shopLinkURL><![CDATA[]]></abc:shopLinkURL>
+            <abc:videoDownloadURL><![CDATA[]]></abc:videoDownloadURL>
+            <abc:videoAsset>scrapheap_10_08_01.mp4</abc:videoAsset>
+            <abc:transmitDate>15/12/2010 00:00:00</abc:transmitDate>
+            <abc:expireDate>29/12/2010 19:30:00</abc:expireDate>
+
+            <abc:rating>G</abc:rating>
+            <abc:warning><![CDATA[]]></abc:warning>
+        </item>
+        <item>
+            <abc:seriesid>3094182</abc:seriesid>
+            <abc:id>689987</abc:id>
+            <guid isPermaLink="true">http://www.abc.net.au/iview/#/view/689987</guid>
+            <title><![CDATA[Scrapheap Challenge Series 8 Episode 2]]></title>
+
+            <category><![CDATA[Arts and Culture]]></category>
+            <description><![CDATA[The Emmy nominated hit entertainment show where teams have just one day to build incredible machines using only materials they find on the scrapheap.]]></description>
+            <pubDate>16/12/2010 19:30:00</pubDate>
+            <media:content fileSize="240" type="video/x-flv" duration="47.37" bitrate="650"></media:content>
+            <media:thumbnail url="http://www.abc.net.au/reslib/201012/r690027_5187600.jpg"></media:thumbnail>
+            <media:player url="http://www.abc.net.au/iview/#/view/689987"></media:player>
+            <media:restriction relationship="allow" type="country">au</media:restriction>
+            <abc:shortTitle><![CDATA[Kung Fu Cars]]></abc:shortTitle>
+
+            <abc:linkCopy><![CDATA[Go to website]]></abc:linkCopy>
+            <abc:linkURL><![CDATA[]]></abc:linkURL>
+            <abc:shopLinkCopy><![CDATA[]]></abc:shopLinkCopy>
+            <abc:shopLinkURL><![CDATA[]]></abc:shopLinkURL>
+            <abc:videoDownloadURL><![CDATA[]]></abc:videoDownloadURL>
+            <abc:videoAsset>scrapheap_10_08_02.mp4</abc:videoAsset>
+            <abc:transmitDate>16/12/2010 00:00:00</abc:transmitDate>
+            <abc:expireDate>30/12/2010 19:30:00</abc:expireDate>
+
+            <abc:rating>G</abc:rating>
+            <abc:warning><![CDATA[]]></abc:warning>
+        </item>
+    </channel>
+</rss>
+ */
+
+enum item_parse_state {
+    ps_start,
+    ps_rss,
+    ps_channel,
+    ps_item,
+    ps_id,
+    ps_title,
+    ps_url,
+    ps_description,
+    ps_thumbnail,
+    ps_date,
+    ps_rating,
+    ps_link,
+    ps_home,
+    ps_end
+};
 
 struct iv_item_list {
-    size_t len;
+    unsigned int len;
     struct iv_item *head;
 };
 
-enum item_parse_state {
-    PS_RSS = 1,
-    PS_CHANNEL,
-    PS_ITEM,
-    PS_ID,
-    PS_TITLE,
-    PS_URL,
-    PS_DESCRIPTION,
-    PS_THUMBNAIL,
-    PS_DATE,
-    PS_RATING,
-    PS_LINK,
-    PS_HOME
+struct item_parse_ctx {
+    enum item_parse_state state;
+    int return_value;
+    struct iv_item_list *items;
 };
 
-static int accept_start_rss(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("rss", name)) {
-        return NE_XML_DECLINE;
+static void start_item_child_handler(struct item_parse_ctx *ctx,
+        const xmlChar *name, const xmlChar **attrs) {
+    if(!xmlStrcmp(BAD_CAST("abc:id"), name)) {
+        ctx->state = ps_id;
+    } else if(!xmlStrcmp(BAD_CAST("title"), name)) {
+        ctx->state = ps_title;
+    } else if(!xmlStrcmp(BAD_CAST("media:thumbnail"), name)) {
+        ctx->state = ps_thumbnail;
+        (ctx->items->head[ctx->items->len-1]).thumbnail =
+            xmlStrdup(attrs[1]);
+    } else if(!xmlStrcmp(BAD_CAST("media:player"), name)) {
+        ctx->state = ps_link;
+        (ctx->items->head[ctx->items->len-1]).link =
+            xmlStrdup(attrs[1]);
+    } else if(!xmlStrcmp(BAD_CAST("description"), name)) {
+        ctx->state = ps_description;
+    } else if(!xmlStrcmp(BAD_CAST("abc:linkURL"), name)) {
+        ctx->state = ps_home;
+    } else if(!xmlStrcmp(BAD_CAST("abc:videoAsset"), name)) {
+        ctx->state = ps_url;
+    } else if(!xmlStrcmp(BAD_CAST("abc:transmitDate"), name)) {
+        ctx->state = ps_date;
+    } else if(!xmlStrcmp(BAD_CAST("abc:rating"), name)) {
+        ctx->state = ps_rating;
+    } else {
+        IV_DEBUG("unhandled element: %s\n", name);
     }
-    return PS_RSS;
 }
 
-static int accept_start_channel(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("channel", name)) {
-        return NE_XML_DECLINE;
+static void start_element(void *_ctx, const xmlChar *name,
+        const xmlChar **attrs) {
+    struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
     }
-    return PS_CHANNEL;
-}
-
-static int accept_start_item(void *userdata, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("item", name)) {
-        return NE_XML_DECLINE;
+    switch(ctx->state) {
+        case ps_start:
+            // Root element should be 'rss'
+            if(xmlStrcmp(BAD_CAST("rss"), name)) {
+                ctx->return_value = IV_EXML;
+                IV_DEBUG("Found unexpected element %s\n", name);
+                return;
+            }
+            ctx->state = ps_rss;
+            return;
+        case ps_rss:
+            // Shouldn't have any elemente except 'channel'
+            if(xmlStrcmp(BAD_CAST("channel"), name)) {
+                ctx->return_value = IV_EXML;
+                IV_DEBUG("Found unexpected element %s\n", name);
+                return;
+            }
+            ctx->state = ps_channel;
+            break;
+        case ps_channel:
+            // We only care about the 'item' element
+            if(!xmlStrcmp(BAD_CAST("item"), name)) {
+                ctx->state = ps_item;
+                // Found new item, add another element to the list
+                if(!(ctx->items->head = realloc(ctx->items->head,
+                                ++(ctx->items->len)*sizeof(struct iv_item)))) {
+                    ctx->return_value = -IV_ENOMEM;
+                    return;
+                }
+                memset(&(ctx->items->head[ctx->items->len-1]), 0,
+                        sizeof(struct iv_item));
+            } else {
+                IV_DEBUG("Skipping non-item element %s\n", name);
+            }
+            break;
+        case ps_item:
+            start_item_child_handler(ctx, name, attrs);
+            break;
+        default:
+            break;
     }
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    if(!(item_list->head = realloc(item_list->head,
-                    ++(item_list->len)*sizeof(struct iv_item)))) {
-        perror("realloc");
-        return -1;
+}
+
+static void end_element(void *_ctx, const xmlChar *name) {
+    struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
     }
-    memset(&(item_list->head[item_list->len-1]), 0, sizeof(struct iv_item));
-    return PS_ITEM;
-}
-
-static int accept_start_id(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace, const char *name, const char **attrs IV_UNUSED) {
-    if(0 != strcmp("http://www.abc.net.au/tv/mrss", nspace)) {
-        return NE_XML_DECLINE;
+    if(!xmlStrcmp(BAD_CAST("abc:id"), name) ||
+            !xmlStrcmp(BAD_CAST("title"), name) ||
+            !xmlStrcmp(BAD_CAST("media:thumbnail"), name) ||
+            !xmlStrcmp(BAD_CAST("media:player"), name) ||
+            !xmlStrcmp(BAD_CAST("description"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:linkURL"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:videoAsset"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:transmitDate"), name) ||
+            !xmlStrcmp(BAD_CAST("abc:rating"), name)) {
+        ctx->state = ps_item;
+    } else if(!xmlStrcmp(BAD_CAST("item"), name)) {
+        ctx->state = ps_channel;
+    } else if(!xmlStrcmp(BAD_CAST("channel"), name)) {
+        ctx->state = ps_rss;
+    } else if(!xmlStrcmp(BAD_CAST("rss"), name)) {
+        ctx->state = ps_end;
     }
-    if(0 != strcmp("id", name)) {
-        return NE_XML_DECLINE;
+}
+
+static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
+    struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
     }
-    return PS_ID;
-}
-
-static int accept_cdata_id(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len IV_UNUSED) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).id = atoi(cdata);
-    return 0;
-}
-
-static int accept_start_title(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("title", name)) {
-        return NE_XML_DECLINE;
+    xmlChar *ch = xmlStrndup(_ch, len);
+    if(!ch) {
+        ctx->return_value = -IV_ENOMEM;
+        return;
     }
-    return PS_TITLE;
-}
-
-static int accept_cdata_title(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).title = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_url(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("videoAsset", name)) {
-        return NE_XML_DECLINE;
+    struct iv_item *item = &ctx->items->head[ctx->items->len-1];
+    switch(ctx->state) {
+        case ps_id:
+            item->id = atoi((char *)ch);
+            free(ch);
+            break;
+        case ps_url:
+            item->url = ch;
+            break;
+        case ps_date:
+            item->date = ch;
+            break;
+        case ps_rating:
+            item->rating = ch;
+            break;
+        default:
+            break;
     }
-    return PS_URL;
 }
 
-static int accept_cdata_url(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).url = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_description(void *userdata IV_UNUSED,
-        int parent IV_UNUSED, const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("description", name)) {
-        return NE_XML_DECLINE;
+static void cdata_handler(void *_ctx, const xmlChar *data, int len) {
+    struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
     }
-    return PS_DESCRIPTION;
-}
-
-static int accept_cdata_description(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).description = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_thumbnail(void *userdata, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name, const char **attrs) {
-    if(0 != strcmp("thumbnail", name)) {
-        return NE_XML_DECLINE;
+    xmlChar *_data = xmlStrndup(data, len);
+    if(!_data) {
+        ctx->return_value = -IV_ENOMEM;
+        return;
     }
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).thumbnail = strdup(attrs[1]);
-    return PS_THUMBNAIL;
-}
-
-static int accept_start_date(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("transmitDate", name)) {
-        return NE_XML_DECLINE;
+    struct iv_item *item = &ctx->items->head[ctx->items->len-1];
+    switch(ctx->state) {
+        case ps_title:
+            item->title = _data;
+            break;
+        case ps_description:
+            item->description = _data;
+            break;
+        case ps_home:
+            item->home = _data;
+            break;
+        default:
+            free(_data);
+            break;
     }
-    return PS_DATE;
-}
-
-static int accept_cdata_date(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).date = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_rating(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("rating", name)) {
-        return NE_XML_DECLINE;
-    }
-    return PS_RATING;
-}
-
-static int accept_cdata_rating(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).rating = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_link(void *userdata, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name, const char **attrs) {
-    if(0 != strcmp("player", name)) {
-        return NE_XML_DECLINE;
-    }
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).link = strdup(attrs[1]);
-    return PS_LINK;
-}
-
-static int accept_start_home(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("linkURL", name)) {
-        return NE_XML_DECLINE;
-    }
-    return PS_HOME;
-}
-
-static int accept_cdata_home(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    struct iv_item_list *item_list = (struct iv_item_list *)userdata;
-    /* possible portability issues with strndup */
-    (item_list->head[item_list->len-1]).home = strndup(cdata, len);
-    return 0;
 }
 
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
+    // Instantiate SAX parser
+    xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    handler->startElement = start_element;
+    handler->characters = content_handler;
+    handler->endElement = end_element;
+    handler->cdataBlock = cdata_handler;
+    // Initialise parser context
     struct iv_item_list item_list = { .len = 0, .head = NULL };
-    if(!(item_list.head = malloc(++(item_list.len)*sizeof(struct iv_item)))) {
-        perror("malloc");
-        return -1;
+    if(!(item_list.head = calloc(++(item_list.len), sizeof(struct iv_item)))) {
+        return -IV_ENOMEM;
     }
-    memset(&(item_list.head[0]), 0, sizeof(struct iv_item));
-    ne_xml_parser *item_parser = ne_xml_create();
-    ne_xml_push_handler(item_parser, accept_start_rss,
-            NULL, NULL, NULL);
-    ne_xml_push_handler(item_parser, accept_start_channel,
-            NULL, NULL, NULL);
-    ne_xml_push_handler(item_parser, accept_start_item,
-            NULL, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_id,
-            accept_cdata_id, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_title,
-            accept_cdata_title, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_url,
-            accept_cdata_url, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_description,
-            accept_cdata_description, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_thumbnail,
-            NULL, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_date,
-            accept_cdata_date, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_rating,
-            accept_cdata_rating, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_link,
-            NULL, NULL, (void *)&item_list);
-    ne_xml_push_handler(item_parser, accept_start_home,
-            accept_cdata_home, NULL, (void *)&item_list);
-    int result = ne_xml_parse(item_parser, buf, len);
-    ne_xml_parse(item_parser, buf, 0);
-    ne_xml_destroy(item_parser);
-    if(0 != result) {
+    struct item_parse_ctx ctx = {
+        .state = ps_start,
+        .return_value = IV_OK,
+        .items = &item_list
+    };
+    // Parse document
+    if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
         return -IV_ESAXPARSE;
     }
-    *items = item_list.head;
-    return item_list.len;
+    *items = ctx.items->head;
+    return ctx.items->len;
 }

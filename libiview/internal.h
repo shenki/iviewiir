@@ -2,27 +2,27 @@
 #define IV_INTERNAL_H
 
 struct iv_config {
-    ne_uri api;
-    ne_uri auth;
-    char *tray;
-    char *categories;
-    char *classifications;
-    char *captions;
+    xmlChar *api;
+    xmlChar *auth;
+    xmlChar *tray;
+    xmlChar *categories;
+    xmlChar *classifications;
+    xmlChar *captions;
     int captions_offset;
     unsigned short live_streaming;
-    ne_uri server_streaming; //rtmp uri
-    char *server_fallback;
-    char *highlights;
-    char *home;
-    char *geo;
-    char *time;
-    char *feedback_url;
+    xmlChar *server_streaming; //rtmp uri
+    xmlChar *server_fallback;
+    xmlChar *highlights;
+    xmlChar *home;
+    xmlChar *geo;
+    xmlChar *time;
+    xmlChar *feedback_url;
 };
 
 struct iv_auth {
-    ne_uri server;
-    char *prefix;
-    char *token;
+    xmlChar *server;
+    xmlChar *prefix;
+    xmlChar *token;
     short free;
 };
 

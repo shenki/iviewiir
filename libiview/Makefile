@@ -1,7 +1,7 @@
 SONAME := libiview.so
 
-LIBIVIEW_DEPS := neon json librtmp
-LIBIVIEW_CFLAGS := -fPIC
+LIBIVIEW_DEPS := libxml-2.0 json librtmp
+LIBIVIEW_CFLAGS := -fPIC $(shell pkg-config --cflags $(LIBIVIEW_DEPS))
 LIBIVIEW_LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME)
 LIBIVEW_LDLIBS := $(shell pkg-config --libs $(LIBIVIEW_DEPS))
 LIBIVIEW_INC := 

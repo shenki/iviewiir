@@ -1,34 +1,34 @@
+#define _GNU_SOURCE
 #include <stdio.h>
+#undef _GNU_SOURCE
 #include <string.h>
-#include <neon/ne_string.h>
-#include <neon/ne_alloc.h>
 #include "iview.h"
 #include "internal.h"
 
-char *iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item) {
-    char *rtmp_uri;
-    char *uri;
-    if(auth->free) {
-        uri = ne_concat(item->url, NULL);
-    } else {
-        uri = ne_concat(auth->prefix, item->url, NULL);
+ssize_t iv_generate_video_uri(const struct iv_auth *auth,
+        const struct iv_item *item, char **uri) {
+    int return_val = 0;
+    char *rtmp_uri = NULL;
+    char *playpath = NULL;
+    const int playpath_len = asprintf(&playpath, "%s%s",
+            (char *)(auth->free ? BAD_CAST("") : auth->prefix), item->url);
+    if(-1 == playpath_len) {
+        return -IV_ENOMEM;
     }
-    uri[strlen(uri)-4] = '\0';
-    if(!strcmp("flv", &item->url[strlen(item->url)-3])) {
-        rtmp_uri = ne_concat(auth->server.scheme, "://", auth->server.host,
-                auth->server.path, "?auth=", auth->token,
-                " playpath=", uri,
-                " swfUrl=", IV_SWF_URL,
-                " swfVfy=1",
-                " swfAge=0", NULL);
-    } else {
-        rtmp_uri = ne_concat(auth->server.scheme, "://", auth->server.host,
-                auth->server.path, "?auth=", auth->token,
-                " playpath=", "mp4:", uri,
-                " swfUrl=", IV_SWF_URL,
-                " swfVfy=1",
-                " swfAge=0", NULL);
+    // Trim the extension for RTMP URI generation
+    playpath[strlen(playpath)-4] = '\0';
+    const char *prefix =
+        !xmlStrcmp(BAD_CAST("flv"), &item->url[xmlStrlen(item->url)-3]) ?
+            "" : "mp4:";
+    const int rtmp_uri_len = asprintf(&rtmp_uri,
+            "%s?auth=%s playpath=%s%s swfUrl=%s swfVfy=1 swfAge=0",
+            auth->server, auth->token, prefix, playpath, IV_SWF_URL);
+    IV_DEBUG("Video URI: %s\n", rtmp_uri);
+    return_val = rtmp_uri_len;
+    if(-1 == rtmp_uri_len) {
+        return_val = -IV_ENOMEM;
     }
-    ne_free(uri);
-    return rtmp_uri;
+    free(playpath);
+    *uri = rtmp_uri;
+    return rtmp_uri_len;
 }

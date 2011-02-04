@@ -1,116 +1,123 @@
 #include <string.h>
-#include <neon/ne_xml.h>
-#include <neon/ne_uri.h>
+#include <libxml/parser.h>
+#include <libxml/xmlstring.h>
 #include "iview.h"
 #include "internal.h"
 
-#define XML_IVIEW_STATE 1
-#define XML_TOKEN_STATE 2
-#define XML_SERVER_STATE 3
-#define XML_FREE_STATE 4
+/* Sample auth XML data:
+    <?xml version="1.0" encoding="utf-8"?>
+    <iview xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.abc.net.au/iView/Services/iViewHandshaker">
+      <ip>121.45.113.44</ip>
+      <isp>Internode</isp>
+      <desc>Internet service provider</desc>
+      <host>Hostworks</host>
+      <server>rtmp://203.18.195.10/ondemand</server>
 
-static int accept_start_iview(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("iview", name)) {
-        return NE_XML_DECLINE;
+      <bwtest>rtmp://203.18.195.10/live</bwtest>
+      <token>83CCCD795CD079650849</token>
+      <text><![CDATA[Unmetering is available for <a href="http://www.internode.on.net/" target="_blank">Internode ADSL</a> customers. Check <a href="http://www.internode.on.net/unmetered/" target="_blank">this page</a> for details on whether iview content is metered under your plan.]]></text>
+      <free>yes</free>  
+    </iview>
+    <!-- 0.001417875289917 -->
+*/
+
+enum parse_state { st_start, st_iview, st_token, st_server, st_free, st_end };
+
+struct auth_parse_ctx {
+    enum parse_state state;
+    int return_value;
+    struct iv_auth *auth;
+};
+
+static void start_element(void *_ctx, const xmlChar *name,
+        const xmlChar **attrs IV_UNUSED) {
+    struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
     }
-    return XML_IVIEW_STATE;
-}
-
-static int accept_start_token(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("token", name)) {
-        return NE_XML_DECLINE;
+    if(!xmlStrcmp(BAD_CAST("iview"), name)) {
+        ctx->state = st_iview;
+        return;
     }
-    return XML_TOKEN_STATE;
-}
-
-static int accept_cdata_token(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    (*(struct iv_auth *)userdata).token = strndup(cdata, len);
-    return 0;
-}
-
-static int accept_start_server(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("server", name)) {
-        return NE_XML_DECLINE;
+    if(!xmlStrcmp(BAD_CAST("token"), name)) {
+        ctx->state = st_token;
+        return;
     }
-    return XML_SERVER_STATE;
-}
-
-static int accept_cdata_server(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    char *server_uri = strndup(cdata, len);
-    if(ne_uri_parse(server_uri, &(*(struct iv_auth *)userdata).server)) {
-        return NE_XML_ABORT;
+    if(!xmlStrcmp(BAD_CAST("server"), name)) {
+        ctx->state = st_server;
+        return;
     }
-    free(server_uri);
-    return 0;
-}
-
-static int accept_start_free(void *userdata IV_UNUSED, int parent IV_UNUSED,
-        const char *nspace IV_UNUSED, const char *name,
-        const char **attrs IV_UNUSED) {
-    if(0 != strcmp("free", name)) {
-        return NE_XML_DECLINE;
+    if(!xmlStrcmp(BAD_CAST("free"), name)) {
+        ctx->state = st_free;
+        return;
     }
-    return XML_FREE_STATE;
 }
 
-static int accept_cdata_free(void *userdata, int state IV_UNUSED,
-        const char *cdata, size_t len) {
-    char *free_str = strndup(cdata, len);
-    (*(struct iv_auth *)userdata).free = !strcmp("yes", free_str);
-    free(free_str);
-    return 0;
+static void end_element(void *_ctx, const xmlChar *name) {
+    struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
+    if(!xmlStrcmp(BAD_CAST("iview"), name)) {
+        ctx->state = st_end;
+        return;
+    }
+    // Current XML is only one element deep, so if a tag has ended we should be
+    // back inside the iview element
+    ctx->state = st_iview;
+    return;
 }
 
-static int iv_parse_auth(const struct iv_config *config, const char *buf,
-        size_t len, struct iv_auth *auth) {
-    ne_xml_parser *auth_parser = ne_xml_create();
-    ne_xml_push_handler(auth_parser, accept_start_iview,
-            NULL, NULL, NULL);
-    ne_xml_push_handler(auth_parser, accept_start_token,
-            accept_cdata_token, NULL, (void *)auth);
-    ne_xml_push_handler(auth_parser, accept_start_server,
-            accept_cdata_server, NULL, (void *)auth);
-    ne_xml_push_handler(auth_parser, accept_start_free,
-            accept_cdata_free, NULL, (void *)auth);
-    int result = ne_xml_parse(auth_parser, buf, len);
-    ne_xml_parse(auth_parser, buf, 0);
-    ne_xml_destroy(auth_parser);
-    if(result) {
-        IV_DEBUG("auth xml parsing failed: %d\n", result);
+static void content_handler(void *_ctx, const xmlChar *data, int len) {
+    struct auth_parse_ctx *ctx = (struct auth_parse_ctx *)_ctx;
+    if(IV_OK != ctx->return_value) {
+        return;
+    }
+    switch(ctx->state) {
+        case st_token:
+            ctx->auth->token = xmlStrndup(data, len);
+            if(!ctx->auth->token) {
+                ctx->return_value = IV_ENOMEM;
+            }
+            break;
+        case st_server:
+            ctx->auth->server = xmlStrndup(data, len);
+            if(!ctx->auth->server) {
+                ctx->return_value = IV_ENOMEM;
+            }
+            break;
+        case st_free:
+#define FREE_VALUE "yes"
+            ctx->auth->free =
+                !xmlStrncmp(BAD_CAST(FREE_VALUE), data, strlen(FREE_VALUE));
+#undef FREE_VALUE
+            break;
+        default:
+            return;
+    }
+    return;
+}
+
+int iv_get_auth(const struct iv_config *config, struct iv_auth **auth) {
+    // Initialise and fetch auth xml
+    *auth = calloc(1, sizeof(struct iv_auth));
+    if(NULL == *auth) {
+        return -IV_ENOMEM;
+    }
+    char *auth_xml_buf;
+    ssize_t auth_buf_len = iv_get_xml_buffer((char *)config->auth, &auth_xml_buf);
+    // Parse auth xml
+    xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    handler->startElement = start_element;
+    handler->endElement = end_element;
+    handler->characters = content_handler;
+    struct auth_parse_ctx ctx = {
+        .state = st_start,
+        .return_value = IV_OK,
+        .auth = *auth
+    };
+    if(0 > xmlSAXUserParseMemory(handler, &ctx, auth_xml_buf, auth_buf_len)) {
         return -IV_ESAXPARSE;
     }
-    /* Discard const qualifier, as |auth| is of type ne_uri, and we can't
-     * change ->server to be a const string (even though it is). */
-    auth->prefix = (char*)IV_AKAMAI_PREFIX;
-    if(0 == auth->server.host) {
-        if(ne_uri_copy(&auth->server, &config->server_streaming)) {
-            IV_DEBUG("failed to complete auth struct initialisation\n");
-            return -IV_EURIPARSE;
-        }
-    }
-    return 0;
-}
-
-struct iv_auth *iv_get_auth(const struct iv_config *config) {
-    struct iv_auth *auth = malloc(sizeof(struct iv_auth));
-    if(NULL == auth) {
-        return NULL;
-    }
-    memset(auth, 0, sizeof(auth));
-    char *auth_xml_buf;
-    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
-    IV_DEBUG("%s\n", auth_xml_buf);
-    if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, auth)) {
-        auth = NULL;
-    }
-    iv_destroy_xml_buffer(auth_xml_buf);
-    return auth;
+    return ctx.return_value;
 }
