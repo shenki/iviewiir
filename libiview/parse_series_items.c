@@ -99,7 +99,7 @@ enum item_parse_state {
 };
 
 struct iv_item_list {
-    size_t len;
+    unsigned int len;
     struct iv_item *head;
 };
 
@@ -117,11 +117,11 @@ static void start_item_child_handler(struct item_parse_ctx *ctx,
         ctx->state = ps_title;
     } else if(!xmlStrcmp(BAD_CAST("media:thumbnail"), name)) {
         ctx->state = ps_thumbnail;
-        (ctx->items->head[ctx->items->len]).thumbnail =
+        (ctx->items->head[ctx->items->len-1]).thumbnail =
             xmlStrdup(attrs[1]);
     } else if(!xmlStrcmp(BAD_CAST("media:player"), name)) {
         ctx->state = ps_link;
-        (ctx->items->head[ctx->items->len]).link =
+        (ctx->items->head[ctx->items->len-1]).link =
             xmlStrdup(attrs[1]);
     } else if(!xmlStrcmp(BAD_CAST("description"), name)) {
         ctx->state = ps_description;
@@ -207,8 +207,7 @@ static void end_element(void *_ctx, const xmlChar *name) {
     } else if(!xmlStrcmp(BAD_CAST("channel"), name)) {
         ctx->state = ps_rss;
     } else if(!xmlStrcmp(BAD_CAST("rss"), name)) {
-        ctx->state = ps_end;
-    } else {
+        ctx->state = ps_end;g
     }
 }
 
@@ -255,7 +254,7 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     handler->cdataBlock = cdata_block;
     // Initialise parser context
     struct iv_item_list item_list = { .len = 0, .head = NULL };
-    if(!(item_list.head = malloc(++(item_list.len)*sizeof(struct iv_item)))) {
+    if(!(item_list.head = calloc(++(item_list.len), sizeof(struct iv_item)))) {
         return -IV_ENOMEM;
     }
     struct item_parse_ctx ctx = {
