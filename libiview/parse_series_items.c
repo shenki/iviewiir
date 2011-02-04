@@ -207,7 +207,21 @@ static void end_element(void *_ctx, const xmlChar *name) {
     } else if(!xmlStrcmp(BAD_CAST("channel"), name)) {
         ctx->state = ps_rss;
     } else if(!xmlStrcmp(BAD_CAST("rss"), name)) {
-        ctx->state = ps_end;g
+        ctx->state = ps_end;
+    }
+}
+
+static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
+    struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
+    xmlChar *ch = xmlStrndup(_ch, len);
+    struct iv_item *item = &ctx->items->head[ctx->items->len-1];
+    switch(ctx->state) {
+        case ps_id:
+            item->id = atoi((char *)ch);
+            free(ch);
+            break;
+        default:
+            break;
     }
 }
 
@@ -219,10 +233,6 @@ static void cdata_block(void *_ctx, const xmlChar *data, int len) {
     xmlChar *_data = xmlStrndup(data, len);
     struct iv_item *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
-        case ps_id:
-            item->id = atoi((char *)_data);
-            free(_data);
-            break;
         case ps_title:
             item->title = _data;
             break;
@@ -251,6 +261,7 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
     handler->startElement = start_element;
+    handler->characters = content_handler;
     handler->endElement = end_element;
     handler->cdataBlock = cdata_block;
     // Initialise parser context
