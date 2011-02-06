@@ -8,6 +8,9 @@
 #include <getopt.h>
 #include <libgen.h>
 #include <libxml/xmlstring.h>
+
+#include "ccan/opt/opt.h"
+
 #include "iviewiir.h"
 #include "libiview/iview.h"
 
@@ -268,62 +271,50 @@ void usage(void) {
            "which will download the associated video\n");
 }
 
+char *opt_set_int_from_charp(const char *arg, int *i) {
+
+    if (arg == NULL)
+        return NULL;
+
+    *i = atoi(arg);
+
+    return NULL;
+}
+
 int main(int argc, char **argv) {
-    int return_val = 0;
-    long bsopts = 0;
-#define OPT_SERIES_LIST (1 << 1)
-#define OPT_ITEMS_LIST (1 << 2)
-#define OPT_HELP (1 << 3)
-#define OPT_ALL (1 << 4)
-#define OPT_FORCE_NOCACHE (1 << 5)
-#define OPT_h(opts) (opts & OPT_HELP)
-#define OPT_s(opts) (opts & OPT_SERIES_LIST)
-#define OPT_i(opts) (opts & OPT_ITEMS_LIST)
-#define OPT_a(opts) (opts & OPT_ALL)
-#define OPT_f(opts) (opts & OPT_FORCE_NOCACHE)
-    const char *opts = "ai:sh";
-    int i_sid = 0;
-    struct option lopts[] = {
-        {"items-list", 1, NULL, 'i'},
-        {"series-list", 0, NULL, 's'},
-        {"all", 0, NULL, 'a'},
-        {"force", 0, NULL, 'f'},
-        {"help", 0, NULL, 'h'},
-        {0, 0, 0, 0}
+
+    static bool show_series, show_all, use_cache = true;
+    static int i_sid = -1;
+    static struct opt_table opts[] = {
+        OPT_WITH_ARG("--items-list/-i", opt_set_int_from_charp, NULL, &i_sid,
+                "List episodes in a series. Requires a SID as a parameter."),
+        OPT_WITHOUT_ARG("--series-list/-s", opt_set_bool, &show_series,
+                "List the series available. The first element on each output line is the SID."),
+        OPT_WITHOUT_ARG("--all/-a", opt_set_bool, &show_all,
+                "List all items in all non-empty series."),
+        OPT_WITHOUT_ARG("--force/-f", opt_set_invbool, &use_cache,
+                "Force bypass the cached metadata."),
+        OPT_WITHOUT_ARG("--help/-h", opt_usage_and_exit,
+                (char*)"a...\nIviewiir!", "Show this message."),
+        OPT_ENDTABLE
     };
-    int lindex;
-    char opt;
-    while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
-        switch(opt) {
-            case 'a':
-                bsopts |= OPT_ALL;
-                break;
-            case 'i':
-                bsopts |= OPT_ITEMS_LIST;
-                i_sid = atoi(optarg);
-                break;
-            case 's':
-                bsopts |= OPT_SERIES_LIST;
-                break;
-            case 'f':
-                bsopts |= OPT_FORCE_NOCACHE;
-                break;
-            case 'h':
-                bsopts |= OPT_HELP;
-                break;
-        }
-    }
+
+    opt_register_table(opts, NULL);
+
+    if (!opt_parse(&argc, argv, opt_log_stderr))
+        exit(1);
+
+#if 0
     if(0 == bsopts && argc == optind) {
         error("please supply SID or SID:PID parameter\n\n");
         usage();
         return 1;
     }
-    if(OPT_h(bsopts)) {
-        usage();
-        return 0;
-    }
+#endif
+
     struct iv_series *index;
     struct iv_config *config;
+    int return_val;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
     if(NULL == (config = iviewiir_configure())) {
         error("Couldn't configure iviewiir, exiting\n");
@@ -335,18 +326,14 @@ int main(int argc, char **argv) {
         return_val = 1;
         goto config_cleanup;
     }
-    // Check if they want to forcibly bypass the cache of metadata
-    if(OPT_f(bsopts)) {
-        use_cache = 0;
-    }
     // Check if they want everything listed
-    if(OPT_a(bsopts)) {
+    if(show_all) {
         list_all(config, index, index_len);
         return_val = 0;
         goto index_cleanup;
     }
     // Check if they wanted a series list
-    if(OPT_s(bsopts)) {
+    if(show_series) {
         int i;
         for(i=0; i<index_len; i++) {
             // Heuristic to trim out empty series
@@ -359,7 +346,7 @@ int main(int argc, char **argv) {
         goto index_cleanup;
     }
     // Check if they want an episode list
-    if(OPT_i(bsopts)) {
+    if(i_sid) {
         return_val = list_items(config, index, index_len, i_sid);
         goto index_cleanup;
     }
