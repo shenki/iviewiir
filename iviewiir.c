@@ -282,8 +282,7 @@ int main(int argc, char **argv) {
         {"help", 0, NULL, 'h'},
         {0, 0, 0, 0}
     };
-    int lindex;
-    char opt;
+    int lindex, opt;
     while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
         switch(opt) {
             case 'a':
