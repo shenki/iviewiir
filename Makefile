@@ -1,4 +1,5 @@
-IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c
+IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c ccan/opt/helpers.c \
+		ccan/opt/usage.c ccan/opt/opt.c ccan/opt/parse.c
 
 IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 
@@ -8,7 +9,8 @@ LIBIVIEW := libiview/libiview.a
 
 PROGRAM := iviewiir
 
-CFLAGS := $(CFLAGS) $(shell pkg-config --cflags libxml-2.0) -Wall -Wextra -Wwrite-strings -Werror
+WARNINGS := -Wall -Wextra -Wwrite-strings -Werror
+CFLAGS := $(CFLAGS) $(shell pkg-config --cflags libxml-2.0) $(WARNINGS) -I.
 LDFLAGS :=
 
 all: $(PROGRAM)
