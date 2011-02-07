@@ -284,7 +284,7 @@ char *opt_set_int_from_charp(const char *arg, int *i) {
 
 int main(int argc, char **argv) {
 
-    static bool show_series, show_all, use_cache = true;
+    static bool show_series = false, show_all = false, use_cache = true;
     static int i_sid = -1;
     static struct opt_table opts[] = {
         OPT_WITH_ARG("--items-list/-i", opt_set_int_from_charp, NULL, &i_sid,
