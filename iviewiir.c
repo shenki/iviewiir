@@ -294,6 +294,9 @@ int main(int argc, char **argv) {
     if (!opt_parse(&argc, argv, opt_log_stderr))
         exit(1);
 
+    debug("show_series: %d\nshow_all: %d\nuse_cache: %d\ni_sid: %d\n",
+            show_series, show_all, use_cache, i_sid);
+
 #if 0
     if(0 == bsopts && argc == optind) {
         error("please supply SID or SID:PID parameter\n\n");
