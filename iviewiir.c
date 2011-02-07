@@ -261,17 +261,11 @@ static char usage_str[] = "Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
 "Without any parameters a SID:PID tuple should be supplied, which will\n"
 "download the associated video\n";
 
-char *opt_set_int_from_charp(const char *arg, int *i) {
-    *i = atoi(arg);
-    return opt_set_intval(arg, i);
-}
-
 int main(int argc, char **argv) {
-
     static bool show_series = false, show_all = false, use_cache = true;
     static int i_sid = 0;
     static struct opt_table opts[] = {
-        OPT_WITH_ARG("--items-list|-i", opt_set_int_from_charp, NULL, &i_sid,
+        OPT_WITH_ARG("--items-list|-i", opt_set_intval, NULL, &i_sid,
                 "List episodes in a series. Requires a SID as a parameter."),
         OPT_WITHOUT_ARG("--series-list|-s", opt_set_bool, &show_series,
                 "List the series available. The first element is the SID."),
