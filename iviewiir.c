@@ -257,9 +257,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
     return 0;
 }
 
-static char usage_str[] = "Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
-"Without any parameters a SID:PID tuple should be supplied, which will\n"
-"download the associated video\n";
+static char usage_str[] = "[SID[:PID]]";
 
 int main(int argc, char **argv) {
     static bool show_series = false, show_all = false, use_cache = true;
