@@ -274,7 +274,7 @@ char *opt_set_int_from_charp(const char *arg, int *i) {
 int main(int argc, char **argv) {
 
     static bool show_series = false, show_all = false, use_cache = true;
-    static int i_sid = -1;
+    static int i_sid = 0;
     static struct opt_table opts[] = {
         OPT_WITH_ARG("--items-list|-i", opt_set_int_from_charp, NULL, &i_sid,
                 "List episodes in a series. Requires a SID as a parameter."),
@@ -344,15 +344,16 @@ int main(int argc, char **argv) {
         goto index_cleanup;
     }
     // Otherwise, if they supplied a SID or SID:PID tuple, download the PID
-    while(optind < argc) {
-        if(NULL != strchr(argv[optind], ':')) {
+    int i = 1;
+    while(i < argc) {
+        if(NULL != strchr(argv[i], ':')) {
             // SID:PID
-            const int sid = atoi(strtok(argv[optind], ":"));
+            const int sid = atoi(strtok(argv[i], ":"));
             const int pid = atoi(strtok(NULL, ":"));
             return_val += download_item(config, index, index_len, sid, pid);
         } else {
             // Check if it's a valid SID
-            const int sid = atoi(argv[optind]);
+            const int sid = atoi(argv[i]);
             struct iv_item *items;
             // Fetch episode lists for the SID
             debug("sid: %d\n", sid);
@@ -375,7 +376,7 @@ int main(int argc, char **argv) {
                 iv_destroy_series_items(items, items_len);
             }
         }
-        optind++;
+        i++;
     }
 index_cleanup:
     iv_destroy_index(index, index_len);
