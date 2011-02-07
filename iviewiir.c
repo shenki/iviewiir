@@ -258,19 +258,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
 }
 
 static char usage_str[] = "Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
-           "\t-a --all: List all items in all non-empty series.\n"
-           "\t-i --items-list=SID: List episodes in a series. "
-           "Requires a SID as a parameter. "
-           "The first element on each output line is a SID:PID tuple\n"
-           "\t-s --series-list: List the series available. "
-           "The first element on each output line is the SID\n"
-           "\t-h --help: Show this help\n\n"
-           "Without any parameters a SID:PID tuple should be supplied, "
-           "which will download the associated video\n";
-
-void usage(void) {
-    printf("%s", usage_str);
-}
+"Without any parameters a SID:PID tuple should be supplied, which will\n"
+"download the associated video\n";
 
 char *opt_set_int_from_charp(const char *arg, int *i) {
 
