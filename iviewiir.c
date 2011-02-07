@@ -279,9 +279,6 @@ int main(int argc, char **argv) {
         /* opt_parse will print an error to stderr. */
         exit(1);
     }
-    if (argc == 1) {
-        opt_usage_and_exit(usage_str);
-    }
 
     struct iv_series *index;
     struct iv_config *config;
@@ -297,17 +294,17 @@ int main(int argc, char **argv) {
         return_val = 1;
         goto config_cleanup;
     }
-    // Check if they want everything listed
+    /* Check if they want everything listed */
     if(show_all) {
         list_all(config, index, index_len);
         return_val = 0;
         goto index_cleanup;
     }
-    // Check if they wanted a series list
+    /* Check if they wanted a series list. */
     if(show_series) {
         int i;
         for(i=0; i<index_len; i++) {
-            // Heuristic to trim out empty series
+            /* Heuristic to trim out empty series. */
             if((int)9e6 < index[i].id) {
                 continue;
             }
@@ -316,12 +313,16 @@ int main(int argc, char **argv) {
         return_val = 0;
         goto index_cleanup;
     }
-    // Check if they want an episode list
+    /* Check if they want an episode list. */
     if(i_sid) {
         return_val = list_items(config, index, index_len, i_sid);
         goto index_cleanup;
     }
-    // Otherwise, if they supplied a SID or SID:PID tuple, download the PID
+    /* If we've reached here and there are no arguments, print help message. */
+    if (argc == 1) {
+        opt_usage_and_exit(usage_str);
+    }
+    /* Otherwise, if they supplied a SID or SID:PID tuple, download the PID */
     int i = 1;
     while(i < argc) {
         if(NULL != strchr(argv[i], ':')) {
