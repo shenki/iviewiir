@@ -257,8 +257,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
     return 0;
 }
 
-void usage(void) {
-    printf("Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
+static char usage_str[] = "Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
            "\t-a --all: List all items in all non-empty series.\n"
            "\t-i --items-list=SID: List episodes in a series. "
            "Requires a SID as a parameter. "
@@ -267,7 +266,10 @@ void usage(void) {
            "The first element on each output line is the SID\n"
            "\t-h --help: Show this help\n\n"
            "Without any parameters a SID:PID tuple should be supplied, "
-           "which will download the associated video\n");
+           "which will download the associated video\n";
+
+void usage(void) {
+    printf("%s", usage_str);
 }
 
 char *opt_set_int_from_charp(const char *arg, int *i) {
@@ -294,7 +296,7 @@ int main(int argc, char **argv) {
         OPT_WITHOUT_ARG("--force/-f", opt_set_invbool, &use_cache,
                 "Force bypass the cached metadata."),
         OPT_WITHOUT_ARG("--help/-h", opt_usage_and_exit,
-                (char*)"a...\nIviewiir!", "Show this message."),
+                usage_str, "Show this message."),
         OPT_ENDTABLE
     };
 
