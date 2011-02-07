@@ -262,13 +262,8 @@ static char usage_str[] = "Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
 "download the associated video\n";
 
 char *opt_set_int_from_charp(const char *arg, int *i) {
-
-    if (arg == NULL)
-        return NULL;
-
     *i = atoi(arg);
-
-    return NULL;
+    return opt_set_intval(arg, i);
 }
 
 int main(int argc, char **argv) {
