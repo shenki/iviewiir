@@ -276,15 +276,15 @@ int main(int argc, char **argv) {
     static bool show_series = false, show_all = false, use_cache = true;
     static int i_sid = -1;
     static struct opt_table opts[] = {
-        OPT_WITH_ARG("--items-list/-i", opt_set_int_from_charp, NULL, &i_sid,
+        OPT_WITH_ARG("--items-list|-i", opt_set_int_from_charp, NULL, &i_sid,
                 "List episodes in a series. Requires a SID as a parameter."),
-        OPT_WITHOUT_ARG("--series-list/-s", opt_set_bool, &show_series,
-                "List the series available. The first element on each output line is the SID."),
-        OPT_WITHOUT_ARG("--all/-a", opt_set_bool, &show_all,
+        OPT_WITHOUT_ARG("--series-list|-s", opt_set_bool, &show_series,
+                "List the series available. The first element is the SID."),
+        OPT_WITHOUT_ARG("--all|-a", opt_set_bool, &show_all,
                 "List all items in all non-empty series."),
-        OPT_WITHOUT_ARG("--force/-f", opt_set_invbool, &use_cache,
+        OPT_WITHOUT_ARG("--force|-f", opt_set_invbool, &use_cache,
                 "Force bypass the cached metadata."),
-        OPT_WITHOUT_ARG("--help/-h", opt_usage_and_exit,
+        OPT_WITHOUT_ARG("--help|-h", opt_usage_and_exit,
                 usage_str, "Show this message."),
         OPT_ENDTABLE
     };
