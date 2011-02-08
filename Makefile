@@ -3,7 +3,7 @@ IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c ccan/opt/helpers.c \
 
 IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 
-IVIEWIIR_LIB := -lxml2 -ljson -lrtmp
+IVIEWIIR_LIB := $(shell pkg-config --libs libxml-2.0 json librtmp)
 
 LIBIVIEW := libiview/libiview.a
 
