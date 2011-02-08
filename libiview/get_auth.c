@@ -108,6 +108,7 @@ int iv_get_auth(const struct iv_config *config, struct iv_auth **auth) {
     ssize_t auth_buf_len = iv_get_xml_buffer((char *)config->auth, &auth_xml_buf);
     // Parse auth xml
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    handler->initialized = XML_SAX2_MAGIC;
     handler->startElement = start_element;
     handler->endElement = end_element;
     handler->characters = content_handler;

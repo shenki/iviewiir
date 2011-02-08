@@ -123,6 +123,7 @@ int iv_get_config(const char *buf, size_t len, struct iv_config **config) {
     *config = malloc(sizeof(struct iv_config));
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    handler->initialized = XML_SAX2_MAGIC;
     handler->startElement = start_element;
     handler->endElement = end_element;
     // Initialise parser context
