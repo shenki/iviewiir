@@ -3,7 +3,8 @@ IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c ccan/opt/helpers.c \
 
 IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 
-IVIEWIIR_LIB := $(shell pkg-config --libs libxml-2.0 json librtmp)
+IVIEWIIR_LIB := $(shell pkg-config --libs json librtmp libxml-2.0)
+IVIEWIIR_LIB_STATIC := libjson.a librtmp.a libpolarssl.a libxml2.a -lz
 
 LIBIVIEW := libiview/libiview.a
 
@@ -17,6 +18,9 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(IVIEWIIR_OBJ) $(LIBIVIEW)
 	$(CC) $(LDFLAGS) $^ $> -o $@  $(IVIEWIIR_LIB)
+
+static: $(IVIEWIIR_OBJ) $(LIBIVIEW) nanohttp.o
+	$(CC) $(LDFLAGS) $^ $> -o $(PROGRAM)  $(IVIEWIIR_LIB_STATIC)
 
 # Hack to ensure recursive call is made
 FORCE:
