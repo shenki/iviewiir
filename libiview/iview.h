@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <libxml/xmlstring.h>
+#include <unistd.h>
 
 #ifndef LIBIVIEW_H
 #define LIBIVIEW_H
