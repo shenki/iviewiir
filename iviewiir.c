@@ -220,7 +220,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
         printf("No items in series.\n");
         return -1;
     }
-    for(i=1; i<items_len; i++) {
+    for(i=0; i<items_len; i++) {
         printf("%d:%d - %s\n",
                 sid, items[i].id, items[i].title);
     }
