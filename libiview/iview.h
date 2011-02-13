@@ -92,7 +92,6 @@ ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 void iv_destroy_series_items(struct iv_item *items, int items_len);
 int iv_get_auth(const struct iv_config *config, struct iv_auth **auth);
 void iv_destroy_auth(struct iv_auth *auth);
-ssize_t iv_generate_video_uri(const struct iv_auth *auth, const struct iv_item *item, char **uri);
 #define iv_destroy_video_uri(uri) free(uri)
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
 
