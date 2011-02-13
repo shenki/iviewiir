@@ -1,6 +1,8 @@
 #ifndef IV_INTERNAL_H
 #define IV_INTERNAL_H
 
+#define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
+
 struct iv_config {
     xmlChar *api;
     xmlChar *auth;

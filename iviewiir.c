@@ -147,7 +147,7 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
         struct iv_item **items) {
     char *series_buf = NULL;
     const ssize_t len =
-        iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
+        iv_get_series_items(config, series, &series_buf);
     if(0 >= len) {
         iv_destroy_xml_buffer(series_buf);
         return len;

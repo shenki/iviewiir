@@ -41,7 +41,6 @@
 
 
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=374"
-#define IV_SERIES_URI "http://www.abc.net.au/iview/api/series_mrss.htm"
 #define IV_AKAMAI_PREFIX "/flash/playback/_definst_/"
 #define IV_SWF_HASH "96cc76f1d5385fb5cda6e2ce5c73323a399043d0bb6c687edd807e5c73c42b37"
 #define IV_SWF_SIZE "2122"
@@ -91,7 +90,7 @@ void iv_destroy_config(struct iv_config *config);
 ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 int iv_parse_index(const char *buf, struct iv_series **index_ptr);
 void iv_destroy_index(struct iv_series *index, int len);
-ssize_t iv_get_series_items(struct iv_config *config, const char *uri,
+ssize_t iv_get_series_items(struct iv_config *config,
         struct iv_series *series, char **buf_ptr);
 ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 void iv_destroy_series_items(struct iv_item *items, int items_len);
