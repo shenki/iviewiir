@@ -14,7 +14,7 @@ char * tcp_readln (const s32 s, const u16 max_length, const u64 start_time, cons
 bool tcp_read (const s32 s, u8 **buffer, const u32 length);
 bool tcp_write (const s32 s, const u8 *buffer, const u32 length);
 
-#define HTTP_TIMEOUT 300000
+#define HTTP_TIMEOUT (1 << 15)
 
 typedef enum {
 	HTTPR_OK,
@@ -29,4 +29,3 @@ bool http_request (const char *url, const u32 max_size);
 bool http_get_result (u32 *http_status, u8 **content, u32 *length);
 
 #endif
-
