@@ -1,9 +1,25 @@
 SONAME := libiview.so
 
+# Uncomment when building for the wii, or provide on the command line
+# CROSS_COMPILE=powerpc-eabi-
+
+ifeq ($(CROSS_COMPILE),powerpc-eabi-)
+PKGCONFIG := /opt/devkitpro/portlibs/ppc/lib/pkgconfig
+EXTRA_CFLAGS := -O3 -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -DHW_RVL \
+		-I/opt/devkitpro/libogc/include	\
+		-I/opt/devkitpro/libogc/lib/wii
+EXTRA_LDFLAGS = -L/opt/devkitpro/devkitPPC/powerpc-eabi/lib \
+		-L/opt/devkitpro/libogc/lib/wii
+endif
+
+CC=$(CROSS_COMPILE)gcc
+AR=$(CROSS_COMPILE)ar
+
 DEPS := libxml-2.0 json librtmp
-CFLAGS := -fPIC $(shell pkg-config --cflags $(DEPS))
-LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME)
-LIBIVEW_LDLIBS := $(shell pkg-config --libs $(DEPS))
+CFLAGS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
+	-fPIC  $(EXTRA_CFLAGS)
+LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
+LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
 SRC := get_xml_buffer.c \
 	get_config.c \
