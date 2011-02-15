@@ -30,6 +30,8 @@ all: libiview.so libiview.a
 libiview.so: $(OBJ)
 	$(CC) -shared $(LDFLAGS) -o $@ $^ $> $(LDLIBS)
 
+static: libiview.a
+
 libiview.a: $(OBJ)
 	$(AR) rs $@ $?
 
