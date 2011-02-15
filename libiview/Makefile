@@ -1,12 +1,11 @@
 SONAME := libiview.so
 
-LIBIVIEW_DEPS := libxml-2.0 json librtmp
-LIBIVIEW_CFLAGS := -fPIC $(shell pkg-config --cflags $(LIBIVIEW_DEPS))
-LIBIVIEW_LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME)
-LIBIVEW_LDLIBS := $(shell pkg-config --libs $(LIBIVIEW_DEPS))
-LIBIVIEW_INC := 
+DEPS := libxml-2.0 json librtmp
+CFLAGS := -fPIC $(shell pkg-config --cflags $(DEPS))
+LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME)
+LIBIVEW_LDLIBS := $(shell pkg-config --libs $(DEPS))
 
-LIBIVIEW_SRC := get_xml_buffer.c \
+SRC := get_xml_buffer.c \
 	get_config.c \
 	get_index.c \
 	parse_index.c \
@@ -21,23 +20,23 @@ LIBIVIEW_SRC := get_xml_buffer.c \
 	destroy_auth.c \
 	wiicode/http.c
 
-LIBIVIEW_OBJ := $(LIBIVIEW_SRC:.c=.o)
+OBJ := $(SRC:.c=.o)
 
-CFLAGS := $(CFLAGS) $(LIBIVIEW_CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
-LDFLAGS := $(LIBIVIEW_LDFLAGS)
+CFLAGS := $(CFLAGS) $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
+LDFLAGS := $(LDFLAGS)
 
 all: libiview.so libiview.a
 
-libiview.so: $(LIBIVIEW_OBJ)
-	$(CC) -shared $(LDFLAGS) -o $@ $^ $> $(LIBIVIEW_LDLIBS)
+libiview.so: $(OBJ)
+	$(CC) -shared $(LDFLAGS) -o $@ $^ $> $(LDLIBS)
 
-libiview.a: $(LIBIVIEW_OBJ)
+libiview.a: $(OBJ)
 	$(AR) rs $@ $?
 
 %.o: %.c
 	$(COMPILE.c) -MMD -MF $(subst .o,.d,$@) $(OUTPUT_OPTION) $<
 
 clean:
-	$(RM) $(LIBIVIEW_OBJ) $(LIBIVIEW_OBJ:.o=.d) libiview.so libiview.a
+	$(RM) $(OBJ) $(OBJ:.o=.d) libiview.so libiview.a
 
 .PHONY: clean
