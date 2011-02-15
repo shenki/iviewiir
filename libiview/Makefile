@@ -18,7 +18,8 @@ LIBIVIEW_SRC := get_xml_buffer.c \
 	generate_video_uri.c \
 	fetch_video.c \
 	destroy_series_items.c \
-	destroy_auth.c
+	destroy_auth.c \
+	wiicode/http.c
 
 LIBIVIEW_OBJ := $(LIBIVIEW_SRC:.c=.o)
 
