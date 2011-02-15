@@ -8,8 +8,22 @@
 #include <stdio.h>
 
 #include "iview.h"
+#ifdef GEKKO
+#include "wiicode/http.h"
+#endif
 
 ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
+#ifdef GEKKO
+    if(!http_request(uri, 1 << 31)) {
+        return -IV_EREQUEST;
+    }
+    u32 status = 0, len = 0;
+    if(!http_get_result(&status, (u8 **)buf_ptr, &len)) {
+        return -IV_EREQUEST;
+    }
+    return len;
+}
+#else
     int return_val;
     void *ctx = xmlNanoHTTPOpen(uri, NULL);
     if(!ctx) {
@@ -67,3 +81,4 @@ done:
     xmlNanoHTTPCleanup();
     return return_val;
 }
+#endif /* GEKKO */
