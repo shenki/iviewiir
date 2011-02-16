@@ -30,7 +30,11 @@
 #include <sys/errno.h>
 #include <fcntl.h>
 
-void debug_printf(const char *fmt, ...);
+#if defined(DEBUG)
+#define debug_printf(fmt, ...) printf("%s:%d: "fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define debug_printf(...) do {} while(0)
+#endif
 
 #include "http.h"
 
@@ -307,7 +311,7 @@ bool http_request (const char *url, const u32 max_size) {
 	http_data = NULL;
 
 	int s = tcp_connect (http_host, http_port);
-//	debug_printf("tcp_connect(%s, %hu) = %d\n", http_host, http_port, s);
+ 	debug_printf("tcp_connect(%s, %hu) = %d\n", http_host, http_port, s);
 	if (s < 0) {
 		result = HTTPR_ERR_CONNECT;
 		return false;
@@ -319,17 +323,17 @@ bool http_request (const char *url, const u32 max_size) {
 	r += sprintf (r, "Host: %s\r\n", http_host);
 	r += sprintf (r, "Cache-Control: no-cache\r\n\r\n");
 
-//	debug_printf("request = %s\n", request);
+	debug_printf("request = %s\n", request);
 
 	bool b = tcp_write (s, (u8 *) request, strlen (request));
-//	debug_printf("tcp_write returned %d\n", b);
+	debug_printf("tcp_write returned %d\n", b);
 
 	free (request);
 	linecount = 0;
 
 	for (linecount=0; linecount < 32; linecount++) {
 	  char *line = tcp_readln (s, 0xff, gettime(), HTTP_TIMEOUT);
-//		debug_printf("tcp_readln returned %p (%s)\n", line, line?line:"(null)");
+		debug_printf("tcp_readln returned %p (%s)\n", line, line?line:"(null)");
 		if (!line) {
 			http_status = 404;
 			result = HTTPR_ERR_REQUEST;
@@ -349,7 +353,8 @@ bool http_request (const char *url, const u32 max_size) {
 		line = NULL;
 
 	}
-//	debug_printf("content_length = %d, status = %d, linecount = %d\n", content_length, http_status, linecount);
+	debug_printf("content_length = %d, status = %d, linecount = %d\n",
+			content_length, http_status, linecount);
 	if (linecount == 32 || !content_length) http_status = 404;
 	if (http_status != 200) {
 		result = HTTPR_ERR_STATUS;
