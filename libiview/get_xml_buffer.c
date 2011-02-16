@@ -14,14 +14,14 @@
 
 ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
 #ifdef GEKKO
-    if(!http_request(uri, 1 << 31)) {
-        return -IV_EREQUEST;
-    }
+    int res;
     u32 status = 0, len = 0;
-    if(!http_get_result(&status, (u8 **)buf_ptr, &len)) {
-        return -IV_EREQUEST;
-    }
-    return len;
+
+    IV_DEBUG("Fetching %s.\n", uri);
+    res = http_request(uri, 1 << 31);
+    http_get_result(&status, (u8 **)buf_ptr, &len);
+    IV_DEBUG("Request %d, HTTP status %d, length %d.\n", res, status, len);
+    return res ? len :-IV_EREQUEST;
 }
 #else
     int return_val;
