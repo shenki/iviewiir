@@ -21,7 +21,9 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
     res = http_request(uri, 1 << 31);
     http_get_result(&status, (u8 **)buf_ptr, &len);
     IV_DEBUG("Request %d, HTTP status %d, length %d.\n", res, status, len);
-    return res ? len :-IV_EREQUEST;
+    /* Cast is to avoid an error with powerpc-eabi-gcc.  Should be safe for any
+     * sane xml buffer length.*/
+    return res ? (ssize_t)len :-IV_EREQUEST;
 }
 #else
     int return_val;
