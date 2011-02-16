@@ -305,7 +305,7 @@ bool http_request (const char *url, const u32 max_size) {
 
 	http_port = 80;
 	http_max_size = max_size;
-	
+
 	http_status = 404;
 	content_length = 0;
 	http_data = NULL;
@@ -323,7 +323,8 @@ bool http_request (const char *url, const u32 max_size) {
 	char *r = request;
 	r += sprintf (r, "GET %s HTTP/1.1\r\n", http_path);
 	r += sprintf (r, "Host: %s\r\n", http_host);
-	r += sprintf (r, "Cache-Control: no-cache\r\n\r\n");
+	r += sprintf (r, "Cache-Control: no-cache\r\n");
+	r += sprintf (r, "User-Agent: iviewiir 0.2\n\r\n");
 
 	debug_printf("request = %s\n", request);
 
