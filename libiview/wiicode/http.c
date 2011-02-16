@@ -310,6 +310,8 @@ bool http_request (const char *url, const u32 max_size) {
 	content_length = 0;
 	http_data = NULL;
 
+	char chunked[10];
+
 	int s = tcp_connect (http_host, http_port);
  	debug_printf("tcp_connect(%s, %hu) = %d\n", http_host, http_port, s);
 	if (s < 0) {
@@ -348,11 +350,34 @@ bool http_request (const char *url, const u32 max_size) {
 
 		sscanf (line, "HTTP/1.%*u %u", &http_status);
 		sscanf (line, "Content-Length: %u", &content_length);
+		sscanf (line, "Transfer-Encoding: %7c", chunked);
 
 		free (line);
 		line = NULL;
 
 	}
+
+	if (strncmp(chunked, "chunked", 7) == 0) {
+		/* Do chunked decoding. WARNING: This only decodes the first chunk. */
+		char *line = tcp_readln(s, 0xff, gettime(), HTTP_TIMEOUT);
+
+		/* Pop off up to two CRLFs from the input. */
+		if (strlen(line) < 1) {
+			free(line);
+			line = tcp_readln(s, 0xff, gettime(), HTTP_TIMEOUT);
+		}
+		if (strlen(line) < 1) {
+			free(line);
+			line = tcp_readln(s, 0xff, gettime(), HTTP_TIMEOUT);
+		}
+
+		/* Read cunk length into content_length. */
+		sscanf(line, "%x", &content_length);
+		debug_printf("chunk size: %d.\n", content_length);
+		free(line);
+		line = NULL;
+	}
+
 	debug_printf("content_length = %d, status = %d, linecount = %d\n",
 			content_length, http_status, linecount);
 	if (linecount == 32 || !content_length) http_status = 404;
