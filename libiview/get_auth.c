@@ -125,5 +125,5 @@ int iv_get_auth(const struct iv_config *config, struct iv_auth **auth) {
         IV_DEBUG("Failure in parsing xml\n");
         return -IV_ESAXPARSE;
     }
-    return ctx.return_value;
+    return -(ctx.return_value);
 }

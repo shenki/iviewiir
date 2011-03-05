@@ -111,7 +111,7 @@ struct iv_config *iviewiir_configure() {
         debug("Fetching configuration\n");
         config_buf_len = iv_get_xml_buffer(IV_CONFIG_URI, &config_buf);
         if(0 >= config_buf_len) {
-            error("error retrieving config xml\n");
+            fprintf(stderr, "error retrieving config xml\n");
             return NULL;
         }
         if(-1 == dump_buf(config_buf, config_buf_len, CONFIG_FILE)) {
@@ -120,8 +120,7 @@ struct iv_config *iviewiir_configure() {
         }
     }
     debug("%s\n", config_buf);
-    int config_result = iv_get_config(config_buf, config_buf_len, &config);
-    if(IV_OK != config_result) {
+    if(IV_OK != iv_get_config(config_buf, config_buf_len, &config)) {
         return NULL;
     }
 config_cleanup:
@@ -165,16 +164,19 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
 void
 iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
     struct iv_auth *auth;
-    int auth_result = iv_get_auth(config, &auth);
-    if(IV_OK != auth_result) {
-        error("Failed to get authentication information\n");
+    if(IV_OK != iv_get_auth(config, &auth)) {
+        fprintf(stderr, "Failed to get authentication information\n");
         return;
     }
     xmlChar *path = xmlStrdup(item->url);
     char *flvname = basename((char *)path);
-    iv_fetch_video(auth, item, flvname);
-    free(path);
+    if(IV_OK != iv_fetch_video(auth, item, flvname)) {
+        fprintf(stderr, "Failed to download video\n");
+        goto download_cleanup;
+    }
     iv_destroy_auth(auth);
+download_cleanup:
+    free(path);
 }
 
 void list_all(struct iv_config *config, struct iv_series *index,
@@ -217,7 +219,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
     debug("series index: %d\n", i);
     ssize_t items_len = iviewiir_series(config, &index[i], &items);
     if(1 > items_len) {
-        printf("No items in series.\n");
+        fprintf(stderr, "No items in series.\n");
         return -1;
     }
     for(i=0; i<items_len; i++) {
@@ -242,13 +244,17 @@ int download_item(struct iv_config *config, struct iv_series *index,
     debug("series index: %d\n", i);
     ssize_t items_len = iviewiir_series(config, &index[i], &items);
     if(1 > items_len) {
-        error("No items in series, exiting\n");
+        fprintf(stderr, "No items in series, exiting\n");
         return -1;
     }
     for(i=0; i<items_len; i++) {
         if(pid == items[i].id) {
             break;
         }
+    }
+    if(items_len == i) {
+        printf("Failed to find specified episode\n");
+        return -1;
     }
     printf("%s : %s\n", items[i].title, basename((char *)items[i].url));
     iviewiir_download(config, &(items[i]));
@@ -285,12 +291,12 @@ int main(int argc, char **argv) {
     int return_val;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
     if(NULL == (config = iviewiir_configure())) {
-        error("Couldn't configure iviewiir, exiting\n");
+        fprintf(stderr, "Couldn't configure iviewiir, exiting\n");
         return 1;
     }
     int index_len = iviewiir_index(config, &index);
-    if(0 == index_len) {
-        error("No items in index, exiting\n");
+    if(0 >= index_len) {
+        fprintf(stderr, "No items in index, exiting\n");
         return_val = 1;
         goto config_cleanup;
     }

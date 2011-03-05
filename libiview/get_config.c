@@ -138,5 +138,5 @@ int iv_get_config(const char *buf, size_t len, struct iv_config **config) {
         return -IV_ESAXPARSE;
     }
     free(handler);
-    return ctx.return_value;
+    return -(ctx.return_value);
 }

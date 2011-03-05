@@ -167,7 +167,7 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr);
  * @len: The length of the XML configuration buffer
  * @config: A container for the configuration struct.
  *
- * @return: 0 on success, greater than zero on failure.
+ * @return: 0 on success, less than zero on failure.
  */
 int iv_get_config(const char *buf, size_t len, struct iv_config **config);
 
@@ -204,7 +204,7 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
  * @buf: The series list XML buffer to parse
  * @index_ptr: A container for the series list
  *
- * @return: 0 on success, greater than zero on failure. If the call is
+ * @return: 0 on success, less than zero on failure. If the call is
  * successful index_ptr contains a list of series. If the call is not
  * successful the value contained in index_ptr is invalid.
  */
@@ -273,7 +273,7 @@ void iv_destroy_series_items(struct iv_item *items, int items_len);
  * @config: The configuration context as provided by iv_get_config()
  * @auth: A container for the populated struct iv_auth instance.
  *
- * @return: 0 on success, greater than zero on failure. If the call fails auth
+ * @return: 0 on success, less than zero on failure. If the call fails auth
  * is invalid.
  */
 int iv_get_auth(const struct iv_config *config, struct iv_auth **auth);
@@ -302,7 +302,7 @@ void iv_destroy_auth(struct iv_auth *auth);
  * @item: A element of the item list returned by iv_get_series_items(), the item that wants
  * @outpath: The filename to write the downloaded data to.
  *
- * @return: 0 on success, greater than zero on failure. Values greater than
+ * @return: 0 on success, less than zero on failure. Values less than
  * zero represent an error code (IV_E*)
  */
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);

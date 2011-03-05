@@ -83,5 +83,5 @@ done:
     fclose(outfile);
     free(buf);
     iv_destroy_video_uri(rtmp_uri);
-    return 0;
+    return return_val;
 }
