@@ -1,0 +1,6 @@
+*.d
+*.map
+*.o
+*.un~
+libiview/libiview.a
+libiview/libiview.so

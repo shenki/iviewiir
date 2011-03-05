@@ -5,9 +5,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
-#include <getopt.h>
-#include <neon/ne_uri.h>
 #include <libgen.h>
+#include <libxml/xmlstring.h>
+
+#include "ccan/opt/opt.h"
+
 #include "iviewiir.h"
 #include "libiview/iview.h"
 
@@ -15,6 +17,7 @@
 #define INDEX_FILE  "iview.index"
 #define CACHE_VALID_SECONDS (30*60)
 static char *cache_dir;
+static int use_cache = 1;
 
 #if defined(DEBUG)
 #define debug(format, ...) \
@@ -44,6 +47,8 @@ char* join_path(const char *dirname, const char *fname) {
  * size is non-zero.
  * Return value is the size of file read, or zero if it was not read. */
 size_t load_buf(char **buf, const char *fname) {
+    if (use_cache)
+        return 0;
     struct stat fstats;
     int sz = 0;
     char* fpath = join_path(cache_dir, fname);
@@ -73,50 +78,55 @@ end:
     return sz;
 }
 
-void dump_buf(const void const *buf, size_t buf_len, const char *fname) {
+int dump_buf(const void const *buf, size_t buf_len, const char *fname) {
     /* Dump config to disk. */
     char *fpath = join_path(cache_dir, fname);
     FILE *fs = fopen(fpath, "w");
     if(fs==NULL) {
         perror(fpath);
-        return;
+        return -1;
     }
     if(buf_len > fwrite(buf, sizeof(char), buf_len, fs)) {
         error("Failed write to %s\n", fname);
-        return;
+        goto cleanup;
     }
     if(1 > fwrite("\n", sizeof(char), 1, fs)) {
         error("Failed write to %s\n", fname);
-        return;
     }
+cleanup:
+    free(fpath);
     if(fclose(fs)) {
         perror("fclose");
+        return -1;
     }
+    return 0;
 }
 
-int iviewiir_configure(struct iv_config *config) {
+struct iv_config *iviewiir_configure() {
+    struct iv_config *config;
     char *config_buf = NULL;
-    ne_uri config_uri;
-    size_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
+    ssize_t config_buf_len = load_buf(&config_buf, CONFIG_FILE);
     if(config_buf_len == 0) {
         /* Cache was stale or did not exist, so re-fetch. */
-        if(ne_uri_parse(IV_CONFIG_URI, &config_uri)) {
-            error("uri parsing failed on %s\n", IV_CONFIG_URI);
-            return -IV_EURIPARSE;
-        }
-        config_buf_len = iv_get_xml_buffer(&config_uri, &config_buf);
-        ne_uri_free(&config_uri);
+        debug("Fetching configuration\n");
+        config_buf_len = iv_get_xml_buffer(IV_CONFIG_URI, &config_buf);
         if(0 >= config_buf_len) {
             error("error retrieving config xml\n");
-            return config_buf_len;
+            return NULL;
         }
-        dump_buf(config_buf, config_buf_len, CONFIG_FILE);
+        if(-1 == dump_buf(config_buf, config_buf_len, CONFIG_FILE)) {
+            config = NULL;
+            goto config_cleanup;
+        }
     }
     debug("%s\n", config_buf);
-    int result = iv_parse_config(config, config_buf, config_buf_len);
-    debug("iv_parse_config: %d\n", result);
+    int config_result = iv_get_config(config_buf, config_buf_len, &config);
+    if(IV_OK != config_result) {
+        return NULL;
+    }
+config_cleanup:
     iv_destroy_xml_buffer(config_buf);
-    return result;
+    return config;
 }
 
 int iviewiir_index(struct iv_config *config, struct iv_series **index) {
@@ -135,9 +145,9 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
 
 ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
         struct iv_item **items) {
-    char *series_buf;
+    char *series_buf = NULL;
     const ssize_t len =
-        iv_get_series_items(config, IV_SERIES_URI, series, &series_buf);
+        iv_get_series_items(config, series, &series_buf);
     if(0 >= len) {
         iv_destroy_xml_buffer(series_buf);
         return len;
@@ -152,21 +162,19 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
     return items_len;
 }
 
-void iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
-    char *auth_xml_buf;
-    struct iv_auth auth;
-    memset(&auth, 0, sizeof(auth));
-    ssize_t auth_buf_len = iv_get_xml_buffer(&config->auth, &auth_xml_buf);
-    debug("%s\n", auth_xml_buf);
-    if(iv_parse_auth(config, auth_xml_buf, auth_buf_len, &auth)) {
-        error("iv_parse_auth failed\n");
+void
+iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
+    struct iv_auth *auth;
+    int auth_result = iv_get_auth(config, &auth);
+    if(IV_OK != auth_result) {
+        error("Failed to get authentication information\n");
+        return;
     }
-    char *path = strdup(item->url);
-    char *flvname = basename(path);
-    iv_fetch_video(&auth, item, flvname);
+    xmlChar *path = xmlStrdup(item->url);
+    char *flvname = basename((char *)path);
+    iv_fetch_video(auth, item, flvname);
     free(path);
-    iv_destroy_auth(&auth);
-    iv_destroy_xml_buffer(auth_xml_buf);
+    iv_destroy_auth(auth);
 }
 
 void list_all(struct iv_config *config, struct iv_series *index,
@@ -212,7 +220,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
         printf("No items in series.\n");
         return -1;
     }
-    for(i=1; i<items_len; i++) {
+    for(i=0; i<items_len; i++) {
         printf("%d:%d - %s\n",
                 sid, items[i].id, items[i].title);
     }
@@ -242,116 +250,89 @@ int download_item(struct iv_config *config, struct iv_series *index,
             break;
         }
     }
-    printf("%s : %s\n", items[i].title, basename(items[i].url));
+    printf("%s : %s\n", items[i].title, basename((char *)items[i].url));
     iviewiir_download(config, &(items[i]));
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);
     return 0;
 }
 
-void usage(void) {
-    printf("Usage: iviewiir [-aihs] [SID[:PID]]\n\n"
-           "\t-a --all: List all items in all non-empty series.\n"
-           "\t-i --items-list=SID: List episodes in a series. "
-           "Requires a SID as a parameter. "
-           "The first element on each output line is a SID:PID tuple\n"
-           "\t-s --series-list: List the series available. "
-           "The first element on each output line is the SID\n"
-           "\t-h --help: Show this help\n\n"
-           "Without any parameters a SID:PID tuple should be supplied, "
-           "which will download the associated video\n");
-}
-
 int main(int argc, char **argv) {
-    int return_val = 0;
-    long bsopts = 0;
-#define OPT_SERIES_LIST (1 << 1)
-#define OPT_ITEMS_LIST (1 << 2)
-#define OPT_HELP (1 << 3)
-#define OPT_ALL (1 << 4)
-#define OPT_h(opts) (opts & OPT_HELP)
-#define OPT_s(opts) (opts & OPT_SERIES_LIST)
-#define OPT_i(opts) (opts & OPT_ITEMS_LIST)
-#define OPT_a(opts) (opts & OPT_ALL)
-    const char *opts = "ai:sh";
-    int i_sid = 0;
-    struct option lopts[] = {
-        {"items-list", 1, NULL, 'i'},
-        {"series-list", 0, NULL, 's'},
-        {"all", 0, NULL, 'a'},
-        {"help", 0, NULL, 'h'},
-        {0, 0, 0, 0}
+    static bool show_series = false, show_all = false, use_cache = true;
+    static int i_sid = 0;
+    static char usage_str[] = "[SID[:PID]]";
+    static struct opt_table opts[] = {
+        OPT_WITH_ARG("--items-list|-i", opt_set_intval, NULL, &i_sid,
+                "List episodes in a series. Requires a SID as a parameter."),
+        OPT_WITHOUT_ARG("--series-list|-s", opt_set_bool, &show_series,
+                "List the series available. The first element is the SID."),
+        OPT_WITHOUT_ARG("--all|-a", opt_set_bool, &show_all,
+                "List all items in all non-empty series."),
+        OPT_WITHOUT_ARG("--force|-f", opt_set_invbool, &use_cache,
+                "Force bypass the cached metadata."),
+        OPT_WITHOUT_ARG("--help|-h", opt_usage_and_exit,
+                usage_str, "Show this message."),
+        OPT_ENDTABLE
     };
-    int lindex, opt;
-    while(-1 != (opt = getopt_long(argc, argv, opts, lopts, &lindex))) {
-        switch(opt) {
-            case 'a':
-                bsopts |= OPT_ALL;
-                break;
-            case 'i':
-                bsopts |= OPT_ITEMS_LIST;
-                i_sid = atoi(optarg);
-                break;
-            case 's':
-                bsopts |= OPT_SERIES_LIST;
-                break;
-            case 'h':
-                bsopts |= OPT_HELP;
-                break;
-        }
+    opt_register_table(opts, NULL);
+    if(!opt_parse(&argc, argv, opt_log_stderr)) {
+        /* opt_parse will print an error to stderr. */
+        exit(1);
     }
-    if(0 == bsopts && argc == optind) {
-        error("please supply SID or SID:PID parameter\n\n");
-        usage();
-        return 1;
-    }
-    if(OPT_h(bsopts)) {
-        usage();
-        return 0;
-    }
+
     struct iv_series *index;
-    struct iv_config config;
+    struct iv_config *config;
+    int return_val;
     cache_dir = xdg_user_dir_lookup_with_fallback("CACHE", "/tmp");
-    if(IV_OK != iviewiir_configure(&config)) {
+    if(NULL == (config = iviewiir_configure())) {
         error("Couldn't configure iviewiir, exiting\n");
         return 1;
     }
-    int index_len = iviewiir_index(&config, &index);
+    int index_len = iviewiir_index(config, &index);
     if(0 == index_len) {
         error("No items in index, exiting\n");
         return_val = 1;
         goto config_cleanup;
     }
-    // Check if they want everything listed
-    if(OPT_a(bsopts)) {
-        list_all(&config, index, index_len);
+    /* Check if they want everything listed */
+    if(show_all) {
+        list_all(config, index, index_len);
         return_val = 0;
         goto index_cleanup;
     }
-    // Check if they wanted a series list
-    if(OPT_s(bsopts)) {
+    /* Check if they wanted a series list. */
+    if(show_series) {
         int i;
         for(i=0; i<index_len; i++) {
+            /* Heuristic to trim out empty series. */
+            if((int)9e6 < index[i].id) {
+                continue;
+            }
             printf("%d : %s\n", index[i].id, index[i].title);
         }
         return_val = 0;
         goto index_cleanup;
     }
-    // Check if they want an episode list
-    if(OPT_i(bsopts)) {
-        return_val = list_items(&config, index, index_len, i_sid);
+    /* Check if they want an episode list. */
+    if(i_sid) {
+        return_val = list_items(config, index, index_len, i_sid);
         goto index_cleanup;
     }
-    // Otherwise, if they supplied a SID or SID:PID tuple, download the PID
-    while(optind < argc) {
-        if(NULL != strchr(argv[optind], ':')) {
+    /* If we've reached here and there are no arguments, print help message. */
+    if (argc == 1) {
+        opt_usage_and_exit(usage_str);
+    }
+    /* Otherwise, if they supplied a SID or SID:PID tuple, download the PID */
+    int i = 1;
+    while(i < argc) {
+        if(NULL != strchr(argv[i], ':')) {
             // SID:PID
-            const int sid = atoi(strtok(argv[optind], ":"));
+            const int sid = atoi(strtok(argv[i], ":"));
             const int pid = atoi(strtok(NULL, ":"));
-            return_val += download_item(&config, index, index_len, sid, pid);
+            return_val += download_item(config, index, index_len, sid, pid);
         } else {
             // Check if it's a valid SID
-            const int sid = atoi(argv[optind]);
+            const int sid = atoi(argv[i]);
             struct iv_item *items;
             // Fetch episode lists for the SID
             debug("sid: %d\n", sid);
@@ -362,24 +343,24 @@ int main(int argc, char **argv) {
                 }
             }
             // Fetch items in series
-            ssize_t items_len = iviewiir_series(&config, &index[i], &items);
+            ssize_t items_len = iviewiir_series(config, &index[i], &items);
             if(1 > items_len) {
                 printf("No items in series.\n");
                 return_val += 1;
             } else {
                 for(i=1; i<items_len; i++) {
-                    return_val += download_item(&config, index, index_len, sid,
+                    return_val += download_item(config, index, index_len, sid,
                             items[i].id);
                 }
                 iv_destroy_series_items(items, items_len);
             }
         }
-        optind++;
+        i++;
     }
 index_cleanup:
     iv_destroy_index(index, index_len);
 config_cleanup:
-    iv_destroy_config(&config);
+    iv_destroy_config(config);
     free(cache_dir);
     return return_val;
 }
