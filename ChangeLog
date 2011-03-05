@@ -1,3 +1,12 @@
+Tag v0.3:
+
+* Remove libiview dependency on libneon
+* Rewrite of libiview to parse with libxml2
+* Port iv_get_xml_buffer to libxml2's nanoHTTP
+* Add cross-compile target for Wii Homebrew
+* Change to ccan's optparse for option parsing in iviewiir
+* Pure makefile build system (no more autotools)
+
 Tag v0.2:
 --------
 
