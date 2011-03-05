@@ -285,6 +285,9 @@ int main(int argc, char **argv) {
         /* opt_parse will print an error to stderr. */
         exit(1);
     }
+    if (!show_all && !show_series && !i_sid && (argc == 1)) {
+        opt_usage_and_exit(usage_str);
+    }
 
     struct iv_series *index;
     struct iv_config *config;
