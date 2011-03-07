@@ -12,8 +12,8 @@ EXTRA_LDFLAGS = -L/opt/devkitpro/devkitPPC/powerpc-eabi/lib \
 		-L/opt/devkitpro/libogc/lib/wii
 endif
 
-CC=$(CROSS_COMPILE)gcc
-AR=$(CROSS_COMPILE)ar
+CC	:=$(CROSS_COMPILE)$(CC)
+AR	:=$(CROSS_COMPILE)ar
 
 DEPS := libxml-2.0 json librtmp
 CFLAGS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
