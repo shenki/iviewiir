@@ -1,0 +1,101 @@
+diff --git a/include/polarssl/config.h b/include/polarssl/config.h
+index 96058f2..768b42c 100644
+--- a/include/polarssl/config.h
++++ b/include/polarssl/config.h
+@@ -228,7 +228,6 @@
+  *
+  * This module provides TCP/IP networking routines.
+  */
+-#define POLARSSL_NET_C
+ 
+ /*
+  * Module:  library/padlock.c
+diff --git a/include/polarssl/sha1.h b/include/polarssl/sha1.h
+index 4eb5f70..c0c5861 100644
+--- a/include/polarssl/sha1.h
++++ b/include/polarssl/sha1.h
+@@ -74,7 +74,7 @@ void sha1_finish( sha1_context *ctx, unsigned char output[20] );
+  * \param ilen     length of the input data
+  * \param output   SHA-1 checksum result
+  */
+-void sha1( const unsigned char *input, int ilen, unsigned char output[20] );
++void polar_sha1( const unsigned char *input, int ilen, unsigned char output[20] );
+ 
+ /**
+  * \brief          Output = SHA-1( file contents )
+diff --git a/include/polarssl/ssl.h b/include/polarssl/ssl.h
+index 254c8ef..cdd6ac3 100644
+--- a/include/polarssl/ssl.h
++++ b/include/polarssl/ssl.h
+@@ -27,5 +27,6 @@
+ 
+ #include <time.h>
+ 
+-#include "polarssl/net.h"
++//#include "polarssl/net.h"
++#include <network.h>
+ #include "polarssl/dhm.h"
+ #include "polarssl/rsa.h"
+ #include "polarssl/md5.h"
+@@ -382,9 +383,16 @@ void ssl_set_dbg( ssl_context *ssl,
+  * \param f_send   write callback
+  * \param p_send   write parameter
+  */
++ // API missmatch. libogc:
++ // s32 net_recv(s,void *mem,s32 len,u32 flags)
++ // s32 net_send(s32 s,const void *data,s32 size,u32 flags);
++ // int f_recv(void *, unsigned char *, int)
++ // int f_send(void *, unsigned char *, int)
++
++    
+ void ssl_set_bio( ssl_context *ssl,
+         int (*f_recv)(void *, unsigned char *, int), void *p_recv,
+         int (*f_send)(void *, unsigned char *, int), void *p_send );
+ 
+ /**
+  * \brief          Set the session callbacks (server-side only)
+diff --git a/library/Makefile b/library/Makefile
+index e27f2bf..64015c8 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -1,8 +1,18 @@
+ 
+ # Also see "include/polarssl/config.h"
+ 
++
+ CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement
+-OFLAGS	= -O
++OFLAGS	= -O2
++
++CC=powerpc-eabi-gcc
++LD=powerpc-eabi-ld
++AR=powerpc-eabi-ar
++RANLIB=powerpc-eabi-ranlib
++
++CFLAGS += -I/opt/devkitpro/libogc/include \
++	  -I/opt/devkitpro/libogc/lib/wii \
++	  -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -DRVL
+ 
+ # MicroBlaze specific options:
+ # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
+@@ -21,7 +31,7 @@ OBJS=	aes.o		arc4.o		base64.o	\
+ 	bignum.o	certs.o		debug.o		\
+ 	des.o		dhm.o		havege.o	\
+ 	md2.o		md4.o		md5.o		\
+-	net.o		padlock.o	rsa.o		\
++			padlock.o	rsa.o		\
+ 	sha1.o		sha2.o		sha4.o		\
+ 	ssl_cli.o	ssl_srv.o	ssl_tls.o	\
+ 	timing.o	x509parse.o	xtea.o		\
+@@ -37,9 +47,9 @@ shared: libpolarssl.$(DLEXT)
+ 
+ libpolarssl.a: $(OBJS)
+ 	echo "  AR    $@"
+-	ar r $@ $(OBJS)
++	$(AR) r $@ $(OBJS)
+ 	echo "  RL    $@"
+-	ranlib $@
++	$(RANLIB) $@
+ 
+ libpolarssl.so: libpolarssl.a
+ 	echo "  LD    $@"

@@ -1,0 +1,233 @@
+diff --git a/librtmp/Makefile b/librtmp/Makefile
+index 6774db7..25e945a 100644
+--- a/librtmp/Makefile
++++ b/librtmp/Makefile
+@@ -1,15 +1,17 @@
+ VERSION=v2.3
+ 
+-prefix=/usr/local
++prefix=/opt/devkitpro/portlibs/ppc/
+ 
++CROSS_COMPILE=powerpc-eabi-
+ CC=$(CROSS_COMPILE)gcc
+ LD=$(CROSS_COMPILE)ld
+ AR=$(CROSS_COMPILE)ar
+ 
+ SYS=posix
+-CRYPTO=OPENSSL
++#CRYPTO=OPENSSL
+ #CRYPTO=GNUTLS
+-DEF_POLARSSL=-DUSE_POLARSSL
++CRYPTO=POLARSSL
++DEF_POLARSSL=-DUSE_POLARSSL -I/opt/devkitpro/portlibs/ppc/include/
+ DEF_OPENSSL=-DUSE_OPENSSL
+ DEF_GNUTLS=-DUSE_GNUTLS
+ DEF_=-DNO_CRYPTO
+@@ -29,7 +31,7 @@ SO_posix=so.0
+ SO_mingw=dll
+ SO_EXT=$(SO_$(SYS))
+ 
+-SHARED=yes
++SHARED=no
+ SODEF_yes=-fPIC
+ SOLIB_yes=librtmp.$(SO_EXT)
+ SOINST_yes=install_$(SO_EXT)
+@@ -37,6 +39,10 @@ SO_DEF=$(SODEF_$(SHARED))
+ SO_LIB=$(SOLIB_$(SHARED))
+ SO_INST=$(SOINST_$(SHARED))
+ 
++XCFLAGS := -I/opt/devkitpro/libogc/include \
++	-I/opt/devkitpro/libogc/lib/wii    \
++	-DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -DRVL
++
+ DEF=-DRTMPDUMP_VERSION=\"$(VERSION)\" $(CRYPTO_DEF) $(XDEF)
+ OPT=-O2
+ CFLAGS=-Wall $(XCFLAGS) $(INC) $(DEF) $(OPT) $(SO_DEF)
+diff --git a/librtmp/hashswf.c b/librtmp/hashswf.c
+index 06d2bbb..eb75eb2 100644
+--- a/librtmp/hashswf.c
++++ b/librtmp/hashswf.c
+@@ -130,13 +130,13 @@ HTTP_get(struct HTTP_ctx *http, const char *url, HTTP_read_callback *cb)
+   sa.sin_addr.s_addr = inet_addr(host);
+   if (sa.sin_addr.s_addr == INADDR_NONE)
+     {
+-      struct hostent *hp = gethostbyname(host);
++      struct hostent *hp = net_gethostbyname(host);
+       if (!hp || !hp->h_addr)
+ 	return HTTPRES_LOST_CONNECTION;
+       sa.sin_addr = *(struct in_addr *)hp->h_addr;
+     }
+   sa.sin_port = htons(port);
+-  sb.sb_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
++  sb.sb_socket = net_socket(AF_INET, SOCK_STREAM, 0); // IPPROTO_TCP
+   if (sb.sb_socket == -1)
+     return HTTPRES_LOST_CONNECTION;
+   i =
+@@ -147,7 +147,7 @@ HTTP_get(struct HTTP_ctx *http, const char *url, HTTP_read_callback *cb)
+     i += sprintf(sb.sb_buf + i, "If-Modified-Since: %s\r\n", http->date);
+   i += sprintf(sb.sb_buf + i, "\r\n");
+ 
+-  if (connect
++  if (net_connect
+       (sb.sb_socket, (struct sockaddr *)&sa, sizeof(struct sockaddr)) < 0)
+     {
+       ret = HTTPRES_LOST_CONNECTION;
+@@ -178,7 +178,7 @@ HTTP_get(struct HTTP_ctx *http, const char *url, HTTP_read_callback *cb)
+ #define HTTP_TIMEOUT	5
+   {
+     SET_RCVTIMEO(tv, HTTP_TIMEOUT);
+-    if (setsockopt
++    if (net_setsockopt
+         (sb.sb_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)))
+       {
+         RTMP_Log(RTMP_LOGERROR, "%s, Setting socket timeout to %ds failed!",
+diff --git a/librtmp/rtmp.c b/librtmp/rtmp.c
+index f152648..dce81ee 100644
+--- a/librtmp/rtmp.c
++++ b/librtmp/rtmp.c
+@@ -31,6 +31,9 @@
+ #include "rtmp_sys.h"
+ #include "log.h"
+ 
++/* For TB_TIMER_CLOCK used by ticks_to_millisecs. */
++#include <ogcsys.h>
++
+ #ifdef CRYPTO
+ #ifdef USE_POLARSSL
+ #include <polarssl/havege.h>
+@@ -119,8 +122,10 @@ static int HTTP_Post(RTMP *r, RTMPTCmd cmd, const char *buf, int len);
+ static int HTTP_read(RTMP *r, int fill);
+ 
+ #ifndef _WIN32
++#ifndef GEKKO
+ static int clk_tck;
+ #endif
++#endif
+ 
+ #ifdef CRYPTO
+ #include "handshake.h"
+@@ -133,6 +138,8 @@ RTMP_GetTime()
+   return 0;
+ #elif defined(_WIN32)
+   return timeGetTime();
++#elif defined(GEKKO)
++ return ticks_to_millisecs(gettime());
+ #else
+   struct tms t;
+   if (!clk_tck) clk_tck = sysconf(_SC_CLK_TCK);
+@@ -779,7 +786,7 @@ add_addr_info(struct sockaddr_in *service, AVal *host, int port)
+   service->sin_addr.s_addr = inet_addr(hostname);
+   if (service->sin_addr.s_addr == INADDR_NONE)
+     {
+-      struct hostent *host = gethostbyname(hostname);
++      struct hostent *host = net_gethostbyname(hostname);
+       if (host == NULL || host->h_addr == NULL)
+ 	{
+ 	  RTMP_Log(RTMP_LOGERROR, "Problem accessing the DNS. (addr: %s)", hostname);
+@@ -804,10 +811,10 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
+   r->m_pausing = 0;
+   r->m_fDuration = 0.0;
+ 
+-  r->m_sb.sb_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
++  r->m_sb.sb_socket = net_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   if (r->m_sb.sb_socket != -1)
+     {
+-      if (connect(r->m_sb.sb_socket, service, sizeof(struct sockaddr)) < 0)
++      if (net_connect(r->m_sb.sb_socket, service, sizeof(struct sockaddr)) < 0)
+ 	{
+ 	  int err = GetSockError();
+ 	  RTMP_Log(RTMP_LOGERROR, "%s, failed to connect socket. %d (%s)",
+@@ -837,7 +844,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
+   /* set timeout */
+   {
+     SET_RCVTIMEO(tv, r->Link.timeout);
+-    if (setsockopt
++    if (net_setsockopt
+         (r->m_sb.sb_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)))
+       {
+         RTMP_Log(RTMP_LOGERROR, "%s, Setting socket timeout to %ds failed!",
+@@ -845,7 +852,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
+       }
+   }
+ 
+-  setsockopt(r->m_sb.sb_socket, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on));
++  net_setsockopt(r->m_sb.sb_socket, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on));
+ 
+   return TRUE;
+ }
+@@ -1024,7 +1031,7 @@ RTMP_ToggleStream(RTMP *r)
+ 	return res;
+ 
+       r->m_pausing = 1;
+-      sleep(1);
++      usleep(999999);
+     }
+   res = RTMP_SendPause(r, FALSE, r->m_pauseStamp);
+   r->m_pausing = 3;
+@@ -3496,7 +3503,7 @@ RTMPSockBuf_Fill(RTMPSockBuf *sb)
+       else
+ #endif
+ 	{
+-	  nBytes = recv(sb->sb_socket, sb->sb_start + sb->sb_size, nBytes, 0);
++	  nBytes = net_recv(sb->sb_socket, sb->sb_start + sb->sb_size, nBytes, 0);
+ 	}
+       if (nBytes != -1)
+ 	{
+@@ -3539,7 +3546,7 @@ RTMPSockBuf_Send(RTMPSockBuf *sb, const char *buf, int len)
+   else
+ #endif
+     {
+-      rc = send(sb->sb_socket, buf, len, 0);
++      rc = net_send(sb->sb_socket, buf, len, 0);
+     }
+   return rc;
+ }
+@@ -3555,7 +3562,7 @@ RTMPSockBuf_Close(RTMPSockBuf *sb)
+       sb->sb_ssl = NULL;
+     }
+ #endif
+-  return closesocket(sb->sb_socket);
++  return net_close(sb->sb_socket);
+ }
+ 
+ #define HEX2BIN(a)	(((a)&0x40)?((a)&0xf)+9:((a)&0xf))
+diff --git a/librtmp/rtmp_sys.h b/librtmp/rtmp_sys.h
+index 0874cbe..b18cd87 100644
+--- a/librtmp/rtmp_sys.h
++++ b/librtmp/rtmp_sys.h
+@@ -45,6 +45,18 @@
+ #define msleep(n)	Sleep(n)
+ #define SET_RCVTIMEO(tv,s)	int tv = s*1000
+ #else /* !_WIN32 */
++
++#ifdef GEKKO
++#include <gctypes.h>
++#include <network.h>
++#include <ogc/lwp_watchdog.h>
++#include <ogcsys.h>
++
++/* This is defined in an internal header gc/ipv4/lwip/ip_addr.h.  It is
++ * required by rtmp.h */
++#define INADDR_NONE    ((u32) 0xffffffff)  /* 255.255.255.255 */
++
++#else
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/times.h>
+@@ -53,6 +65,8 @@
+ #include <unistd.h>
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
++#endif
++
+ #define GetSockError()	errno
+ #define SetSockError(e)	errno = e
+ #undef closesocket
+@@ -64,7 +78,6 @@
+ #include "rtmp.h"
+ 
+ #ifdef USE_POLARSSL
+-#include <polarssl/net.h>
+ #include <polarssl/ssl.h>
+ #include <polarssl/havege.h>
+ typedef struct tls_ctx {
