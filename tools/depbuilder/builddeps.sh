@@ -98,6 +98,7 @@ LIBXML2_DIR="${LIBXML2_DIR/-sources/}"
 [ ! -d "$LIBXML2_DIR" ] || rm -rf "$LIBXML2_DIR" || exit 1
 tar xvf "$LIBXML2_NAME" || exit 1
 pushd "$LIBXML2_DIR"
+patch -p1 < "$TLD"/libxml2-2.7.8.patch
 CFLAGS="-DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -I/opt/devkitpro/portlibs/ppc/include" \
       LDFLAGS="-L/opt/devkitpro/portlibs/ppc/lib -L/opt/devkitpro/libogc/lib/wii" \
       CC=powerpc-eabi-gcc ./configure --host=powerpc-eabi --enable-static --disable-shared \
@@ -110,8 +111,9 @@ CFLAGS="-DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -I/opt/devkitpro/portlibs/pp
       --without-valid --without-writer --without-xinclude --without-xpath \
       --without-xptr --without-modules --without-coverage --without-python \
       --prefix=/opt/devkitpro/portlibs/ppc --without-iconv || exit 1
-patch -p1 < "$TLD"/libxml2-2.7.8.patch
-make && make install || exit 1
+make libxml2.la
+cp -rv include/libxml/ $DEVKITPRO/libogc/include
+cp -v .libs/libxml2.a $DEVKITPRO/libogc/lib/wii
 popd
 echo
 echo Done!
