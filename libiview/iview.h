@@ -281,6 +281,25 @@ ssize_t iv_get_series_items(struct iv_config *config,
  */
 int iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 
+/* iv_find_item
+ *
+ * Searches through the items list for the provided item ID, populating the
+ * item_ptr parameter if found.
+ *
+ * @item_id: The SID for the series required
+ * @items_list: The list provided by iv_parse_series_items()
+ * @items_len: The length of the items list returned by iv_parse_series_items()
+ * @items_ptr: A container for the series struct if the SID is matched. Pass
+ * NULL if not required.
+ *
+ * @return: Greater than or equal to zero on success, -1 on failure. If the
+ * call is successful series_ptr contains the struct associated with the series
+ * ID and the return value is the index into the series list. If the call is
+ * not successful the value contained in series_ptr is invalid.
+ */
+int iv_find_item(const unsigned int item_id, const struct iv_item *items_list,
+        const unsigned int items_len, const struct iv_item **item_ptr);
+
 /* iv_destroy_series_items
  *
  * Destroys the items list created by iv_parse_series_items()

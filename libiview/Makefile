@@ -46,7 +46,8 @@ SRC := get_xml_buffer.c \
 	destroy_auth.c \
 	wiicode/http.c \
 	strtrim.c \
-	find_series.c
+	find_series.c \
+	find_item.c
 
 OBJ := $(SRC:.c=.o)
 

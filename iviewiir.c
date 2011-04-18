@@ -247,18 +247,14 @@ int download_item(struct iv_config *config, struct iv_series *index,
         fprintf(stderr, "No items in series, exiting\n");
         return -1;
     }
-    int i;
-    for(i=0; i<items_len; i++) {
-        if(pid == items[i].id) {
-            break;
-        }
-    }
-    if(items_len == i) {
+    int item_index;
+    if(-1 == (item_index = iv_find_item(pid, items, items_len, NULL))) {
         printf("Failed to find specified episode\n");
         return -1;
     }
-    printf("%s : %s\n", items[i].title, basename((char *)items[i].url));
-    iviewiir_download(config, &(items[i]));
+    printf("%s : %s\n",
+        items[item_index].title, basename((char *)items[item_index].url));
+    iviewiir_download(config, &(items[item_index]));
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);
     return 0;
