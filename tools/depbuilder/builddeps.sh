@@ -82,7 +82,7 @@ tar xvf "$JSON_C_NAME"
 pushd "$JSON_C_DIR"
 patch -p1 < "$TLD"/json-c-0.9.patch
 CC=powerpc-eabi-gcc CFLAGS="-DGEKKO -DRVL -mrvl -mcpu=750 -meabi -mhard-float" \
-    ./configure --prefix=/opt/devkitpro/portlibs/arm --host=arm-eabi \
+    ./configure --prefix=/opt/devkitpro/portlibs/ppc --host=powerpc-eabi \
     --disable-shared --enable-static
 sed -i -e '/rpl_\(m\|re\)alloc/d' config.h
 sed -i -e 's/\(HAVE_VSYSLOG \)1/\10/' config.h
@@ -112,8 +112,8 @@ CFLAGS="-DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -I/opt/devkitpro/portlibs/pp
       --without-xptr --without-modules --without-coverage --without-python \
       --prefix=/opt/devkitpro/portlibs/ppc --without-iconv || exit 1
 make libxml2.la
-cp -rv include/libxml/ $DEVKITPRO/libogc/include
-cp -v .libs/libxml2.a $DEVKITPRO/libogc/lib/wii
+make install-data
+make install-libLTLIBRARIES
 popd
 echo
 echo Done!
