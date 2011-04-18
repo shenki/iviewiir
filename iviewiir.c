@@ -206,11 +206,11 @@ void list_all(struct iv_config *config, struct iv_series *index,
 }
 
 int list_items(struct iv_config *config, struct iv_series *index,
-        int index_len, int sid) {
+        const unsigned int index_len, const unsigned int sid) {
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
-    int i;
+    unsigned int i;
     for(i=0; i<index_len; i++) {
         if(sid == index[i].id) {
             break;
@@ -231,11 +231,12 @@ int list_items(struct iv_config *config, struct iv_series *index,
 }
 
 int download_item(struct iv_config *config, struct iv_series *index,
-        const int index_len, const int sid, const int pid) {
+        const unsigned int index_len, const unsigned int sid,
+        const unsigned int pid) {
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
-    int i;
+    unsigned int i;
     for(i=0; i<index_len; i++) {
         if(sid == index[i].id) {
             break;
@@ -336,12 +337,12 @@ int main(int argc, char **argv) {
     while(i < argc) {
         if(NULL != strchr(argv[i], ':')) {
             // SID:PID
-            const int sid = atoi(strtok(argv[i], ":"));
-            const int pid = atoi(strtok(NULL, ":"));
+            const unsigned long sid = strtoul(strtok(argv[i], ":"), NULL, 10);
+            const unsigned int pid = strtoul(strtok(NULL, ":"), NULL, 10);
             return_val += download_item(config, index, index_len, sid, pid);
         } else {
             // Check if it's a valid SID
-            const int sid = atoi(argv[i]);
+            const unsigned int sid = strtoul(argv[i], NULL, 10);
             struct iv_item *items;
             // Fetch episode lists for the SID
             debug("sid: %d\n", sid);

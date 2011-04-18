@@ -89,7 +89,7 @@ struct iv_config;
  * functions retrieving and manipulating series items.
  */
 struct iv_series {
-    int id;
+    unsigned int id;
     const xmlChar *title;
 };
 
@@ -102,7 +102,7 @@ struct iv_series {
  * however these have been more than enough for current users.
  */
 struct iv_item {
-    int id;
+    unsigned int id;
     xmlChar *title;
     xmlChar *url;
     xmlChar *description;
