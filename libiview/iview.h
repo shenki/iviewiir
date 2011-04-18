@@ -217,6 +217,25 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
  */
 int iv_parse_index(const char *buf, struct iv_series **index_ptr);
 
+/* iv_find_series
+ *
+ * Searches through the series index for the provided series ID, populating the
+ * series parameter if found.
+ *
+ * @series_id: The SID for the series required
+ * @series_list: The list provided by iv_parse_index()
+ * @series_len: The length of the series list as returned by iv_parse_index()
+ * @series_ptr: A container for the series struct if the SID is matched. Pass
+ * NULL if not required.
+ *
+ * @return: Greater than or equal to zero on success, -1 on failure. If the
+ * call is successful series_ptr contains the struct associated with the series
+ * ID and the return value is the index into the series list. If the call is
+ * not successful the value contained in series_ptr is invalid.
+ */
+int iv_find_series(const unsigned int series_id, const struct iv_series *series_list,
+        const unsigned int series_len, const struct iv_series **series_ptr);
+
 /* iv_destroy_index
  *
  * Destroys the index list created by iv_parse_index()

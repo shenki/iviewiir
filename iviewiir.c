@@ -236,18 +236,18 @@ int download_item(struct iv_config *config, struct iv_series *index,
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
-    unsigned int i;
-    for(i=0; i<index_len; i++) {
-        if(sid == index[i].id) {
-            break;
-        }
+    int series_index;
+    if(-1 == (series_index = iv_find_series(sid, index, index_len, NULL))) {
+        printf("Failed to find series");
+        return -1;
     }
     debug("series index: %d\n", i);
-    ssize_t items_len = iviewiir_series(config, &index[i], &items);
+    ssize_t items_len = iviewiir_series(config, &index[series_index], &items);
     if(1 > items_len) {
         fprintf(stderr, "No items in series, exiting\n");
         return -1;
     }
+    int i;
     for(i=0; i<items_len; i++) {
         if(pid == items[i].id) {
             break;
@@ -346,24 +346,26 @@ int main(int argc, char **argv) {
             struct iv_item *items;
             // Fetch episode lists for the SID
             debug("sid: %d\n", sid);
-            int i;
-            for(i=0; i<index_len; i++) {
-                if(sid == index[i].id) {
-                    break;
-                }
+            int series_index;
+            if(-1 == (series_index =
+                        iv_find_series(sid, index, index_len, NULL))) {
+                printf("No such series");
+                return_val += 1;
+                continue;
             }
             // Fetch items in series
-            ssize_t items_len = iviewiir_series(config, &index[i], &items);
+            ssize_t items_len =
+                iviewiir_series(config, &index[series_index], &items);
             if(1 > items_len) {
                 printf("No items in series.\n");
                 return_val += 1;
-            } else {
-                for(i=1; i<items_len; i++) {
-                    return_val += download_item(config, index, index_len, sid,
-                            items[i].id);
-                }
-                iv_destroy_series_items(items, items_len);
+                continue;
             }
+            for(i=1; i<items_len; i++) {
+                return_val += download_item(config, index, index_len, sid,
+                        items[i].id);
+            }
+            iv_destroy_series_items(items, items_len);
         }
         i++;
     }
