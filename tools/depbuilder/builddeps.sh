@@ -75,7 +75,7 @@ popd
 # setup json-c
 JSON_C_DIR="${JSON_C_NAME%.tar.gz}"
 [ -e $JSON_C_NAME ] || \
-    wget http://oss.metaparadigm.com/json-c/$JSON_C_NAME || \
+    wget http://ftp.debian.org/debian/pool/main/j/json-c/json-c_0.9.orig.tar.gz -O $JSON_C_NAME || \
     exit 1
 [ ! -d "$JSON_C_DIR" ] || rm -rf "$JSON_C_DIR" || exit 1
 tar xvf "$JSON_C_NAME"
