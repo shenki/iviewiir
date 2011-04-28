@@ -1,4 +1,6 @@
 SONAME := libiview.so
+VERSION := v0.3
+
 
 # Uncomment when building for the wii, or provide on the command line
 # CROSS_COMPILE=powerpc-eabi-
@@ -10,10 +12,16 @@ EXTRA_CFLAGS := -O3 -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -DHW_RVL \
 		-I/opt/devkitpro/libogc/lib/wii
 EXTRA_LDFLAGS = -L/opt/devkitpro/devkitPPC/powerpc-eabi/lib \
 		-L/opt/devkitpro/libogc/lib/wii
+PREFIX := /opt/devkitpro/portlibs/ppc
+else
+PREFIX := /usr/include
 endif
 
 CC	:=$(CROSS_COMPILE)gcc
 AR	:=$(CROSS_COMPILE)ar
+
+INCDIR := $(PREFIX)/include
+LIBDIR := $(PREFIX)/lib
 
 DEPS := libxml-2.0 json librtmp
 CFLAGS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
@@ -38,7 +46,7 @@ SRC := get_xml_buffer.c \
 
 OBJ := $(SRC:.c=.o)
 
-CFLAGS := $(CFLAGS) $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
+CFLAGS := $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
 LDFLAGS := $(LDFLAGS)
 
 all: libiview.so libiview.a
@@ -55,6 +63,16 @@ libiview.a: $(OBJ)
 	$(COMPILE.c) -MMD -MF $(subst .o,.d,$@) $(OUTPUT_OPTION) $<
 
 clean:
-	$(RM) $(OBJ) $(OBJ:.o=.d) libiview.so libiview.a
+	$(RM) $(OBJ) $(OBJ:.o=.d) libiview.so libiview.a *.pc
+
+libiview.pc: libiview.pc.in
+	sed -e "s;@prefix@;$(PREFIX);" -e "s;@VERSION@;$(VERSION);" \
+		libiview.pc.in > $@
+
+install: libiview.a libiview.pc
+	-mkdir -p $(INCDIR) $(LIBDIR)/pkgconfig
+	cp iview.h $(INCDIR)
+	cp libiview.a $(LIBDIR)
+	cp libiview.pc $(LIBDIR)/pkgconfig
 
 .PHONY: clean
