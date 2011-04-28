@@ -12,12 +12,12 @@ EXTRA_LDFLAGS = -L/opt/devkitpro/devkitPPC/powerpc-eabi/lib \
 		-L/opt/devkitpro/libogc/lib/wii
 endif
 
-CC	:=$(CROSS_COMPILE)$(CC)
+CC	:=$(CROSS_COMPILE)gcc
 AR	:=$(CROSS_COMPILE)ar
 
 DEPS := libxml-2.0 json librtmp
 CFLAGS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
-	-fPIC  $(EXTRA_CFLAGS)
+	-fPIC -fvisibility=hidden $(EXTRA_CFLAGS)
 LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
 LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
