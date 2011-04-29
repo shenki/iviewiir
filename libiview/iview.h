@@ -260,7 +260,7 @@ ssize_t iv_get_series_items(struct iv_config *config,
  * length of the items list. If it is less than zero the value is the negated
  * error code.
  */
-ssize_t iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
+int iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 
 /* iv_destroy_series_items
  *
