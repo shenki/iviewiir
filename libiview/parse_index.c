@@ -4,6 +4,7 @@
 #include <json/json.h>
 #include <libxml/xmlstring.h>
 #include "iview.h"
+#include "internal.h"
 
 static int cmpseries(const void *l, const void *r) {
     const xmlChar *lt = ((struct iv_series *)l)->title;
@@ -43,8 +44,10 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
         json_object *json_id = json_object_object_get(json_element, "a");
         (*index_ptr)[i].id = json_object_get_int(json_id);
         json_series = json_object_object_get(json_element, "b");
-        (*index_ptr)[i].title =
-            BAD_CAST(strdup(json_object_to_json_string(json_series)));
+        const char *title = json_object_to_json_string(json_series);
+        char *trimmed_title;
+        strtrim(&trimmed_title, title, "\"");
+        (*index_ptr)[i].title = BAD_CAST(trimmed_title);
     }
     array_list_free(json_object_get_array(json_index));
     qsort(*index_ptr, index_len, sizeof(struct iv_series), cmpseries);
