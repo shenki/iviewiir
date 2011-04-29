@@ -1,3 +1,6 @@
+#ifndef LIBIVIEW_H
+#define LIBIVIEW_H
+
 /* iview.h
  *
  * libiview is a C library for scraping information and downloading episodes
@@ -11,13 +14,16 @@
  * [1] http://www.abc.net.au/
  * [2] http://www.abc.net.au/iview/
  */
+
 #include <stdlib.h>
 #include <errno.h>
 #include <libxml/xmlstring.h>
 #include <unistd.h>
 
-#ifndef LIBIVIEW_H
-#define LIBIVIEW_H
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #if defined(DEBUG)
 #define IV_DEBUG(format, ...) \
@@ -306,5 +312,9 @@ void iv_destroy_auth(struct iv_auth *auth);
  * zero represent an error code (IV_E*)
  */
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* LIBIVIEW_H */
