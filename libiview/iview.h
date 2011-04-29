@@ -193,7 +193,7 @@ void iv_destroy_config(struct iv_config *config);
  * It is the responsibility of the caller to free the populated XML buffer
  *
  * @config: The configuration context returned by iv_get_config()
- * @buf_ptr: A container for the series list XML data.
+ * @buf_ptr: A container for the series list JSON data.
  *
  * @return: Greater than or equal to zero on success, less than zero on
  * failure. If the result is greater than or equal to zero it represents the
@@ -204,15 +204,16 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
 
 /* iv_parse_index
  *
- * Parses a series list XML buffer into constituant struct iv_series instances.
+ * Parses a series list JSON buffer into constituant struct iv_series instances.
  * Freeing the series array is the responsibility of the caller.
  *
- * @buf: The series list XML buffer to parse
- * @index_ptr: A container for the series list
+ * @buf: The series list JSON buffer to parse. Must be null terminated.
+ * @index_ptr: A container for the series list.
  *
- * @return: 0 on success, less than zero on failure. If the call is
- * successful index_ptr contains a list of series. If the call is not
- * successful the value contained in index_ptr is invalid.
+ * @return: Greater than or equal to zero 0 on success, less than zero on
+ * failure. If the call is successful index_ptr contains a list of series and
+ * the return value represents the number of elements in the list. If the call
+ * is not successful the value contained in index_ptr is invalid.
  */
 int iv_parse_index(const char *buf, struct iv_series **index_ptr);
 
