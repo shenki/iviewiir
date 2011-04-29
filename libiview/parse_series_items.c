@@ -5,6 +5,7 @@
 #include <string.h>
 #include <libxml/parser.h>
 #include "iview.h"
+#include "internal.h"
 
 /* Sample series xml
 <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:abc="http://www.abc.net.au/tv/mrss">
@@ -241,29 +242,29 @@ static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
     }
 }
 
-static void cdata_handler(void *_ctx, const xmlChar *data, int len) {
+static void cdata_handler(void *_ctx, const xmlChar *_data, int len) {
     struct item_parse_ctx *ctx = (struct item_parse_ctx *)_ctx;
     if(IV_OK != ctx->return_value) {
         return;
     }
-    xmlChar *_data = xmlStrndup(data, len);
-    if(!_data) {
+    char *data;
+    if(0 > strntrim(&data, (char *)_data, len, "\"")) {
         ctx->return_value = -IV_ENOMEM;
         return;
     }
     struct iv_item *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
         case ps_title:
-            item->title = _data;
+            item->title = BAD_CAST(data);
             break;
         case ps_description:
-            item->description = _data;
+            item->description = BAD_CAST(data);
             break;
         case ps_home:
-            item->home = _data;
+            item->home = BAD_CAST(data);
             break;
         default:
-            free(_data);
+            free(data);
             break;
     }
 }
