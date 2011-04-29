@@ -23,10 +23,12 @@ AR	:=$(CROSS_COMPILE)ar
 INCDIR := $(PREFIX)/include
 LIBDIR := $(PREFIX)/lib
 
+WARNINGS := -Wall -Wextra -Wwrite-strings -Werror
+
 DEPS := libxml-2.0 json librtmp
-CFLAGS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
-	-fPIC -fvisibility=hidden $(EXTRA_CFLAGS)
-LDFLAGS := -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
+CFLAGS += $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
+	-fPIC $(EXTRA_CFLAGS) $(WARNINGS)
+LDFLAGS += -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
 LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
 SRC := get_xml_buffer.c \
@@ -45,9 +47,6 @@ SRC := get_xml_buffer.c \
 	wiicode/http.c
 
 OBJ := $(SRC:.c=.o)
-
-CFLAGS := $(CFLAGS) -Wall -Wextra -Wwrite-strings -Werror
-LDFLAGS := $(LDFLAGS)
 
 all: libiview.so libiview.a
 
