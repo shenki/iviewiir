@@ -305,6 +305,21 @@ ssize_t iv_get_series_items(struct iv_config *config,
  */
 int iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
 
+/* iv_easy_series_items
+ *
+ * Get a populated items list without the bother of fetching XML buffers.
+ *
+ * @config: The configuration context returned by iv_get_config()
+ * @items_ptr: A container for the item struct array.
+ *
+ * @return: Greater than or equal to zero on success, less than zero on
+ * failure. If the result is greater than or equal to zero it represents the
+ * length of the items list. If it is less than zero the value is the negated
+ * error code.
+ */
+int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
+        struct iv_item **items_ptr);
+
 /* iv_find_item
  *
  * Searches through the items list for the provided item ID, populating the
