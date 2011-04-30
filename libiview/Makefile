@@ -47,7 +47,8 @@ SRC := get_xml_buffer.c \
 	wiicode/http.c \
 	strtrim.c \
 	find_series.c \
-	find_item.c
+	find_item.c \
+	easy_config.c
 
 OBJ := $(SRC:.c=.o)
 

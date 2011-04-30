@@ -177,6 +177,16 @@ ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr);
  */
 int iv_get_config(const char *buf, size_t len, struct iv_config **config);
 
+/* iv_easy_config
+ *
+ * Get a populated iv_config struct without the bother of fetching XML buffers.
+ *
+ * @config: A container for the configuration struct
+ *
+ * @return 0 on success, less than zero on failure.
+ */
+int iv_easy_config(struct iv_config **config);
+
 /* iv_destroy_config
  *
  * For freeing the struct iv_config instance returned by iv_get_config()
