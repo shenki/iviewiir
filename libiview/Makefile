@@ -1,6 +1,8 @@
+# Makefile for libiview
+# Joel Stanley <joel@jms.id.au>
+
 SONAME := libiview.so
 VERSION := v0.3
-
 
 # Uncomment when building for the wii, or provide on the command line
 # CROSS_COMPILE=powerpc-eabi-
@@ -13,12 +15,15 @@ EXTRA_CFLAGS := -O3 -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -DHW_RVL \
 EXTRA_LDFLAGS = -L/opt/devkitpro/devkitPPC/powerpc-eabi/lib \
 		-L/opt/devkitpro/libogc/lib/wii
 PREFIX := /opt/devkitpro/portlibs/ppc
+
+# Hack as devkitpro does not have a -cc symlink
+CC:=gcc
 else
 PREFIX := /usr/include
 endif
 
-CC	:=$(CROSS_COMPILE)gcc
-AR	:=$(CROSS_COMPILE)ar
+CC	:= $(CROSS_COMPILE)$(CC)
+AR	:= $(CROSS_COMPILE)$(AR)
 
 INCDIR := $(PREFIX)/include
 LIBDIR := $(PREFIX)/lib
