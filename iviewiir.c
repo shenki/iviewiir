@@ -241,7 +241,6 @@ int download_item(struct iv_config *config, struct iv_series *index,
         printf("Failed to find series");
         return -1;
     }
-    debug("series index: %d\n", i);
     ssize_t items_len = iviewiir_series(config, &index[series_index], &items);
     if(1 > items_len) {
         fprintf(stderr, "No items in series, exiting\n");
