@@ -227,6 +227,20 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr);
  */
 int iv_parse_index(const char *buf, struct iv_series **index_ptr);
 
+/* iv_easy_index
+ *
+ * Get a populated series index without the bother of fetching XML buffers.
+ *
+ * @config: The configuration context returned by iv_get_config()
+ * @index_ptr: A container for the index struct array
+ *
+ * @return: Greater than or equal to zero 0 on success, less than zero on
+ * failure. If the call is successful index_ptr contains a list of series and
+ * the return value represents the number of elements in the list. If the call
+ * is not successful the value contained in index_ptr is invalid.
+ */
+int iv_easy_index(struct iv_config *config, struct iv_series **index_ptr);
+
 /* iv_find_series
  *
  * Searches through the series index for the provided series ID, populating the

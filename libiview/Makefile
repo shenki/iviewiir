@@ -48,7 +48,8 @@ SRC := get_xml_buffer.c \
 	strtrim.c \
 	find_series.c \
 	find_item.c \
-	easy_config.c
+	easy_config.c \
+	easy_index.c
 
 OBJ := $(SRC:.c=.o)
 
