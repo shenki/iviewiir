@@ -288,7 +288,13 @@ int iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
         .items = &item_list
     };
     // Parse document
-    if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
+    xmlParserCtxtPtr pctx =
+        xmlCreatePushParserCtxt(handler, &ctx, NULL, 0, NULL);
+    xmlCtxtUseOptions(pctx, XML_PARSE_NOENT);
+    const int result = xmlParseChunk(pctx, buf, len, 0);
+    xmlParseChunk(pctx, NULL, 0, 1);
+    xmlFreeParserCtxt(pctx);
+    if(0 != result) {
         return -IV_ESAXPARSE;
     }
     *items = ctx.items->head;

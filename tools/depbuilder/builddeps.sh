@@ -105,7 +105,7 @@ CFLAGS="-DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -I/opt/devkitpro/portlibs/pp
       --without-c14n --without-catalog --without-debug --without-docbook \
       --without-fexceptions --without-ftp --without-history --without-html \
       --without-iso8859x --without-legacy --without-mem-debug --without-minimum \
-      --without-output --without-pattern --without-push --without-reader \
+      --without-output --without-pattern --without-reader \
       --without-regexps --without-run-debug --without-http --without-schemas \
       --without-schematron --without-threads --without-thread-alloc --without-tree \
       --without-valid --without-writer --without-xinclude --without-xpath \
