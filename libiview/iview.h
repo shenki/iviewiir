@@ -383,13 +383,15 @@ void iv_destroy_auth(struct iv_auth *auth);
  * Downloads the episode represented by item to the file outpath.
  *
  * @auth: The struct iv_auth instance returned by iv_get_auth()
- * @item: A element of the item list returned by iv_get_series_items(), the item that wants
+ * @item: A element of the item list returned by iv_get_series_items(), the
+ * item that wants
  * @outpath: The filename to write the downloaded data to.
  *
  * @return: 0 on success, less than zero on failure. Values less than
  * zero represent an error code (IV_E*)
  */
-int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
+int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
+        const char *outpath);
 
 /* iv_easy_fetch_video
  *
