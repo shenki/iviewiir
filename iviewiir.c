@@ -161,24 +161,6 @@ ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
     return items_len;
 }
 
-void
-iviewiir_download(const struct iv_config *config, const struct iv_item *item) {
-    struct iv_auth *auth;
-    if(IV_OK != iv_get_auth(config, &auth)) {
-        fprintf(stderr, "Failed to get authentication information\n");
-        return;
-    }
-    xmlChar *path = xmlStrdup(item->url);
-    char *flvname = basename((char *)path);
-    if(IV_OK != iv_fetch_video(auth, item, flvname)) {
-        fprintf(stderr, "Failed to download video\n");
-        goto download_cleanup;
-    }
-    iv_destroy_auth(auth);
-download_cleanup:
-    free(path);
-}
-
 void list_all(struct iv_config *config, struct iv_series *index,
         int index_len) {
     struct iv_item *items;
@@ -253,7 +235,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
     }
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
-    iviewiir_download(config, &(items[item_index]));
+    iv_easy_fetch_video(config, &(items[item_index]),
+            basename((char *)items[item_index].url));
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);
     return 0;
