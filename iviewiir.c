@@ -169,11 +169,11 @@ void list_all(struct iv_config *config, struct iv_series *index,
 }
 
 int list_items(struct iv_config *config, struct iv_series *index,
-        const unsigned int index_len, const unsigned int sid) {
+        const int index_len, const unsigned int sid) {
     struct iv_item *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
-    unsigned int i;
+    int i;
     for(i=0; i<index_len; i++) {
         if(sid == index[i].id) {
             break;
