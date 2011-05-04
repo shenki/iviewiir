@@ -391,6 +391,21 @@ void iv_destroy_auth(struct iv_auth *auth);
  */
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item, const char *outpath);
 
+/* iv_easy_fetch_video
+ *
+ * Downloads an episode without the bother of fetching an authentication
+ * struct.
+ *
+ * @config: The configuration context as provided by iv_get_config().
+ * @item: The item to download.
+ * @outpath: The filename to write to.
+ *
+ * @return: 0 on success, less than zero on failure. Values less than
+ * zero represent an error code (IV_E*)
+ */
+int iv_easy_fetch_video(const struct iv_config *config,
+        const struct iv_item *item, const char *outpath);
+
 #ifdef __cplusplus
 };
 #endif
