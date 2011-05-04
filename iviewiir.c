@@ -142,33 +142,14 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
     return index_len;
 }
 
-ssize_t iviewiir_series(struct iv_config *config, struct iv_series *series,
-        struct iv_item **items) {
-    char *series_buf = NULL;
-    const ssize_t len =
-        iv_get_series_items(config, series, &series_buf);
-    if(0 >= len) {
-        iv_destroy_xml_buffer(series_buf);
-        return len;
-    }
-    debug("series:\n%s\n", series_buf);
-    const ssize_t items_len = iv_parse_series_items(series_buf, len, items);
-    if(0 > items_len) {
-        iv_destroy_xml_buffer(series_buf);
-        return items_len;
-    }
-    iv_destroy_xml_buffer(series_buf);
-    return items_len;
-}
-
 void list_all(struct iv_config *config, struct iv_series *index,
         int index_len) {
     struct iv_item *items;
     int i;
     for(i=0; i<index_len; i++) {
-        int items_len = iviewiir_series(config, &index[i], &items);
+        int items_len = iv_easy_series_items(config, &index[i], &items);
         if(0 > items_len) {
-            error("iviewiir_series returned %d\n", items_len);
+            error("iv_easy_series_items returned %d\n", items_len);
             continue;
         }
         if(0 == items_len) {
@@ -199,7 +180,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
         }
     }
     debug("series index: %d\n", i);
-    ssize_t items_len = iviewiir_series(config, &index[i], &items);
+    ssize_t items_len = iv_easy_series_items(config, &index[i], &items);
     if(1 > items_len) {
         fprintf(stderr, "No items in series.\n");
         return -1;
@@ -223,7 +204,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
         printf("Failed to find series");
         return -1;
     }
-    ssize_t items_len = iviewiir_series(config, &index[series_index], &items);
+    ssize_t items_len =
+        iv_easy_series_items(config, &index[series_index], &items);
     if(1 > items_len) {
         fprintf(stderr, "No items in series, exiting\n");
         return -1;
@@ -333,7 +315,7 @@ int main(int argc, char **argv) {
             }
             // Fetch items in series
             ssize_t items_len =
-                iviewiir_series(config, &index[series_index], &items);
+                iv_easy_series_items(config, &index[series_index], &items);
             if(1 > items_len) {
                 printf("No items in series.\n");
                 return_val += 1;
