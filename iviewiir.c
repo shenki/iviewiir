@@ -321,7 +321,7 @@ int main(int argc, char **argv) {
                 return_val += 1;
                 continue;
             }
-            for(i=1; i<items_len; i++) {
+            for(i=0; i<items_len; i++) {
                 return_val += download_item(config, index, index_len, sid,
                         items[i].id);
             }
