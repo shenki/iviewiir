@@ -49,7 +49,7 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
 }
 
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
-        const char *outpath) {
+        const int fd) {
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
@@ -61,7 +61,6 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     if(0 >= (rtmp_uri_len = generate_video_uri(auth, item, &rtmp_uri))) {
         return rtmp_uri_len;
     }
-    FILE *outfile = fopen(outpath, "w");
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
@@ -71,7 +70,7 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     RTMP_UpdateBufferMS(rtmp);
     int read, wrote;
     while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
-        wrote = fwrite(buf, 1, read, outfile);
+        wrote = write(fd, buf, read);
         if(wrote != read) {
             return_val = -IV_ENOMEM;
             goto done;
@@ -80,7 +79,6 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
 done:
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
-    fclose(outfile);
     free(buf);
     iv_destroy_video_uri(rtmp_uri);
     return return_val;

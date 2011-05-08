@@ -391,7 +391,7 @@ void iv_destroy_auth(struct iv_auth *auth);
  * zero represent an error code (IV_E*)
  */
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
-        const char *outpath);
+        const int fd);
 
 /* iv_easy_fetch_video
  *
@@ -406,7 +406,7 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
  * zero represent an error code (IV_E*)
  */
 int iv_easy_fetch_video(const struct iv_config *config,
-        const struct iv_item *item, const char *outpath);
+        const struct iv_item *item, const int fd);
 
 #ifdef __cplusplus
 };

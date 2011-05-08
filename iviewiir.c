@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
 #include <libgen.h>
@@ -217,8 +218,10 @@ int download_item(struct iv_config *config, struct iv_series *index,
     }
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
-    iv_easy_fetch_video(config, &(items[item_index]),
-            basename((char *)items[item_index].url));
+    const int fd = creat(basename((char *)items[item_index].url),
+            S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    iv_easy_fetch_video(config, &(items[item_index]), fd);
+    close(fd);
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);
     return 0;
