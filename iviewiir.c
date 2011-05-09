@@ -194,6 +194,12 @@ int list_items(struct iv_config *config, struct iv_series *index,
     return 0;
 }
 
+static int print_percentage(const struct iv_progress *progress,
+        void *user_data IV_UNUSED) {
+    printf("\rProgress: %.01f%%", progress->percentage);
+    return 0;
+}
+
 int download_item(struct iv_config *config, struct iv_series *index,
         const unsigned int index_len, const unsigned int sid,
         const unsigned int pid) {
@@ -220,7 +226,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
         items[item_index].title, basename((char *)items[item_index].url));
     const int fd = creat(basename((char *)items[item_index].url),
             S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    iv_easy_fetch_video(config, &(items[item_index]), fd);
+    iv_easy_fetch_video_async(config, &(items[item_index]), fd,
+            &print_percentage, NULL);
     close(fd);
     debug("download complete\n");
     iv_destroy_series_items(items, items_len);

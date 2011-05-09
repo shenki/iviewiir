@@ -122,6 +122,17 @@ struct iv_item {
  */
 struct iv_auth;
 
+struct iv_progress {
+    size_t count; // downloaded byte count
+    double duration; // duration in ms
+    double percentage; // percentage of downloaded duration
+    short valid; // 1 if the percentage/duration is valid, 0 otherwise
+    int done; // 1 if the download the download is complete
+};
+
+typedef int iv_download_progress_cb(const struct iv_progress *progress,
+        void *user_data);
+
 /*
  * Currently unused inlining macros to work around the conflict between GNU89
  * inlines and C99 (which are virtually opposed in implementation).
@@ -393,6 +404,9 @@ void iv_destroy_auth(struct iv_auth *auth);
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
         const int fd);
 
+int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_item *item,
+        const int fd, iv_download_progress_cb *progress_cb, void *user_data);
+
 /* iv_easy_fetch_video
  *
  * Downloads an episode without the bother of fetching an authentication
@@ -407,6 +421,10 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
  */
 int iv_easy_fetch_video(const struct iv_config *config,
         const struct iv_item *item, const int fd);
+
+int iv_easy_fetch_video_async(const struct iv_config *config,
+        const struct iv_item *item, const int fd,
+        iv_download_progress_cb *progress_cb, void *user_data);
 
 #ifdef __cplusplus
 };

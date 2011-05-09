@@ -50,6 +50,11 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
 
 int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
         const int fd) {
+    return iv_fetch_video_async(auth, item, fd, NULL, NULL);
+}
+
+int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_item *item,
+        const int fd, iv_download_progress_cb *progress_cb, void *user_data) {
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
@@ -61,19 +66,50 @@ int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
     if(0 >= (rtmp_uri_len = generate_video_uri(auth, item, &rtmp_uri))) {
         return rtmp_uri_len;
     }
+    // Start the RTMP session
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
     RTMP_Connect(rtmp, NULL);
     RTMP_ConnectStream(rtmp, 0);
-    RTMP_SetBufferMS(rtmp, (uint32_t) (2 * 3600 * 1000)); // 2hrs
+    // Determine duration if one exists - otherwise set a default
+    struct iv_progress progress = {0, 0.0, 0.0, 0, 0};
+#define DEFAULT_DURATION_SEC (2 * 3600)
+    double tmp_duration = DEFAULT_DURATION_SEC * 1000; // convert to ms
+    progress.duration = tmp_duration;
+    progress.valid = 0;
+    RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
     RTMP_UpdateBufferMS(rtmp);
     int read, wrote;
+    // Determine whether we should fire the progress callback
+    if(NULL != progress_cb) {
+        progress_cb((const struct iv_progress *)&progress, user_data);
+    }
     while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
+        if(!progress.valid && 0 < (tmp_duration = RTMP_GetDuration(rtmp))) {
+            // Now that we have a valid duration, report we have an extra few
+            // seconds of buffer space to ensure we download the entire video
+            progress.duration = (tmp_duration + 5) * 1000;
+            progress.valid = 1;
+            RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
+            RTMP_UpdateBufferMS(rtmp);
+            IV_DEBUG("Duration: %fms, valid: %hd\n",
+                    progress.duration, progress.valid);
+        }
         wrote = write(fd, buf, read);
         if(wrote != read) {
             return_val = -IV_ENOMEM;
             goto done;
+        }
+        if(NULL != progress_cb) {
+            progress.count += read;
+            // Calculate percentage
+            progress.percentage =
+                ((double) rtmp->m_read.timestamp) / progress.duration * 100.0;
+            // Trim to single digit precision
+            progress.percentage =
+                ((double) (int) (progress.percentage * 10.0)) / 10.0;
+            progress_cb((const struct iv_progress *)&progress, user_data);
         }
     }
 done:
