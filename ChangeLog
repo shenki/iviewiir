@@ -1,4 +1,15 @@
+Tag v0.4.1:
+----------
+* All libiview functions return negative values on error
+* Wii dependency builder script in tools/depbuilder
+* Quotes are properly trimmed from string metadata
+* libiview (hopefully this time) honours user CFLAGS
+* libiview can now be compiled into C++ projects
+* libiview has gained iv_find_series() and iv_find_item()
+* libiview has a new 'easy' interface, see libiview/iview.h for more
+
 Tag v0.3:
+--------
 
 * Remove libiview dependency on libneon
 * Rewrite of libiview to parse with libxml2
