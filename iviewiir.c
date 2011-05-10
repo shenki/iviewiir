@@ -218,7 +218,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
         return -1;
     }
     int item_index;
-    if(-1 == (item_index = iv_find_item(pid, items, items_len, NULL))) {
+    if(-1 == (item_index = iv_find_episode(pid, items, items_len, NULL))) {
         printf("Failed to find specified episode\n");
         return -1;
     }

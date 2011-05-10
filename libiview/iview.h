@@ -331,7 +331,7 @@ int iv_parse_series(char *buf, size_t len, struct iv_episode **items);
 int iv_easy_series(struct iv_config *config, struct iv_series *series,
         struct iv_episode **items_ptr);
 
-/* iv_find_item
+/* iv_find_episode
  *
  * Searches through the items list for the provided item ID, populating the
  * item_ptr parameter if found.
@@ -347,7 +347,7 @@ int iv_easy_series(struct iv_config *config, struct iv_series *series,
  * ID and the return value is the index into the series list. If the call is
  * not successful the value contained in series_ptr is invalid.
  */
-int iv_find_item(const unsigned int item_id, const struct iv_episode *items_list,
+int iv_find_episode(const unsigned int item_id, const struct iv_episode *items_list,
         const unsigned int items_len, const struct iv_episode **item_ptr);
 
 /* iv_destroy_series

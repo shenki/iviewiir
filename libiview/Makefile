@@ -51,7 +51,7 @@ SRC := get_http_buffer.c \
 	wiicode/http.c \
 	strtrim.c \
 	find_series.c \
-	find_item.c \
+	find_episode.c \
 	easy_config.c \
 	easy_index.c \
 	easy_series.c \

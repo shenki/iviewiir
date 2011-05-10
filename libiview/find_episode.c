@@ -1,6 +1,6 @@
 #include "iview.h"
 
-int iv_find_item(const unsigned int item_id,
+int iv_find_episode(const unsigned int item_id,
         const struct iv_episode *items_list,
         const unsigned int items_len,
         const struct iv_episode **item_ptr) {
