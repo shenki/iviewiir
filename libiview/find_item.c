@@ -1,9 +1,9 @@
 #include "iview.h"
 
 int iv_find_item(const unsigned int item_id,
-        const struct iv_item *items_list,
+        const struct iv_episode *items_list,
         const unsigned int items_len,
-        const struct iv_item **item_ptr) {
+        const struct iv_episode **item_ptr) {
     // We're not going to do anything fancy here, just scan linearly through
     // the list and see if we find the required PID
     unsigned int i;

@@ -21,7 +21,7 @@
  * string held in uri. On failure, the value represents the negated error code.
  */
 static ssize_t generate_video_uri(const struct iv_auth *auth,
-        const struct iv_item *item, char **uri) {
+        const struct iv_episode *item, char **uri) {
     int return_val = 0;
     char *rtmp_uri = NULL;
     char *playpath = NULL;
@@ -48,12 +48,12 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     return rtmp_uri_len;
 }
 
-int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
+int iv_fetch_video(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd) {
     return iv_fetch_video_async(auth, item, fd, NULL, NULL);
 }
 
-int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_item *item,
+int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd, iv_download_progress_cb *progress_cb, void *user_data) {
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)

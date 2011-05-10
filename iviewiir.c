@@ -145,7 +145,7 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
 
 void list_all(struct iv_config *config, struct iv_series *index,
         int index_len) {
-    struct iv_item *items;
+    struct iv_episode *items;
     int i;
     for(i=0; i<index_len; i++) {
         int items_len = iv_easy_series(config, &index[i], &items);
@@ -171,7 +171,7 @@ void list_all(struct iv_config *config, struct iv_series *index,
 
 int list_items(struct iv_config *config, struct iv_series *index,
         const int index_len, const unsigned int sid) {
-    struct iv_item *items;
+    struct iv_episode *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
     int i;
@@ -203,7 +203,7 @@ static int print_percentage(const struct iv_progress *progress,
 int download_item(struct iv_config *config, struct iv_series *index,
         const unsigned int index_len, const unsigned int sid,
         const unsigned int pid) {
-    struct iv_item *items;
+    struct iv_episode *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
     int series_index;
@@ -313,7 +313,7 @@ int main(int argc, char **argv) {
         } else {
             // Check if it's a valid SID
             const unsigned int sid = strtoul(argv[i], NULL, 10);
-            struct iv_item *items;
+            struct iv_episode *items;
             // Fetch episode lists for the SID
             debug("sid: %d\n", sid);
             int series_index;

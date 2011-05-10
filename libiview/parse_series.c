@@ -99,15 +99,15 @@ enum item_parse_state {
     ps_end
 };
 
-struct iv_item_list {
+struct iv_episode_list {
     unsigned int len;
-    struct iv_item *head;
+    struct iv_episode *head;
 };
 
 struct item_parse_ctx {
     enum item_parse_state state;
     int return_value;
-    struct iv_item_list *items;
+    struct iv_episode_list *items;
 };
 
 static void start_item_child_handler(struct item_parse_ctx *ctx,
@@ -170,12 +170,12 @@ static void start_element(void *_ctx, const xmlChar *name,
                 ctx->state = ps_item;
                 // Found new item, add another element to the list
                 if(!(ctx->items->head = realloc(ctx->items->head,
-                                ++(ctx->items->len)*sizeof(struct iv_item)))) {
+                                ++(ctx->items->len)*sizeof(struct iv_episode)))) {
                     ctx->return_value = -IV_ENOMEM;
                     return;
                 }
                 memset(&(ctx->items->head[ctx->items->len-1]), 0,
-                        sizeof(struct iv_item));
+                        sizeof(struct iv_episode));
             } else {
                 IV_DEBUG("Skipping non-item element %s\n", name);
             }
@@ -222,7 +222,7 @@ static void content_handler(void *_ctx, const xmlChar *_ch, int len) {
         ctx->return_value = -IV_ENOMEM;
         return;
     }
-    struct iv_item *item = &ctx->items->head[ctx->items->len-1];
+    struct iv_episode *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
         case ps_id:
             item->id = atoi((char *)ch);
@@ -252,7 +252,7 @@ static void cdata_handler(void *_ctx, const xmlChar *_data, int len) {
         ctx->return_value = -IV_ENOMEM;
         return;
     }
-    struct iv_item *item = &ctx->items->head[ctx->items->len-1];
+    struct iv_episode *item = &ctx->items->head[ctx->items->len-1];
     switch(ctx->state) {
         case ps_title:
             item->title = BAD_CAST(data);
@@ -269,7 +269,7 @@ static void cdata_handler(void *_ctx, const xmlChar *_data, int len) {
     }
 }
 
-int iv_parse_series(char *buf, size_t len, struct iv_item **items) {
+int iv_parse_series(char *buf, size_t len, struct iv_episode **items) {
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
     handler->initialized = XML_SAX2_MAGIC;
@@ -278,8 +278,8 @@ int iv_parse_series(char *buf, size_t len, struct iv_item **items) {
     handler->endElement = end_element;
     handler->cdataBlock = cdata_handler;
     // Initialise parser context
-    struct iv_item_list item_list = { .len = 0, .head = NULL };
-    if(!(item_list.head = calloc(++(item_list.len), sizeof(struct iv_item)))) {
+    struct iv_episode_list item_list = { .len = 0, .head = NULL };
+    if(!(item_list.head = calloc(++(item_list.len), sizeof(struct iv_episode)))) {
         return -IV_ENOMEM;
     }
     struct item_parse_ctx ctx = {

@@ -93,7 +93,7 @@ struct iv_series {
     const xmlChar *title;
 };
 
-/* struct iv_item
+/* struct iv_episode
  *
  * Provides information on a particular episode, including its download URL.
  * Consumers of this struct include functions for displaying episode data and
@@ -101,7 +101,7 @@ struct iv_series {
  * small-ish number of the elements available in the episode's XML description,
  * however these have been more than enough for current users.
  */
-struct iv_item {
+struct iv_episode {
     unsigned int id;
     xmlChar *title;
     xmlChar *url;
@@ -300,8 +300,8 @@ ssize_t iv_get_series(struct iv_config *config,
 
 /* iv_parse_series
  *
- * Parses an item list XML buffer into constituant struct iv_item instances.
- * Freeing the struct iv_item array is the responsibility of the caller.
+ * Parses an item list XML buffer into constituant struct iv_episode instances.
+ * Freeing the struct iv_episode array is the responsibility of the caller.
  * Individual elements of the resulting list can be passed to
  * iv_generate_video_uri in preparation for downloading the episode.
  *
@@ -314,7 +314,7 @@ ssize_t iv_get_series(struct iv_config *config,
  * length of the items list. If it is less than zero the value is the negated
  * error code.
  */
-int iv_parse_series(char *buf, size_t len, struct iv_item **items);
+int iv_parse_series(char *buf, size_t len, struct iv_episode **items);
 
 /* iv_easy_series
  *
@@ -329,7 +329,7 @@ int iv_parse_series(char *buf, size_t len, struct iv_item **items);
  * error code.
  */
 int iv_easy_series(struct iv_config *config, struct iv_series *series,
-        struct iv_item **items_ptr);
+        struct iv_episode **items_ptr);
 
 /* iv_find_item
  *
@@ -347,8 +347,8 @@ int iv_easy_series(struct iv_config *config, struct iv_series *series,
  * ID and the return value is the index into the series list. If the call is
  * not successful the value contained in series_ptr is invalid.
  */
-int iv_find_item(const unsigned int item_id, const struct iv_item *items_list,
-        const unsigned int items_len, const struct iv_item **item_ptr);
+int iv_find_item(const unsigned int item_id, const struct iv_episode *items_list,
+        const unsigned int items_len, const struct iv_episode **item_ptr);
 
 /* iv_destroy_series
  *
@@ -357,7 +357,7 @@ int iv_find_item(const unsigned int item_id, const struct iv_item *items_list,
  * @items: The item list as created by iv_parse_series()
  * @items_len: The return value of the call to iv_parse_series
  */
-void iv_destroy_series(struct iv_item *items, int items_len);
+void iv_destroy_series(struct iv_episode *items, int items_len);
 
 /* iv_get_auth
  *
@@ -401,10 +401,10 @@ void iv_destroy_auth(struct iv_auth *auth);
  * @return: 0 on success, less than zero on failure. Values less than
  * zero represent an error code (IV_E*)
  */
-int iv_fetch_video(const struct iv_auth *auth, const struct iv_item *item,
+int iv_fetch_video(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd);
 
-int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_item *item,
+int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd, iv_download_progress_cb *progress_cb, void *user_data);
 
 /* iv_easy_fetch_video
@@ -420,10 +420,10 @@ int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_item *item,
  * zero represent an error code (IV_E*)
  */
 int iv_easy_fetch_video(const struct iv_config *config,
-        const struct iv_item *item, const int fd);
+        const struct iv_episode *item, const int fd);
 
 int iv_easy_fetch_video_async(const struct iv_config *config,
-        const struct iv_item *item, const int fd,
+        const struct iv_episode *item, const int fd,
         iv_download_progress_cb *progress_cb, void *user_data);
 
 #ifdef __cplusplus
