@@ -1,7 +1,7 @@
 #include "iview.h"
 #include "internal.h"
 
-int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
+int iv_easy_series(struct iv_config *config, struct iv_series *series,
         struct iv_item **items_ptr) {
     char *series_buf = NULL;
     const ssize_t len = iv_get_series(config, series, &series_buf);

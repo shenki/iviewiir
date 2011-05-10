@@ -316,7 +316,7 @@ ssize_t iv_get_series(struct iv_config *config,
  */
 int iv_parse_series(char *buf, size_t len, struct iv_item **items);
 
-/* iv_easy_series_items
+/* iv_easy_series
  *
  * Get a populated items list without the bother of fetching XML buffers.
  *
@@ -328,7 +328,7 @@ int iv_parse_series(char *buf, size_t len, struct iv_item **items);
  * length of the items list. If it is less than zero the value is the negated
  * error code.
  */
-int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
+int iv_easy_series(struct iv_config *config, struct iv_series *series,
         struct iv_item **items_ptr);
 
 /* iv_find_item
