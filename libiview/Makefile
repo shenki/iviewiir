@@ -55,7 +55,7 @@ SRC := get_http_buffer.c \
 	easy_config.c \
 	easy_index.c \
 	easy_series.c \
-	easy_fetch_video.c
+	easy_fetch_episode.c
 
 OBJ := $(SRC:.c=.o)
 

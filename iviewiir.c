@@ -226,7 +226,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
         items[item_index].title, basename((char *)items[item_index].url));
     const int fd = creat(basename((char *)items[item_index].url),
             S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    iv_easy_fetch_video_async(config, &(items[item_index]), fd,
+    iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
             &print_percentage, NULL);
     close(fd);
     debug("download complete\n");

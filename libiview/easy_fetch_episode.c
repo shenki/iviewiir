@@ -1,7 +1,7 @@
 #include "iview.h"
 #include "internal.h"
 
-int iv_easy_fetch_video(const struct iv_config *config,
+int iv_easy_fetch_episode(const struct iv_config *config,
         const struct iv_episode *item, const int fd) {
     struct iv_auth *auth;
     const int auth_result = iv_get_auth(config, &auth);
@@ -13,7 +13,7 @@ int iv_easy_fetch_video(const struct iv_config *config,
     return fetch_result;
 }
 
-int iv_easy_fetch_video_async(const struct iv_config *config,
+int iv_easy_fetch_episode_async(const struct iv_config *config,
         const struct iv_episode *item, const int fd,
         iv_download_progress_cb *progress_cb, void *user_data) {
     struct iv_auth *auth;
