@@ -269,7 +269,7 @@ static void cdata_handler(void *_ctx, const xmlChar *_data, int len) {
     }
 }
 
-int iv_parse_series_items(char *buf, size_t len, struct iv_item **items) {
+int iv_parse_series(char *buf, size_t len, struct iv_item **items) {
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
     handler->initialized = XML_SAX2_MAGIC;

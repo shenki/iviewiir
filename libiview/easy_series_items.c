@@ -8,7 +8,7 @@ int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
     if(0 >= len) {
         return len;
     }
-    const ssize_t items_len = iv_parse_series_items(series_buf, len, items_ptr);
+    const ssize_t items_len = iv_parse_series(series_buf, len, items_ptr);
     iv_destroy_http_buffer(series_buf);
     return items_len;
 }

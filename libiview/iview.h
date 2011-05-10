@@ -298,7 +298,7 @@ void iv_destroy_index(struct iv_series *index, int len);
 ssize_t iv_get_series(struct iv_config *config,
         struct iv_series *series, char **buf_ptr);
 
-/* iv_parse_series_items
+/* iv_parse_series
  *
  * Parses an item list XML buffer into constituant struct iv_item instances.
  * Freeing the struct iv_item array is the responsibility of the caller.
@@ -314,7 +314,7 @@ ssize_t iv_get_series(struct iv_config *config,
  * length of the items list. If it is less than zero the value is the negated
  * error code.
  */
-int iv_parse_series_items(char *buf, size_t len, struct iv_item **items);
+int iv_parse_series(char *buf, size_t len, struct iv_item **items);
 
 /* iv_easy_series_items
  *
@@ -337,8 +337,8 @@ int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
  * item_ptr parameter if found.
  *
  * @item_id: The SID for the series required
- * @items_list: The list provided by iv_parse_series_items()
- * @items_len: The length of the items list returned by iv_parse_series_items()
+ * @items_list: The list provided by iv_parse_series()
+ * @items_len: The length of the items list returned by iv_parse_series()
  * @items_ptr: A container for the series struct if the SID is matched. Pass
  * NULL if not required.
  *
@@ -352,10 +352,10 @@ int iv_find_item(const unsigned int item_id, const struct iv_item *items_list,
 
 /* iv_destroy_series_items
  *
- * Destroys the items list created by iv_parse_series_items()
+ * Destroys the items list created by iv_parse_series()
  *
- * @items: The item list as created by iv_parse_series_items()
- * @items_len: The return value of the call to iv_parse_series_items
+ * @items: The item list as created by iv_parse_series()
+ * @items_len: The return value of the call to iv_parse_series
  */
 void iv_destroy_series_items(struct iv_item *items, int items_len);
 
