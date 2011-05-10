@@ -15,7 +15,7 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr) {
                 "seriesIndex")) {
         return -IV_ENOMEM;
     }
-    int result = iv_get_xml_buffer(api_query, buf_ptr);
+    int result = iv_get_http_buffer(api_query, buf_ptr);
     free(api_query);
     return result;
 }

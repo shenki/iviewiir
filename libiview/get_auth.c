@@ -105,9 +105,9 @@ int iv_get_auth(const struct iv_config *config, struct iv_auth **auth) {
         return -IV_ENOMEM;
     }
     char *auth_xml_buf;
-    ssize_t auth_buf_len = iv_get_xml_buffer((char *)config->auth, &auth_xml_buf);
+    ssize_t auth_buf_len = iv_get_http_buffer((char *)config->auth, &auth_xml_buf);
     if(0 > auth_buf_len) {
-        IV_DEBUG("iv_get_auth: iv_get_xml_buffer failed with %zd.\n", auth_buf_len);
+        IV_DEBUG("iv_get_auth: iv_get_http_buffer failed with %zd.\n", auth_buf_len);
         return auth_buf_len;
     }
     // Parse auth xml

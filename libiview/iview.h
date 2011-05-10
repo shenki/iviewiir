@@ -145,11 +145,11 @@ typedef int iv_download_progress_cb(const struct iv_progress *progress,
 #define INLINE
 #endif
 
-/* iv_get_xml_buffer
+/* iv_get_http_buffer
  *
  * Given a URL, will populate buf_ptr with the data retrieved over HTTP (uses
  * the nanoHTTP implementation from libxml2). The primary purpose of
- * iv_get_xml_buffer in libiview is for fetching the various XML files required
+ * iv_get_http_buffer in libiview is for fetching the various XML files required
  * before downloading an episode.
  *
  * Freeing of the buffer pointed at by buf_ptr is the responsibility of the
@@ -163,19 +163,19 @@ typedef int iv_download_progress_cb(const struct iv_progress *progress,
  * size of the buffer now pointed at by the dereferenced buf_ptr, otherwise
  * it's value is the negated error code.
  */
-ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr);
+ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr);
 
-/* iv_destroy_xml_buffer
+/* iv_destroy_http_buffer
  *
- * For freeing buffers allocated by calls to iv_get_xml_buffer()
+ * For freeing buffers allocated by calls to iv_get_http_buffer()
  */
-#define iv_destroy_xml_buffer(buf) free(buf)
+#define iv_destroy_http_buffer(buf) free(buf)
 
 /* iv_get_config
  *
  * Taking in an XML buffer, provides and populates a pointer to an instance of
  * struct iv_config. Typically the provided buffer should be fetched using
- * iv_get_xml_buffer() with the value of the uri parameter being IV_CONFIG_URI.
+ * iv_get_http_buffer() with the value of the uri parameter being IV_CONFIG_URI.
  *
  * Freeing of the struct iv_config instance is the responsibility of the
  * caller.

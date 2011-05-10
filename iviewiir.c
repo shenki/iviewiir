@@ -110,7 +110,7 @@ struct iv_config *iviewiir_configure() {
     if(config_buf_len == 0) {
         /* Cache was stale or did not exist, so re-fetch. */
         debug("Fetching configuration\n");
-        config_buf_len = iv_get_xml_buffer(IV_CONFIG_URI, &config_buf);
+        config_buf_len = iv_get_http_buffer(IV_CONFIG_URI, &config_buf);
         if(0 >= config_buf_len) {
             fprintf(stderr, "error retrieving config xml\n");
             return NULL;
@@ -125,7 +125,7 @@ struct iv_config *iviewiir_configure() {
         return NULL;
     }
 config_cleanup:
-    iv_destroy_xml_buffer(config_buf);
+    iv_destroy_http_buffer(config_buf);
     return config;
 }
 
@@ -139,7 +139,7 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
     }
     debug("index length %zd:\n%s\n", index_buf_len, index_xml_buf);
     int index_len = iv_parse_index(index_xml_buf, index);
-    iv_destroy_xml_buffer(index_xml_buf);
+    iv_destroy_http_buffer(index_xml_buf);
     return index_len;
 }
 

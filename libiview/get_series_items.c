@@ -13,7 +13,7 @@ ssize_t iv_get_series_items(struct iv_config *config IV_UNUSED,
         *buf_ptr = NULL;
         return -IV_ENOMEM;
     }
-    int result = iv_get_xml_buffer(series_uri, buf_ptr);
+    int result = iv_get_http_buffer(series_uri, buf_ptr);
     free(series_uri);
     return result;
 }

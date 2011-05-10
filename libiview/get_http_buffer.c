@@ -12,7 +12,7 @@
 #include "wiicode/http.h"
 #endif
 
-ssize_t iv_get_xml_buffer(const char *uri, char **buf_ptr) {
+ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr) {
 #ifdef GEKKO
     int res;
     u32 status = 0, len = 0;

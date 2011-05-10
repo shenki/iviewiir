@@ -8,6 +8,6 @@ int iv_easy_index(struct iv_config *config, struct iv_series **index_ptr) {
         return -1;
     }
     const int index_len = iv_parse_index(index_xml_buf, index_ptr);
-    iv_destroy_xml_buffer(index_xml_buf);
+    iv_destroy_http_buffer(index_xml_buf);
     return index_len;
 }

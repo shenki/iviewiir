@@ -36,7 +36,7 @@ CFLAGS += $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
 LDFLAGS += -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
 LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
-SRC := get_xml_buffer.c \
+SRC := get_http_buffer.c \
 	get_config.c \
 	get_index.c \
 	parse_index.c \
