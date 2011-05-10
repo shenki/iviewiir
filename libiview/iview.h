@@ -350,14 +350,14 @@ int iv_easy_series_items(struct iv_config *config, struct iv_series *series,
 int iv_find_item(const unsigned int item_id, const struct iv_item *items_list,
         const unsigned int items_len, const struct iv_item **item_ptr);
 
-/* iv_destroy_series_items
+/* iv_destroy_series
  *
  * Destroys the items list created by iv_parse_series()
  *
  * @items: The item list as created by iv_parse_series()
  * @items_len: The return value of the call to iv_parse_series
  */
-void iv_destroy_series_items(struct iv_item *items, int items_len);
+void iv_destroy_series(struct iv_item *items, int items_len);
 
 /* iv_get_auth
  *

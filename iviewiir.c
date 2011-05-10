@@ -165,7 +165,7 @@ void list_all(struct iv_config *config, struct iv_series *index,
             }
             printf("\n");
         }
-        iv_destroy_series_items(items, items_len);
+        iv_destroy_series(items, items_len);
     }
 }
 
@@ -190,7 +190,7 @@ int list_items(struct iv_config *config, struct iv_series *index,
         printf("%d:%d - %s\n",
                 sid, items[i].id, items[i].title);
     }
-    iv_destroy_series_items(items, items_len);
+    iv_destroy_series(items, items_len);
     return 0;
 }
 
@@ -230,7 +230,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
             &print_percentage, NULL);
     close(fd);
     debug("download complete\n");
-    iv_destroy_series_items(items, items_len);
+    iv_destroy_series(items, items_len);
     return 0;
 }
 
@@ -335,7 +335,7 @@ int main(int argc, char **argv) {
                 return_val += download_item(config, index, index_len, sid,
                         items[i].id);
             }
-            iv_destroy_series_items(items, items_len);
+            iv_destroy_series(items, items_len);
         }
         i++;
     }
