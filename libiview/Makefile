@@ -45,7 +45,7 @@ SRC := get_http_buffer.c \
 	destroy_config.c \
 	destroy_index.c \
 	get_auth.c \
-	fetch_video.c \
+	fetch_episode.c \
 	destroy_series.c \
 	destroy_auth.c \
 	wiicode/http.c \

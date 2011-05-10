@@ -10,7 +10,7 @@
 /* iv_generate_video_uri
  *
  * Combines item and authentication information to generate the RTMP URI for
- * downloading the video. The resulting URI can be passed to iv_fetch_video.
+ * downloading the video. The resulting URI can be passed to iv_fetch_episode.
  *
  * @auth: The struct iv_auth instance as provided by iv_get_auth()
  * @item: The series item (episode) to download
@@ -48,12 +48,12 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     return rtmp_uri_len;
 }
 
-int iv_fetch_video(const struct iv_auth *auth, const struct iv_episode *item,
+int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd) {
-    return iv_fetch_video_async(auth, item, fd, NULL, NULL);
+    return iv_fetch_episode_async(auth, item, fd, NULL, NULL);
 }
 
-int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_episode *item,
+int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd, iv_download_progress_cb *progress_cb, void *user_data) {
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)

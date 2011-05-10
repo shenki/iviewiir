@@ -389,7 +389,7 @@ void iv_destroy_auth(struct iv_auth *auth);
  */
 #define iv_destroy_video_uri(uri) free(uri)
 
-/* iv_fetch_video
+/* iv_fetch_episode
  *
  * Downloads the episode represented by item to the file outpath.
  *
@@ -401,10 +401,10 @@ void iv_destroy_auth(struct iv_auth *auth);
  * @return: 0 on success, less than zero on failure. Values less than
  * zero represent an error code (IV_E*)
  */
-int iv_fetch_video(const struct iv_auth *auth, const struct iv_episode *item,
+int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd);
 
-int iv_fetch_video_async(const struct iv_auth *auth, const struct iv_episode *item,
+int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd, iv_download_progress_cb *progress_cb, void *user_data);
 
 /* iv_easy_fetch_video

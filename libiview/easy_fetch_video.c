@@ -8,7 +8,7 @@ int iv_easy_fetch_video(const struct iv_config *config,
     if(IV_OK != auth_result) {
         return auth_result;
     }
-    const int fetch_result = iv_fetch_video(auth, item, fd);
+    const int fetch_result = iv_fetch_episode(auth, item, fd);
     iv_destroy_auth(auth);
     return fetch_result;
 }
@@ -21,7 +21,7 @@ int iv_easy_fetch_video_async(const struct iv_config *config,
     if(IV_OK != auth_result) {
         return auth_result;
     }
-    const int fetch_result = iv_fetch_video_async(auth, item, fd,
+    const int fetch_result = iv_fetch_episode_async(auth, item, fd,
             progress_cb, user_data);
     iv_destroy_auth(auth);
     return fetch_result;
