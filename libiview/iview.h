@@ -280,7 +280,7 @@ int iv_find_series(const unsigned int series_id, const struct iv_series *series_
  */
 void iv_destroy_index(struct iv_series *index, int len);
 
-/* iv_get_series_items
+/* iv_get_series
  *
  * Fetches an XML buffer containing information on episodes for the given
  * series (typically gathered through iv_get_index()/iv_parse_index()). Freeing
@@ -295,7 +295,7 @@ void iv_destroy_index(struct iv_series *index, int len);
  * the buffer held in buf_ptr. If unsuccessful, the value is the negated error
  * code.
  */
-ssize_t iv_get_series_items(struct iv_config *config,
+ssize_t iv_get_series(struct iv_config *config,
         struct iv_series *series, char **buf_ptr);
 
 /* iv_parse_series_items
@@ -394,7 +394,7 @@ void iv_destroy_auth(struct iv_auth *auth);
  * Downloads the episode represented by item to the file outpath.
  *
  * @auth: The struct iv_auth instance returned by iv_get_auth()
- * @item: A element of the item list returned by iv_get_series_items(), the
+ * @item: A element of the item list returned by iv_get_series(), the
  * item that wants
  * @outpath: The filename to write the downloaded data to.
  *

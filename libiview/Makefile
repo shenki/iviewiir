@@ -40,7 +40,7 @@ SRC := get_http_buffer.c \
 	get_config.c \
 	get_index.c \
 	parse_index.c \
-	get_series_items.c \
+	get_series.c \
 	parse_series_items.c \
 	destroy_config.c \
 	destroy_index.c \
