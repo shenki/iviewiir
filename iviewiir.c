@@ -214,8 +214,28 @@ int list_items(struct iv_config *config, struct iv_series *index,
 }
 
 static int print_percentage(const struct iv_progress *progress,
-        void *user_data IV_UNUSED) {
-    printf("\rProgress: %.01f%%", progress->percentage);
+        void *user_data) {
+    if(0.0 == progress->percentage ||
+            ((*(double *)user_data) + 1) <= progress->percentage) {
+        const char *type = NULL;
+        double dl_value = 0;
+        if(progress->count > 1024*1024) {
+            type = "MB";
+            dl_value = progress->count / (1024.0 * 1024.0);
+        } else if(progress->count > 1024) {
+            type = "KB";
+            dl_value = progress->count / 1024.0;
+        } else {
+            type = "B";
+            dl_value = progress->count * 1.0;
+        }
+        printf("\rProgress: %.01f%%%8.01f%s",
+                progress->percentage, dl_value, type);
+        fflush(stdout);
+    }
+    if(((*(double *)user_data) + 1) <= progress->percentage) {
+        (*(double *)user_data)++;
+    }
     return 0;
 }
 
@@ -243,12 +263,19 @@ int download_item(struct iv_config *config, struct iv_series *index,
     }
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
-    const int fd = creat(basename((char *)items[item_index].url),
-            S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
-            &print_percentage, NULL);
+    char const *path = basename((char *)items[item_index].url);
+    const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    double progress = 0;
+    if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
+            &print_percentage, &progress)) {
+        struct stat stat_buf;
+        stat(path, &stat_buf);
+        double size_mb = stat_buf.st_size / (1024.0 * 1024.0);
+        printf("\rComplete: %s - %.01fMB\n", path, size_mb);
+    } else {
+        printf("\rDownload failed :(\n");
+    }
     close(fd);
-    debug("download complete\n");
     iv_destroy_series(items, items_len);
     return 0;
 }
