@@ -82,13 +82,28 @@ struct iv_episode {
 
 /* struct iv_auth
  *
- * Consumed by iv_generate_video_uri, the auth struct provides a session token
- * for fetching the video from the iView server, plus some other data. As the
- * internals shouldn't be of concern to libiview consumers it is a partial
- * declaration.
+ * Consumed by iv_get_auth() and iv_(easy_)?fetch_episode(), the auth struct
+ * provides a session token for fetching the video from the iView server, plus
+ * some other data. As the internals shouldn't be of concern to libiview
+ * consumers it is a partial declaration.
  */
 struct iv_auth;
 
+/* struct iv_progress
+ *
+ * Consumed by implementations of iv_download_progess_cb, struct iv_progress
+ * outlines the current state of the download including total bytes downloaded,
+ * duration of the episode in MS, the percentage of the duration downloaded
+ * (i.e. the current position of 'playback') and whether or not the
+ * duration/percentage is valid.
+ *
+ * The valid field is required as the duration is not known until at least one
+ * read of the data stream has been performed. Prior to obtaining the actual
+ * duration, the duration is temporarily set to two hours which may produce
+ * incorrect percentage calculations, hence the valid field.
+ *
+ * Once the download is complete the done field is set to 1.
+ */
 struct iv_progress {
     size_t count; // downloaded byte count
     double duration; // duration in ms
@@ -97,6 +112,12 @@ struct iv_progress {
     int done; // 1 if the download the download is complete
 };
 
+/* iv_download_progress_cb
+ *
+ * A callback prototype for reporting download progress back to the
+ * application. Implementations of this prototype can be passed to the
+ * iv_(easy_)?fetch_episode_async() functions.
+ */
 typedef int iv_download_progress_cb(const struct iv_progress *progress,
         void *user_data);
 
@@ -139,7 +160,7 @@ ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr);
  * @len: The length of the XML configuration buffer
  * @config: A container for the configuration struct.
  *
- * @return: 0 on success, less than zero on failure.
+ * @return: IV_OK on success, negated error code on failure.
  */
 int iv_get_config(const char *buf, size_t len, struct iv_config **config);
 
@@ -258,7 +279,7 @@ ssize_t iv_get_series(struct iv_config *config,
  * Parses an item list XML buffer into constituant struct iv_episode instances.
  * Freeing the struct iv_episode array is the responsibility of the caller.
  * Individual elements of the resulting list can be passed to
- * iv_generate_video_uri in preparation for downloading the episode.
+ * iv_(easy_)?fetch_episode() for downloading.
  *
  * @buf: The buffer to parse
  * @len: The length of the buffer
@@ -323,8 +344,8 @@ void iv_destroy_series(struct iv_episode *items, int items_len);
  * @config: The configuration context as provided by iv_get_config()
  * @auth: A container for the populated struct iv_auth instance.
  *
- * @return: 0 on success, less than zero on failure. If the call fails auth
- * is invalid.
+ * @return: IV_OK on success, negated error code on failure. If the call fails
+ * auth is invalid.
  */
 int iv_get_auth(const struct iv_config *config, struct iv_auth **auth);
 
@@ -346,37 +367,68 @@ void iv_destroy_auth(struct iv_auth *auth);
 
 /* iv_fetch_episode
  *
- * Downloads the episode represented by item to the file outpath.
+ * Downloads the episode represented by item, writing it to the provided file
+ * descriptor.
  *
  * @auth: The struct iv_auth instance returned by iv_get_auth()
  * @item: A element of the item list returned by iv_get_series(), the
  * item that wants
- * @outpath: The filename to write the downloaded data to.
+ * @fd: The file descriptor to write the downloaded data to.
  *
- * @return: 0 on success, less than zero on failure. Values less than
- * zero represent an error code (IV_E*)
+ * @return: IV_OK on success, negated error code on failure.
  */
 int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd);
 
+/* iv_fetch_episode_async
+ *
+ * Downloads the episode represented by item, writing it to the provided file
+ * descriptor.
+ *
+ * @auth: The struct iv_auth instance returned by iv_get_auth()
+ * @item: A element of the item list returned by iv_get_series(), the
+ * item that wants
+ * @fd: The file descriptor to write the downloaded data to.
+ * @progress_cb: The progress callback function to trigger throughout the
+ * download. Can be NULL if not required.
+ * @user_data: The user data to provide to progress_cb. Can be NULL if not
+ * required.
+ *
+ * @return: IV_OK on success, negated error code on failure.
+ */
 int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *item,
         const int fd, iv_download_progress_cb *progress_cb, void *user_data);
 
 /* iv_easy_fetch_episode
  *
- * Downloads an episode without the bother of fetching an authentication
+ * Downloads an episode without the bother of populating an authentication
  * struct.
  *
  * @config: The configuration context as provided by iv_get_config().
- * @item: The item to download.
- * @outpath: The filename to write to.
+ * @item: The episode to download.
+ * @fd: The file descriptor to write the downloaded data to.
  *
- * @return: 0 on success, less than zero on failure. Values less than
- * zero represent an error code (IV_E*)
+ * @return: IV_OK on success, negated error code on failure.
  */
 int iv_easy_fetch_episode(const struct iv_config *config,
         const struct iv_episode *item, const int fd);
 
+/* iv_easy_fetch_episode_async
+ *
+ * Downloads an episode without the bother of populating an authentication
+ * struct. As data is downloaded, progress_cb() is called with the current
+ * download state and user data passed through.
+ *
+ * @config: The configuration context as provided by iv_get_config().
+ * @item: The episode to download.
+ * @fd: The file descriptor to write the downloaded data to.
+ * @progress_cb: The progress callback function to trigger throughout the
+ * download. Can be NULL if not required.
+ * @user_data: The user data to provide to progress_cb. Can be NULL if not
+ * required.
+ *
+ * @return: IV_OK on success, negated error code on failure.
+ */
 int iv_easy_fetch_episode_async(const struct iv_config *config,
         const struct iv_episode *item, const int fd,
         iv_download_progress_cb *progress_cb, void *user_data);
