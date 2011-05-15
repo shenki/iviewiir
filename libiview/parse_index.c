@@ -2,14 +2,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <json/json.h>
-#include <libxml/xmlstring.h>
 #include "iview.h"
 #include "internal.h"
 
 static int cmpseries(const void *l, const void *r) {
-    const xmlChar *lt = ((struct iv_series *)l)->title;
-    const xmlChar *rt = ((struct iv_series *)r)->title;
-    return xmlStrcmp(lt, rt);
+    const char *lt = ((struct iv_series *)l)->title;
+    const char *rt = ((struct iv_series *)r)->title;
+    return strcmp(lt, rt);
 }
 
 /* Sample JSON structure:
@@ -45,9 +44,9 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
         (*index_ptr)[i].id = json_object_get_int(json_id);
         json_series = json_object_object_get(json_element, JSON_SERIES_NAME);
         const char *title = json_object_to_json_string(json_series);
-        char *trimmed_title;
-        strtrim(&trimmed_title, title, "\"");
-        (*index_ptr)[i].title = BAD_CAST(trimmed_title);
+        if(-1 == strtrim((char **)&(*index_ptr)[i].title, title, "\"")) {
+            (*index_ptr)[i].title = NULL;
+        }
     }
     array_list_free(json_object_get_array(json_index));
     qsort(*index_ptr, index_len, sizeof(struct iv_series), cmpseries);

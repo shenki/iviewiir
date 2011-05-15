@@ -17,7 +17,6 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include <libxml/xmlstring.h>
 #include <unistd.h>
 
 #ifdef __cplusplus
@@ -57,7 +56,7 @@ struct iv_config;
  */
 struct iv_series {
     unsigned int id;
-    const xmlChar *title;
+    const char *title;
 };
 
 /* struct iv_episode
