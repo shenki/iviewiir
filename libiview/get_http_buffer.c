@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "iview.h"
+#include "internal.h"
 #ifdef GEKKO
 #include "wiicode/http.h"
 #endif
