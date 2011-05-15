@@ -108,4 +108,26 @@ ssize_t strntrim(char **out, const char *str, size_t str_len, const char *chars)
 #define INLINE
 #endif
 
+/* More info on the JSON structure is at
+ * http://iviewdownloaders.wikia.com/wiki/ABC_iView_Downloaders_Wiki
+ */
+#define JSON_SERIES_ID "a"
+#define JSON_SERIES_NAME "b"
+#define JSON_SERIES_IMAGE "d"
+#define JSON_SERIES_KEYWORDS "e"
+#define JSON_SERIES_EPISODES "f"
+#define JSON_EPISODE_ID "a"
+#define JSON_EPISODE_NAME "b"
+#define JSON_EPISODE_DESCRIPTION "d"
+#define JSON_EPISODE_CATEGORY "e"
+#define JSON_EPISODE_TRANSMISSION "f"
+#define JSON_EPISODE_EXPIRY "g"
+#define JSON_EPISODE_SIZE_MB "i"
+#define JSON_EPISODE_LENGTH_SEC "j"
+#define JSON_EPISODE_TAG "k"
+#define JSON_EPISODE_URL "l"
+#define JSON_EPISODE_CLASSIFICATION "m"
+#define JSON_EPISODE_FILENAME "n"
+#define JSON_EPISODE_IMAGE "s"
+
 #endif /* IV_INTERNAL_H */

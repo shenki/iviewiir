@@ -41,9 +41,9 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
     int i;
     for(i=0; i<index_len; i++) {
         json_element = json_object_array_get_idx(json_index, i);
-        json_object *json_id = json_object_object_get(json_element, "a");
+        json_object *json_id = json_object_object_get(json_element, JSON_SERIES_ID);
         (*index_ptr)[i].id = json_object_get_int(json_id);
-        json_series = json_object_object_get(json_element, "b");
+        json_series = json_object_object_get(json_element, JSON_SERIES_NAME);
         const char *title = json_object_to_json_string(json_series);
         char *trimmed_title;
         strtrim(&trimmed_title, title, "\"");
