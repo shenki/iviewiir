@@ -116,6 +116,6 @@ done:
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
     free(buf);
-    iv_destroy_video_uri(rtmp_uri);
+    free(rtmp_uri);
     return return_val;
 }
