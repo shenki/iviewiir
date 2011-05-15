@@ -9,7 +9,7 @@ ssize_t iv_get_series(struct iv_config *config IV_UNUSED,
         struct iv_series *series, char **buf_ptr) {
     char *series_uri;
     // FIXME: GNU magic sprintf, not portable.
-    if(-1 == asprintf(&series_uri, "%s?id=%d", IV_SERIES_URI, series->id)) {
+    if(-1 == asprintf(&series_uri, "%s?series=%d", IV_SERIES_URI, series->id)) {
         *buf_ptr = NULL;
         return -IV_ENOMEM;
     }

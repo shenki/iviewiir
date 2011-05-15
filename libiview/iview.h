@@ -70,14 +70,12 @@ struct iv_series {
  */
 struct iv_episode {
     unsigned int id;
-    xmlChar *title;
-    xmlChar *url;
-    xmlChar *description;
-    xmlChar *thumbnail;
-    xmlChar *date;
-    xmlChar *rating;
-    xmlChar *link; /* link to play on iView site */
-    xmlChar *home; /* Program website */
+    const char *title;
+    const char *url;
+    const char *description;
+    const char *thumbnail;
+    const char *date;
+    const char *rating;
 };
 
 /* struct iv_auth
@@ -258,9 +256,9 @@ void iv_destroy_index(struct iv_series *index, int len);
 
 /* iv_get_series
  *
- * Fetches an XML buffer containing information on episodes for the given
+ * Fetches a JSON buffer containing information on episodes for the given
  * series (typically gathered through iv_get_index()/iv_parse_index()). Freeing
- * the items XML buffer is the responsibility of the caller.
+ * the item JSON buffer is the responsibility of the caller.
  *
  * @config: The configuration context returned by iv_get_config()
  * @series: A pointer to a particular struct iv_series instance.
@@ -276,13 +274,12 @@ ssize_t iv_get_series(struct iv_config *config,
 
 /* iv_parse_series
  *
- * Parses an item list XML buffer into constituant struct iv_episode instances.
+ * Parses an item list JSON buffer into constituant struct iv_episode instances.
  * Freeing the struct iv_episode array is the responsibility of the caller.
  * Individual elements of the resulting list can be passed to
  * iv_(easy_)?fetch_episode() for downloading.
  *
  * @buf: The buffer to parse
- * @len: The length of the buffer
  * @items: A container for the items list
  *
  * @return: Greater than or equal to zero on success, less than zero on
@@ -290,7 +287,7 @@ ssize_t iv_get_series(struct iv_config *config,
  * length of the items list. If it is less than zero the value is the negated
  * error code.
  */
-int iv_parse_series(char *buf, size_t len, struct iv_episode **items);
+int iv_parse_series(char *buf, struct iv_episode **items);
 
 /* iv_easy_series
  *

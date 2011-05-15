@@ -33,7 +33,7 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     // Trim the extension for RTMP URI generation
     playpath[strlen(playpath)-4] = '\0';
     const char *prefix =
-        !xmlStrcmp(BAD_CAST("flv"), &item->url[xmlStrlen(item->url)-3]) ?
+        !strcmp("flv", &item->url[strlen(item->url)-3]) ?
             "" : "mp4:";
     const int rtmp_uri_len = asprintf(&rtmp_uri,
             "%s?auth=%s playpath=%s%s swfUrl=%s swfVfy=1 swfAge=0",

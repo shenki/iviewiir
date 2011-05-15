@@ -4,17 +4,13 @@
 
 void iv_destroy_series(struct iv_episode *items, int items_len) {
     int i;
-    free(items[0].title);
-    free(items[0].description);
-    for(i=1; i<items_len; i++) {
-        free(items[i].title);
-        free(items[i].url);
-        free(items[i].description);
-        free(items[i].thumbnail);
-        free(items[i].date);
-        free(items[i].rating);
-        free(items[i].link);
-        free(items[i].home);
+    for(i=0; i<items_len; i++) {
+        if(NULL != items[i].title) { free((char *)items[i].title); }
+        if(NULL != items[i].url) { free((char *)items[i].url); }
+        if(NULL != items[i].description) { free((char *)items[i].description); }
+        if(NULL != items[i].thumbnail) { free((char *)items[i].thumbnail); }
+        if(NULL != items[i].date) { free((char *)items[i].date); }
+        if(NULL != items[i].rating) { free((char *)items[i].rating); }
     }
     free(items);
 }
