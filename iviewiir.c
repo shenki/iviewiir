@@ -334,7 +334,7 @@ int main(int argc, char **argv) {
             if((int)9e6 < index[i].id) {
                 continue;
             }
-            printf("%d : %s\n", index[i].id, index[i].title);
+            printf("%d - %s\n", index[i].id, index[i].title);
         }
         return_val = 0;
         goto index_cleanup;
