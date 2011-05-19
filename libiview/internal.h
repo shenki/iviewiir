@@ -63,6 +63,58 @@ ssize_t strtrim(char **out, const char *str, const char *chars);
  */
 ssize_t strntrim(char **out, const char *str, size_t str_len, const char *chars);
 
+/* strnrpl
+ *
+ * Populates |dst| with |search| replaced by |replace| in |src|. Provides a
+ * null-terminated string in |dst| if the return value is greater than zero. It
+ * is the responsibility of the caller to free the memory held in |dst| if the
+ * call is successful.
+ *
+ * @dst: A container for the new string
+ * @src: The string to perform search/replace across
+ * @search: The substring to search for in src and replace in dst
+ * @replace: The string to replace search with in dst
+ *
+ * @return 0 if unsuccessful or the output string is 0 in length.
+ *
+ * Preconditions:
+ * - |src| is null-terminated
+ * - |search| is null-terminated
+ * - |replace| is null-terminated
+ *
+ * Postconditions:
+ * - |dst| is valid if return value is > 0
+ * - |dst| is null-terminated
+ */
+size_t strrpl(char **dst, const char *src, const char *search,
+        const char *replace);
+
+/* strnrpl
+ *
+ * Populates |dst| with |search| replaced by |replace| in |src|. Unlike strndup
+ * and such strnrpl will, if successful, always provide a null-terminated
+ * string in |dst|. Returns 0 if unsuccessful. It is the responsibility of the
+ * caller to free the memory held in |dst| if the call is successful.
+ *
+ * @dst: A container for the new string
+ * @src: The string to perform search/replace across
+ * @src_len: The length of the source string
+ * @search: The substring to search for in src and replace in dst
+ * @replace: The string to replace search with in dst
+ *
+ * @return 0 if unsuccessful or the output string is 0 in length.
+ *
+ * Preconditions:
+ * - |search| is null-terminated
+ * - |replace| is null-terminated
+ *
+ * Postconditions:
+ * - |dst| is valid if return value is > 0
+ * - |dst| is null-terminated
+ */
+size_t strnrpl(char **dst, const char *src, size_t src_len, const char *search,
+        const char *replace);
+
 #if defined(DEBUG)
 #define IV_DEBUG(format, ...) \
         fprintf(stderr, "DEBUG (%s:%d): " format, \
