@@ -72,6 +72,7 @@ int iv_parse_series(char *buf, struct iv_episode **items) {
     const int num_episodes = json_object_array_length(json_episodes);
     *items =
         (struct iv_episode *)calloc(num_episodes, sizeof(struct iv_episode));
+    char *trimmed, *sanitised;
     int i;
     for(i=0; i<num_episodes; i++) {
         // Extract the element
@@ -86,11 +87,14 @@ int iv_parse_series(char *buf, struct iv_episode **items) {
                     json_object_to_json_string(obj), "\"")) {
             (*items)[i].title = NULL;
         }
-        // Populate url
+        // Populate url, trimming stupid escapes
         obj = json_object_object_get(json_element, JSON_EPISODE_FILENAME);
-        if(-1 == strtrim((char **)&((*items)[i].url),
-                    json_object_to_json_string(obj), "\"")) {
+        if(-1 == strtrim(&trimmed, json_object_to_json_string(obj), "\"")
+                || !strrpl(&sanitised, trimmed, "\\/", "/")) {
             (*items)[i].url = NULL;
+        } else {
+            free(trimmed);
+            (*items)[i].url = sanitised;
         }
         // Populate description
         obj = json_object_object_get(json_element, JSON_EPISODE_DESCRIPTION);
@@ -98,11 +102,14 @@ int iv_parse_series(char *buf, struct iv_episode **items) {
                 json_object_to_json_string(obj), "\"")) {
             (*items)[i].description = NULL;
         }
-        // Populate thumbnail
+        // Populate thumbnail, trimming stupid escapes
         obj = json_object_object_get(json_element, JSON_EPISODE_IMAGE);
-        if(-1 == strtrim((char **)&((*items)[i].thumbnail),
-                    json_object_to_json_string(obj), "\"")) {
+        if(-1 == strtrim(&trimmed, json_object_to_json_string(obj), "\"")
+                || !strrpl(&sanitised, trimmed, "\\/", "/")) {
             (*items)[i].thumbnail = NULL;
+        } else {
+            free(trimmed);
+            (*items)[i].thumbnail = sanitised;
         }
         // Populate date
         obj = json_object_object_get(json_element, JSON_EPISODE_TRANSMISSION);
