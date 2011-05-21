@@ -62,6 +62,13 @@ SRC := get_http_buffer.c \
 
 OBJ := $(SRC:.c=.o)
 
+TEST_PROGRAM := ./test/test-executor
+TEST_SRC := test/CuTest.c \
+    	$(TEST_PROGRAM).c
+TEST_OBJ := $(TEST_SRC:.c=.o)
+
+check: CFLAGS += -DLIBIVIEW_TEST -ggdb
+
 all: libiview.so libiview.a
 
 libiview.so: $(OBJ)
@@ -87,5 +94,9 @@ install: libiview.a libiview.pc
 	cp iview.h $(INCDIR)
 	cp libiview.a $(LIBDIR)
 	cp libiview.pc $(LIBDIR)/pkgconfig
+
+check: $(TEST_OBJ) libiview.a
+	$(CC) $^ $> -o $(TEST_PROGRAM) $(LDLIBS)
+	$(TEST_PROGRAM)
 
 .PHONY: clean
