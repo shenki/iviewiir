@@ -333,17 +333,45 @@ void iv_destroy_series(struct iv_episode *items, int items_len);
 
 /* iv_get_auth
  *
- * Fetches and parses the iView authentication XML document, populating an
- * instance of struct iv_auth to be passed to iv_generate_video_uri(). It is
- * the responsibility of the caller to free the struct iv_auth instance.
+ * Fetches the iView authentication XML document to be passed to iv_parse_auth.
  *
  * @config: The configuration context as provided by iv_get_config()
+ * @buf: A container for the XML document
+ *
+ * @return: Greater than or equal to zero on success, less than zero on
+ * failure. If the value is greater than or equal to zero it represents the
+ * size of the buffer now pointed at by the dereferenced buf_ptr, otherwise
+ * it's value is the negated error code.
+ */
+ssize_t iv_get_auth(const struct iv_config *config, char **buf_ptr);
+
+/* iv_parse_auth
+ *
+ * Parses the iView authentication XML buffer returned by iv_get_auth,
+ * populating an instance of struct iv_auth to be passed to
+ * iv_(easy_)?fetch_episode(). It is the responsibility of the caller to free
+ * the struct iv_auth instance.
+ *
+ * @buf: The authentication XML data as retrieved by iv_get_auth()
+ * @len: The length of |buf|
  * @auth: A container for the populated struct iv_auth instance.
  *
  * @return: IV_OK on success, negated error code on failure. If the call fails
  * auth is invalid.
  */
-int iv_get_auth(const struct iv_config *config, struct iv_auth **auth);
+int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth);
+
+/* iv_easy_auth
+ *
+ * Get a populated instance of the authentication struct without the bother of
+ * fetching / parsing.
+ *
+ * @config: The configuration context as provided by iv_get_config()
+ * @auth: A container for the authentication struct
+ *
+ * @return: IV_OK on success, negated error code on failure.
+ */
+int iv_easy_auth(const struct iv_config *config, struct iv_auth **auth);
 
 /* iv_destroy_auth
  *

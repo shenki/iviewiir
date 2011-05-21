@@ -56,7 +56,9 @@ SRC := get_http_buffer.c \
 	easy_index.c \
 	easy_series.c \
 	easy_fetch_episode.c \
-	strrpl.c
+	strrpl.c \
+	parse_auth.c \
+	easy_auth.c
 
 OBJ := $(SRC:.c=.o)
 
