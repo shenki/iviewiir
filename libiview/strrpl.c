@@ -45,8 +45,8 @@ size_t strnrpl(char **dst, const char *src, size_t src_len,
     // If there aren't any we don't need to sanitise
     if(0 == i) { goto trivial_case1; }
     // Allocate space for the sanitised string
-    dst_len = src_len - (i * search_len) + (i * replace_len);
-    if(0 == dst_len) { goto trivial_case0; };
+    dst_len = src_len - (i * search_len) + (i * replace_len) + 1;
+    if(1 == dst_len) { goto trivial_case0; };
     *dst = (char *)calloc(1, dst_len);
     if(!*dst) { goto trivial_case0; }
     // Find each instance of search
@@ -67,7 +67,7 @@ size_t strnrpl(char **dst, const char *src, size_t src_len,
     if((long)src_len >= (substr_end - src)) {
         strcpy(substr_dst, substr_start);
     }
-    return dst_len;
+    return dst_len - 1; // == strlen(*dst)
 trivial_case0:
     *dst = NULL;
     return 0;
