@@ -27,7 +27,7 @@ extern "C"
 /* IV_CONFIG_URI
  *
  * The current location for iView's initial XML configuration file. It's
- * intended consumer is iv_get_config().
+ * intended consumer is iv_parse_config().
  */
 #define IV_CONFIG_URI "http://www.abc.net.au/iview/xml/config.xml?r=374"
 
@@ -144,7 +144,7 @@ ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr);
  */
 #define iv_destroy_http_buffer(buf) free(buf)
 
-/* iv_get_config
+/* iv_parse_config
  *
  * Taking in an XML buffer, provides and populates a pointer to an instance of
  * struct iv_config. Typically the provided buffer should be fetched using
@@ -159,7 +159,7 @@ ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr);
  *
  * @return: IV_OK on success, negated error code on failure.
  */
-int iv_get_config(const char *buf, size_t len, struct iv_config **config);
+int iv_parse_config(const char *buf, size_t len, struct iv_config **config);
 
 /* iv_easy_config
  *
@@ -173,7 +173,7 @@ int iv_easy_config(struct iv_config **config);
 
 /* iv_destroy_config
  *
- * For freeing the struct iv_config instance returned by iv_get_config()
+ * For freeing the struct iv_config instance returned by iv_parse_config()
  *
  * @config: The struct iv_config instance to free
  */
@@ -186,7 +186,7 @@ void iv_destroy_config(struct iv_config *config);
  *
  * It is the responsibility of the caller to free the populated XML buffer
  *
- * @config: The configuration context returned by iv_get_config()
+ * @config: The configuration context returned by iv_parse_config()
  * @buf_ptr: A container for the series list JSON data.
  *
  * @return: Greater than or equal to zero on success, less than zero on
@@ -215,7 +215,7 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr);
  *
  * Get a populated series index without the bother of fetching XML buffers.
  *
- * @config: The configuration context returned by iv_get_config()
+ * @config: The configuration context returned by iv_parse_config()
  * @index_ptr: A container for the index struct array
  *
  * @return: Greater than or equal to zero 0 on success, less than zero on
@@ -259,7 +259,7 @@ void iv_destroy_index(struct iv_series *index, int len);
  * series (typically gathered through iv_get_index()/iv_parse_index()). Freeing
  * the item JSON buffer is the responsibility of the caller.
  *
- * @config: The configuration context returned by iv_get_config()
+ * @config: The configuration context returned by iv_parse_config()
  * @series: A pointer to a particular struct iv_series instance.
  * @buf_ptr: A container for the series items XML data
  *
@@ -292,7 +292,7 @@ int iv_parse_series(char *buf, struct iv_episode **items);
  *
  * Get a populated items list without the bother of fetching XML buffers.
  *
- * @config: The configuration context returned by iv_get_config()
+ * @config: The configuration context returned by iv_parse_config()
  * @items_ptr: A container for the item struct array.
  *
  * @return: Greater than or equal to zero on success, less than zero on
@@ -335,7 +335,7 @@ void iv_destroy_series(struct iv_episode *items, int items_len);
  *
  * Fetches the iView authentication XML document to be passed to iv_parse_auth.
  *
- * @config: The configuration context as provided by iv_get_config()
+ * @config: The configuration context as provided by iv_parse_config()
  * @buf: A container for the XML document
  *
  * @return: Greater than or equal to zero on success, less than zero on
@@ -366,7 +366,7 @@ int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth);
  * Get a populated instance of the authentication struct without the bother of
  * fetching / parsing.
  *
- * @config: The configuration context as provided by iv_get_config()
+ * @config: The configuration context as provided by iv_parse_config()
  * @auth: A container for the authentication struct
  *
  * @return: IV_OK on success, negated error code on failure.
@@ -420,7 +420,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
  * Downloads an episode without the bother of populating an authentication
  * struct.
  *
- * @config: The configuration context as provided by iv_get_config().
+ * @config: The configuration context as provided by iv_parse_config().
  * @item: The episode to download.
  * @fd: The file descriptor to write the downloaded data to.
  *
@@ -435,7 +435,7 @@ int iv_easy_fetch_episode(const struct iv_config *config,
  * struct. As data is downloaded, progress_cb() is called with the current
  * download state and user data passed through.
  *
- * @config: The configuration context as provided by iv_get_config().
+ * @config: The configuration context as provided by iv_parse_config().
  * @item: The episode to download.
  * @fd: The file descriptor to write the downloaded data to.
  * @progress_cb: The progress callback function to trigger throughout the

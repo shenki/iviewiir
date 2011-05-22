@@ -7,7 +7,7 @@ int iv_easy_config(struct iv_config **config) {
     if(0 >= config_buf_len) {
         return -1;
     }
-    const int result = iv_get_config(config_buf, config_buf_len, config);
+    const int result = iv_parse_config(config_buf, config_buf_len, config);
     iv_destroy_http_buffer(config_buf);
     return result;
 }

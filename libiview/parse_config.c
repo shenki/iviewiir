@@ -119,7 +119,7 @@ static void end_element(void *_ctx, const xmlChar *name) {
     ctx->state = ps_end;
 }
 
-int iv_get_config(const char *buf, size_t len, struct iv_config **config) {
+int iv_parse_config(const char *buf, size_t len, struct iv_config **config) {
     *config = malloc(sizeof(struct iv_config));
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));

@@ -140,7 +140,7 @@ struct iv_config *iviewiir_configure() {
         }
     }
     debug("%s\n", config_buf);
-    if(IV_OK != iv_get_config(config_buf, config_buf_len, &config)) {
+    if(IV_OK != iv_parse_config(config_buf, config_buf_len, &config)) {
         return NULL;
     }
 config_cleanup:
