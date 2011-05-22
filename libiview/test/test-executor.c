@@ -6,10 +6,12 @@
 #endif
 
 CuSuite *strrpl_get_cusuite();
+CuSuite *strtrim_get_cusuite();
 
 int main() {
     CuString *output = CuStringNew();
     CuSuite *suite = CuSuiteNew();
+    CuSuiteAddSuite(suite, strtrim_get_cusuite());
     CuSuiteAddSuite(suite, strrpl_get_cusuite());
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
