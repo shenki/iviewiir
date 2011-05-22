@@ -38,7 +38,7 @@ strntrim(char **out, const char *str, size_t str_len, const char *chars) {
 
     const size_t out_len = end - start + 1;
     *out = strndup(&str[start], out_len);
-    if(!*out) { return -1; }
+    if(!*out) { return 0; }
     return out_len;
 }
 
