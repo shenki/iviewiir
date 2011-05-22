@@ -175,15 +175,13 @@ void list_all(struct iv_config *config, struct iv_series *index,
         if(0 == items_len) {
             continue;
         }
-        if(1 < items_len) {
-            printf("%s\n", index[i].title);
-            int j;
-            for(j=1; j<items_len; j++) {
-                printf("%d:%d - %s\n", index[i].id, items[j].id,
-                        items[j].title);
-            }
-            printf("\n");
+        printf("%s\n", index[i].title);
+        int j;
+        for(j=0; j<items_len; j++) {
+            printf("%d:%d - %s\n", index[i].id, items[j].id,
+                    items[j].title);
         }
+        printf("\n");
         iv_destroy_series(items, items_len);
     }
 }
