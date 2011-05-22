@@ -7,6 +7,16 @@
 #include "iview.h"
 #include "internal.h"
 
+char *extract_json_string(json_object *obj) {
+    char *trimmed, *sanitised;
+    if(!strtrim(&trimmed, json_object_to_json_string(obj), "\"")) {
+        return NULL;
+    }
+    strrpl(&sanitised, trimmed, "\\/", "/");
+    free(trimmed);
+    return sanitised;
+}
+
 /* Sample JSON structure
  * [{"a":"2986845",
      "b":"dirtgirlworld",
@@ -72,7 +82,6 @@ int iv_parse_series(char *buf, struct iv_episode **items) {
     const int num_episodes = json_object_array_length(json_episodes);
     *items =
         (struct iv_episode *)calloc(num_episodes, sizeof(struct iv_episode));
-    char *trimmed, *sanitised;
     int i;
     for(i=0; i<num_episodes; i++) {
         // Extract the element
@@ -82,47 +91,25 @@ int iv_parse_series(char *buf, struct iv_episode **items) {
         obj = json_object_object_get(json_element, JSON_EPISODE_ID);
         (*items)[i].id = json_object_get_int(obj);
         // Populate title
-        obj = json_object_object_get(json_element, JSON_EPISODE_NAME);
-        if(-1 == strtrim((char **)&((*items)[i].title),
-                    json_object_to_json_string(obj), "\"")) {
-            (*items)[i].title = NULL;
-        }
+        (*items)[i].title = extract_json_string(
+                json_object_object_get(json_element, JSON_EPISODE_NAME));
         // Populate url, trimming stupid escapes
-        obj = json_object_object_get(json_element, JSON_EPISODE_FILENAME);
-        if(-1 == strtrim(&trimmed, json_object_to_json_string(obj), "\"")
-                || !strrpl(&sanitised, trimmed, "\\/", "/")) {
-            (*items)[i].url = NULL;
-        } else {
-            free(trimmed);
-            (*items)[i].url = sanitised;
-        }
+        (*items)[i].url = extract_json_string(
+                json_object_object_get(json_element, JSON_EPISODE_FILENAME));
         // Populate description
-        obj = json_object_object_get(json_element, JSON_EPISODE_DESCRIPTION);
-        if(-1 == strtrim((char **)&((*items)[i].description),
-                json_object_to_json_string(obj), "\"")) {
-            (*items)[i].description = NULL;
-        }
+        (*items)[i].description = extract_json_string(
+                json_object_object_get(json_element, JSON_EPISODE_DESCRIPTION));
         // Populate thumbnail, trimming stupid escapes
-        obj = json_object_object_get(json_element, JSON_EPISODE_IMAGE);
-        if(-1 == strtrim(&trimmed, json_object_to_json_string(obj), "\"")
-                || !strrpl(&sanitised, trimmed, "\\/", "/")) {
-            (*items)[i].thumbnail = NULL;
-        } else {
-            free(trimmed);
-            (*items)[i].thumbnail = sanitised;
-        }
+        (*items)[i].thumbnail = extract_json_string(
+                json_object_object_get(json_element, JSON_EPISODE_IMAGE));
         // Populate date
-        obj = json_object_object_get(json_element, JSON_EPISODE_TRANSMISSION);
-        if(-1 == strtrim((char **)&((*items)[i].date),
-                    json_object_to_json_string(obj), "\"")) {
-            (*items)[i].date = NULL;
-        }
+        (*items)[i].date =
+            extract_json_string(json_object_object_get(json_element,
+                        JSON_EPISODE_TRANSMISSION));
         // Populate rating
-        obj = json_object_object_get(json_element, JSON_EPISODE_CLASSIFICATION);
-        if(-1 == strtrim((char **)&((*items)[i].rating),
-                    json_object_to_json_string(obj), "\"")) {
-            (*items)[i].rating = NULL;
-        }
+        (*items)[i].rating =
+                extract_json_string(json_object_object_get(json_element,
+                        JSON_EPISODE_CLASSIFICATION));
     }
     array_list_free(json_object_get_array(json_series));
     free(json_series);
