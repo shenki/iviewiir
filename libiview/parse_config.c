@@ -8,29 +8,6 @@
 #define XML_CONFIG_STATE 1
 #define XML_PARAM_STATE 2
 
-/* Sample XML config
-<?xml version="1.0" encoding="utf-8"?>
-    <config>        
-            <param name="api"                                       value="http://tviview.abc.net.au/iview/api2/?"/>
-            <param name="auth"                                      value="http://tviview.abc.net.au/iview/auth/?v2"/>
-            <param name="tray"                                      value="xml/tray.xml"/>
-            <param name="categories"                        value="xml/categories.xml"/>
-            <param name="classifications"           value="xml/classifications.xml" />
-            <param name="captions"                          value="http://www.abc.net.au/iview/captions/"/>
-            <param name="captions_offset"           value="0"/>
-            <param name="captions_live_offset"      value="-2"/>
-
-            <param name="live_streaming"            value="true" />
-            <param name="server_streaming"          value="rtmp://cp53909.edgefcs.net/ondemand" />
-            <param name="server_fallback"           value="rtmp://cp44823.edgefcs.net/ondemand" />          
-            <param name="highlights"                        value="http://www.abc.net.au/iview/api/highlights.htm" />       
-            <param name="home"                                      value="http://www.abc.net.au/iview/xml/home.xml" />     
-            <param name="geo"                                       value="http://www.abc.net.au/tv/geo/iview/geotest.xml" />       
-            <param name="time"                                      value="http://www.abc.net.au/iview/api/time.htm" />     
-            <param name="feedback_url"                      value="http://www2b.abc.net.au/tmb/Client/Board.aspx?b=98"/>
-    </config>
-*/
-
 enum parse_state { ps_start, ps_config, ps_param, ps_end };
 
 struct config_parse_ctx {
@@ -61,7 +38,7 @@ static void param_handler(struct config_parse_ctx *ctx, const xmlChar **attrs) {
         c->captions_offset = atoi((char *)v);
         free(v);
     } else if(!xmlStrcmp(BAD_CAST("live_streaming"), n)) {
-        c->live_streaming = (short)atoi((char *)v);
+        c->live_streaming = !xmlStrcmp(BAD_CAST("true"), v);
         free(v);
     } else if(!xmlStrcmp(BAD_CAST("server_streaming"), n)) {
         c->server_streaming = v;
@@ -140,3 +117,99 @@ int iv_parse_config(const char *buf, size_t len, struct iv_config **config) {
     free(handler);
     return -(ctx.return_value);
 }
+
+#ifdef LIBIVIEW_TEST
+#include "test/CuTest.h"
+
+static const char *config_buf =
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>\
+    <config>        \
+            <param name=\"api\" value=\"http://tviview.abc.net.au/iview/api2/?\"/>\
+            <param name=\"auth\" value=\"http://tviview.abc.net.au/iview/auth/?v2\"/>\
+            <param name=\"tray\" value=\"xml/tray.xml\"/>\
+            <param name=\"categories\" value=\"xml/categories.xml\"/>\
+            <param name=\"classifications\" value=\"xml/classifications.xml\" />\
+            <param name=\"captions\" value=\"http://www.abc.net.au/iview/captions/\"/>\
+            <param name=\"captions_offset\" value=\"0\"/>\
+            <param name=\"captions_live_offset\" value=\"-2\"/>\
+\
+            <param name=\"live_streaming\" value=\"true\" />\
+            <param name=\"server_streaming\" value=\"rtmp://cp53909.edgefcs.net/ondemand\" />\
+            <param name=\"server_fallback\" value=\"rtmp://cp44823.edgefcs.net/ondemand\" />\
+            <param name=\"highlights\" value=\"http://www.abc.net.au/iview/api/highlights.htm\" />\
+            <param name=\"home\" value=\"http://www.abc.net.au/iview/xml/home.xml\" />\
+            <param name=\"geo\" value=\"http://www.abc.net.au/tv/geo/iview/geotest.xml\" />\
+            <param name=\"time\" value=\"http://www.abc.net.au/iview/api/time.htm\" />\
+            <param name=\"feedback_url\" value=\"http://www2b.abc.net.au/tmb/Client/Board.aspx?b=98\"/>\
+    </config>";
+
+void test_iv_parse_config(CuTest *tc) {
+    struct iv_config *config;
+    int cmp;
+    const int parse_result =
+        iv_parse_config(config_buf, strlen(config_buf), &config);
+    CuAssertIntEquals(tc, 0, parse_result);
+    CuAssertPtrNotNull(tc, config);
+    cmp = xmlStrcmp(
+            BAD_CAST("http://tviview.abc.net.au/iview/api2/?"), config->api);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(
+            BAD_CAST("http://tviview.abc.net.au/iview/auth/?v2"), config->auth);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("xml/tray.xml"), config->tray);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("xml/categories.xml"), config->categories);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(
+            BAD_CAST("xml/classifications.xml"), config->classifications);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("http://www.abc.net.au/iview/captions/"),
+            config->captions);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    CuAssertIntEquals(tc, 0, config->captions_offset);
+    CuAssertIntEquals(tc, 1, config->live_streaming);
+
+    cmp = xmlStrcmp(BAD_CAST("rtmp://cp53909.edgefcs.net/ondemand"),
+            config->server_streaming);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("rtmp://cp44823.edgefcs.net/ondemand"),
+            config->server_fallback);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("http://www.abc.net.au/iview/api/highlights.htm"),
+            config->highlights);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("http://www.abc.net.au/iview/xml/home.xml"),
+                config->home);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("http://www.abc.net.au/tv/geo/iview/geotest.xml"),
+            config->geo);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(BAD_CAST("http://www.abc.net.au/iview/api/time.htm"),
+            config->time);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    cmp = xmlStrcmp(
+            BAD_CAST("http://www2b.abc.net.au/tmb/Client/Board.aspx?b=98"),
+            config->feedback_url);
+    CuAssertIntEquals(tc, 0, cmp);
+
+    iv_destroy_config(config);
+}
+
+CuSuite *iv_parse_config_get_cusuite() {
+    CuSuite *suite = CuSuiteNew();
+    SUITE_ADD_TEST(suite, test_iv_parse_config);
+    return suite;
+}
+#endif /* LIBIVIEW_TEST */
