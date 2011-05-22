@@ -1,0 +1,17 @@
+Before committing your should be able to answer yes to the following questions:
+
+1. Does it compile with Clang and GCC?
+        (clean and rebuild iviewiir)
+
+2. Does libiview cross-compile to powerpc?
+
+3. Does libiview pass all tests?
+        (cd libiview && make clean && make check)
+
+4. Does it introduce any new errors according to scan-build?
+        (scan-build make && cd libiview && scan-build make check)
+
+5. Does iviewiir execute correctly for all flags and parameter types?
+
+6. Is valgrind happy with your efforts (i.e. you haven't introduced new leaks)?
+        (valgrind --tool=memcheck -- ./iviewiir -a)
