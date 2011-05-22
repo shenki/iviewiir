@@ -27,7 +27,7 @@ size_t strrpl(char **dst, const char *src, const char *search,
  * - |dst| is null-terminated
  */
 size_t strnrpl(char **dst, const char *src, size_t src_len,
-        const char *search, const char *replace) {
+        const char *search, const char *_replace) {
     int i = 0;
     const char *substr_start = src;
     const char *substr_end;
@@ -38,7 +38,8 @@ size_t strnrpl(char **dst, const char *src, size_t src_len,
     if(!substr_start) { goto trivial_case0; }
     if(!search) { goto trivial_case1; }
     const size_t search_len = strlen(search);
-    const size_t replace_len = NULL == replace ? 0 : strlen(replace);
+    const char *replace = (NULL == _replace) ? "" : _replace;
+    const size_t replace_len = strlen(replace);
     // Determine the number of instances of search
     for(; (substr_start = strstr(substr_start, search)); i++, substr_start++);
     // If there aren't any we don't need to sanitise

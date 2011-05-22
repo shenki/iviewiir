@@ -45,7 +45,7 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     }
     free(playpath);
     *uri = rtmp_uri;
-    return rtmp_uri_len;
+    return return_val;
 }
 
 int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
