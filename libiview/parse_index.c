@@ -11,23 +11,6 @@ static int cmpseries(const void *l, const void *r) {
     return strcmp(lt, rt);
 }
 
-/* Sample JSON structure:
-[{
-    "a":"3094182",
-    "b":"Scrapheap Challenge Series 8",
-    "e":"scrapheap challenge lifestyle abc2 reality recent last-chance",
-    "f":[{"a":"694500","f":"2010-12-28 19:30:00","g":"2011-01-11 19:30:00"},
-        {"a":"694499","f":"2010-12-27 19:30:00","g":"2011-01-10 19:30:00"},
-        {"a":"691271","f":"2010-12-23 19:30:00","g":"2011-01-06 19:30:00"},
-        {"a":"691263","f":"2010-12-22 19:30:00","g":"2011-01-05 19:30:00"},
-        {"a":"691261","f":"2010-12-21 19:30:00","g":"2011-01-04 19:30:00"},
-        {"a":"691257","f":"2010-12-20 19:30:00","g":"2011-01-03 19:30:00"},
-        {"a":"689994","f":"2010-12-17 19:30:00","g":"2010-12-31 19:30:00"},
-        {"a":"689987","f":"2010-12-16 19:30:00","g":"2010-12-30 19:30:00"},
-        {"a":"689983","f":"2010-12-15 19:30:00","g":"2010-12-29 19:30:00"}]
-}]
-*/
-
 int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
     json_object *json_index, *json_element, *json_series;
     json_index = json_tokener_parse(buf);
@@ -53,3 +36,25 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
     free(json_index);
     return index_len;
 }
+
+#ifdef LIBIVIEW_TEST
+#include "test/CuTest.h"
+
+static const char *index_buf =
+"[{\"a\":\"3094182\",\"b\":\"Scrapheap Challenge Series 8\",\"e\":\"scrapheap challenge lifestyle abc2 reality recent last-chance\",\"f\":[{\"a\":\"694500\",\"f\":\"2010-12-28 19:30:00\",\"g\":\"2011-01-11 19:30:00\"},{\"a\":\"694499\",\"f\":\"2010-12-27 19:30:00\",\"g\":\"2011-01-10 19:30:00\"},{\"a\":\"691271\",\"f\":\"2010-12-23 19:30:00\",\"g\":\"2011-01-06 19:30:00\"}]}]";
+
+void test_iv_parse_index(CuTest *tc) {
+    struct iv_series *series;
+    const int index_len = iv_parse_index(index_buf, &series);
+    CuAssertIntEquals(tc, 1, index_len);
+    CuAssertIntEquals(tc, 3094182, series[0].id);
+    CuAssertStrEquals(tc, "Scrapheap Challenge Series 8", series[0].title);
+    iv_destroy_index(series, index_len);
+}
+
+CuSuite *iv_parse_index_get_cusuite() {
+    CuSuite *suite = CuSuiteNew();
+    SUITE_ADD_TEST(suite, test_iv_parse_index);
+    return suite;
+}
+#endif /* LIBIVIEW_TEST */

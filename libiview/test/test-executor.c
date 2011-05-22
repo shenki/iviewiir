@@ -8,6 +8,7 @@
 CuSuite *strrpl_get_cusuite();
 CuSuite *strtrim_get_cusuite();
 CuSuite *iv_parse_config_get_cusuite();
+CuSuite *iv_parse_index_get_cusuite();
 
 int main() {
     CuString *output = CuStringNew();
@@ -15,6 +16,7 @@ int main() {
     CuSuiteAddSuite(suite, strtrim_get_cusuite());
     CuSuiteAddSuite(suite, strrpl_get_cusuite());
     CuSuiteAddSuite(suite, iv_parse_config_get_cusuite());
+    CuSuiteAddSuite(suite, iv_parse_index_get_cusuite());
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);
