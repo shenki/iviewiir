@@ -4,23 +4,6 @@
 #include "iview.h"
 #include "internal.h"
 
-/* Sample auth XML data:
-    <?xml version="1.0" encoding="utf-8"?>
-    <iview xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.abc.net.au/iView/Services/iViewHandshaker">
-      <ip>121.45.113.44</ip>
-      <isp>Internode</isp>
-      <desc>Internet service provider</desc>
-      <host>Hostworks</host>
-      <server>rtmp://203.18.195.10/ondemand</server>
-
-      <bwtest>rtmp://203.18.195.10/live</bwtest>
-      <token>83CCCD795CD079650849</token>
-      <text><![CDATA[Unmetering is available for <a href="http://www.internode.on.net/" target="_blank">Internode ADSL</a> customers. Check <a href="http://www.internode.on.net/unmetered/" target="_blank">this page</a> for details on whether iview content is metered under your plan.]]></text>
-      <free>yes</free>  
-    </iview>
-    <!-- 0.001417875289917 -->
-*/
-
 enum parse_state { st_start, st_iview, st_token, st_server, st_free, st_end };
 
 struct auth_parse_ctx {
@@ -119,5 +102,48 @@ int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth) {
         IV_DEBUG("Failure in parsing xml\n");
         return -IV_ESAXPARSE;
     }
+    free(handler);
     return -(ctx.return_value);
 }
+
+#ifdef LIBIVIEW_TEST
+#include "test/CuTest.h"
+
+static const char *auth_buf =
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>\
+<iview xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.abc.net.au/iView/Services/iViewHandshaker\">\
+  <ip>121.45.113.44</ip>\
+  <isp>Internode</isp>\
+  <desc>Internet service provider</desc>\
+  <host>Hostworks</host>\
+  <server>rtmp://203.18.195.10/ondemand</server>\
+\
+  <bwtest>rtmp://203.18.195.10/live</bwtest>\
+  <token>83CCCD795CD079650849</token>\
+  <text><![CDATA[Unmetering is available for <a href=\"http://www.internode.on.net/\" target=\"_blank\">Internode ADSL</a> customers. Check <a href=\"http://www.internode.on.net/unmetered/\" target=\"_blank\">this page</a> for details on whether iview content is metered under your plan.]]></text>\
+  <free>yes</free>  \
+</iview>\
+<!-- 0.001417875289917 -->";
+
+void test_iv_parse_auth(CuTest *tc) {
+    int cmp;
+    struct iv_auth *auth;
+    const int result = iv_parse_auth(auth_buf, strlen(auth_buf), &auth);
+    CuAssertTrue(tc, IV_OK == result);
+    CuAssertPtrNotNull(tc, auth);
+    CuAssertPtrNotNull(tc, auth->server);
+    cmp = xmlStrcmp(BAD_CAST("rtmp://203.18.195.10/ondemand"), auth->server);
+    CuAssertIntEquals(tc, 0, cmp);
+    CuAssertPtrNotNull(tc, auth->token);
+    cmp = xmlStrcmp(BAD_CAST("83CCCD795CD079650849"), auth->token);
+    CuAssertIntEquals(tc, 0, cmp);
+    CuAssertIntEquals(tc, 1, auth->free);
+    iv_destroy_auth(auth);
+}
+
+CuSuite *iv_parse_auth_get_cusuite() {
+    CuSuite *suite = CuSuiteNew();
+    SUITE_ADD_TEST(suite, test_iv_parse_auth);
+    return suite;
+}
+#endif /* LIBIVIEW_TEST */
