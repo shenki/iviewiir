@@ -56,6 +56,7 @@ static void param_handler(struct config_parse_ctx *ctx, const xmlChar **attrs) {
         c->feedback_url = v;
     } else {
         IV_DEBUG("unhandled parameter: %s\n", n);
+        free(v);
     }
 }
 
