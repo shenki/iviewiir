@@ -14,4 +14,4 @@ Before committing your should be able to answer yes to the following questions:
 5. Does iviewiir execute correctly for all flags and parameter types?
 
 6. Is valgrind happy with your efforts (i.e. you haven't introduced new leaks)?
-        (valgrind --tool=memcheck -- ./iviewiir -a)
+        (valgrind --tool=memcheck --leak-check=full -- ./iviewiir -a)

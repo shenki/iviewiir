@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "CuTest.h"
 
 #ifndef LIBIVIEW_TEST
@@ -11,17 +12,31 @@ CuSuite *iv_parse_config_get_cusuite();
 CuSuite *iv_parse_index_get_cusuite();
 CuSuite *iv_parse_series_get_cusuite();
 
+#define SUITE_COUNT(s) (sizeof(s)/sizeof(CuSuite *))
+
 int main() {
+    CuSuite *suites[] = {
+        strtrim_get_cusuite(),
+        strrpl_get_cusuite(),
+        iv_parse_config_get_cusuite(),
+        iv_parse_index_get_cusuite(),
+        iv_parse_series_get_cusuite(),
+    };
     CuString *output = CuStringNew();
     CuSuite *suite = CuSuiteNew();
-    CuSuiteAddSuite(suite, strtrim_get_cusuite());
-    CuSuiteAddSuite(suite, strrpl_get_cusuite());
-    CuSuiteAddSuite(suite, iv_parse_config_get_cusuite());
-    CuSuiteAddSuite(suite, iv_parse_index_get_cusuite());
-    CuSuiteAddSuite(suite, iv_parse_series_get_cusuite());
+    unsigned int i;
+    for(i=0; i<SUITE_COUNT(suites); i++) {
+        if(suites[i]) { CuSuiteAddSuite(suite, suites[i]); }
+        /* Hack for CuTest odditiy - CuSuiteAddSuite() implementation copies
+         * tests attached to suites[i] into suite and doesn't internally free
+         * suites[i]. Documentation doesn't mention anything about this. */
+        free(suites[i]);
+    }
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);
     printf("%s\n", output->buffer);
+    CuSuiteDelete(suite);
+    CuStringDelete(output);
     return 0;
 }
