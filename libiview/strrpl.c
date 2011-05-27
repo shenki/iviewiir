@@ -64,7 +64,7 @@ size_t strnrpl(char **dst, const char *src, size_t src_len,
         // Jump over search string
         substr_start = substr_end + search_len;
     }
-    if((long)src_len >= (substr_end - src)) {
+    if((long)src_len > (substr_start - src)) {
         strcpy(substr_dst, substr_start);
     }
     return dst_len - 1; // == strlen(*dst)
