@@ -21,7 +21,7 @@ static void param_handler(struct config_parse_ctx *ctx, const xmlChar **attrs) {
     xmlChar *v = xmlStrdup(IV_XML_ATTR_VALUE(attrs));
     struct iv_config *c = ctx->config;
     if(NULL == v) {
-        ctx->return_value = IV_ENOMEM;
+        ctx->return_value = -(errno);
     } else if(!xmlStrcmp(BAD_CAST("api"), n)) {
         c->api = v;
     } else if(!xmlStrcmp(BAD_CAST("auth"), n)) {

@@ -17,9 +17,7 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
     const int index_len = json_object_array_length(json_index);
     *index_ptr =
         (struct iv_series *)malloc(index_len * sizeof(struct iv_series));
-    if(!*index_ptr) {
-        return -IV_ENOMEM;
-    }
+    if(!*index_ptr) { return -(errno); }
     int i;
     for(i=0; i<index_len; i++) {
         json_element = json_object_array_get_idx(json_index, i);

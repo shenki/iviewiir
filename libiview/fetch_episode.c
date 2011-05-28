@@ -3,6 +3,7 @@
 #undef _GNU_SOURCE
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <librtmp/rtmp.h>
 #include "iview.h"
 #include "internal.h"
@@ -28,7 +29,7 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     const int playpath_len = asprintf(&playpath, "%s%s",
             (char *)(auth->free ? BAD_CAST("") : auth->prefix), item->url);
     if(-1 == playpath_len) {
-        return -IV_ENOMEM;
+        return -(errno);
     }
     // Trim the extension for RTMP URI generation
     playpath[strlen(playpath)-4] = '\0';
@@ -41,10 +42,12 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     IV_DEBUG("Video URI: %s\n", rtmp_uri);
     return_val = rtmp_uri_len;
     if(-1 == rtmp_uri_len) {
-        return_val = -IV_ENOMEM;
+        return_val = -(errno);
+        *uri = NULL;
+    } else {
+        *uri = rtmp_uri;
     }
     free(playpath);
-    *uri = rtmp_uri;
     return return_val;
 }
 
@@ -58,10 +61,8 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
-    if(!buf) {
-        return -IV_ENOMEM;
-    }
-    char *rtmp_uri;
+    if(!buf) { return -(errno); }
+    char *rtmp_uri = NULL;
     ssize_t rtmp_uri_len;
     if(0 >= (rtmp_uri_len = generate_video_uri(auth, item, &rtmp_uri))) {
         return rtmp_uri_len;
@@ -98,7 +99,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
         }
         wrote = write(fd, buf, read);
         if(wrote != read) {
-            return_val = -IV_ENOMEM;
+            return_val = -(errno);
             goto done;
         }
         if(NULL != progress_cb) {

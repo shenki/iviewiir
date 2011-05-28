@@ -59,15 +59,11 @@ static void content_handler(void *_ctx, const xmlChar *data, int len) {
     switch(ctx->state) {
         case st_token:
             ctx->auth->token = xmlStrndup(data, len);
-            if(!ctx->auth->token) {
-                ctx->return_value = IV_ENOMEM;
-            }
+            if(!ctx->auth->token) { ctx->return_value = -(errno); }
             break;
         case st_server:
             ctx->auth->server = xmlStrndup(data, len);
-            if(!ctx->auth->server) {
-                ctx->return_value = IV_ENOMEM;
-            }
+            if(!ctx->auth->server) { ctx->return_value = -(errno); }
             break;
         case st_free:
 #define FREE_VALUE "yes"
@@ -84,9 +80,7 @@ static void content_handler(void *_ctx, const xmlChar *data, int len) {
 int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth) {
     // Initialise and fetch auth xml
     *auth = calloc(1, sizeof(struct iv_auth));
-    if(NULL == *auth) {
-        return -IV_ENOMEM;
-    }
+    if(!*auth) { return -(errno); }
     // Parse auth xml
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
     handler->initialized = XML_SAX2_MAGIC;

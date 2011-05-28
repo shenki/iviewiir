@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/xmlstring.h>
+#include <errno.h>
 #include "iview.h"
 #include "internal.h"
 
@@ -13,7 +14,7 @@ ssize_t iv_get_index(struct iv_config *config, char **buf_ptr) {
     if(-1 == asprintf(&api_query, "%s%s%s", config->api,
                 '?' == config->api[xmlStrlen(config->api)-1] ? "" : "?",
                 "seriesIndex")) {
-        return -IV_ENOMEM;
+        return -(errno);
     }
     int result = iv_get_http_buffer(api_query, buf_ptr);
     free(api_query);

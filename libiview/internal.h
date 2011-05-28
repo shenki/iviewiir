@@ -1,6 +1,7 @@
 #ifndef IV_INTERNAL_H
 #define IV_INTERNAL_H
 
+#include <errno.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <libxml/xmlstring.h>
@@ -10,6 +11,8 @@
 #define IV_SWF_HASH "96cc76f1d5385fb5cda6e2ce5c73323a399043d0bb6c687edd807e5c73c42b37"
 #define IV_SWF_SIZE "2122"
 #define IV_SWF_URL "http://www.abc.net.au/iview/images/iview.jpg"
+
+#define IV_ENOMEM ENOMEM
 
 struct iv_config {
     xmlChar *api;

@@ -11,7 +11,7 @@ ssize_t iv_get_series(struct iv_config *config IV_UNUSED,
     // FIXME: GNU magic sprintf, not portable.
     if(-1 == asprintf(&series_uri, "%s?series=%d", IV_SERIES_URI, series->id)) {
         *buf_ptr = NULL;
-        return -IV_ENOMEM;
+        return -(errno);
     }
     int result = iv_get_http_buffer(series_uri, buf_ptr);
     free(series_uri);

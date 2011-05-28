@@ -16,7 +16,6 @@
  */
 
 #include <stdlib.h>
-#include <errno.h>
 #include <unistd.h>
 
 #ifdef __cplusplus
@@ -33,11 +32,10 @@ extern "C"
 
 /* Return values */
 #define IV_OK 0
-#define IV_EURIPARSE 1
-#define IV_EREQUEST 2
-#define IV_ESAXPARSE 3
-#define IV_EXML 4
-#define IV_ENOMEM ENOMEM
+#define IV_EURIPARSE 1001
+#define IV_EREQUEST 1002
+#define IV_ESAXPARSE 1003
+#define IV_EXML 1004
 
 /* struct iv_config:
  *
