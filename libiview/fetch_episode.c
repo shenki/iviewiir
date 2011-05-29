@@ -81,7 +81,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
     progress.valid = 0;
     RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
     RTMP_UpdateBufferMS(rtmp);
-    int read, wrote;
+    int read;
     // Determine whether we should fire the progress callback
     if(NULL != progress_cb) {
         progress_cb((const struct iv_progress *)&progress, user_data);
@@ -97,10 +97,15 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
             IV_DEBUG("Duration: %fms, valid: %hd\n",
                     progress.duration, progress.valid);
         }
-        wrote = write(fd, buf, read);
-        if(wrote != read) {
-            return_val = -(errno);
-            goto done;
+        int wrote = 0;
+        int remaining = read;
+        while(remaining) {
+            wrote = write(fd, &buf[(read - remaining)], remaining);
+            if(0 > wrote) {
+                return_val = -(errno);
+                goto done;
+            }
+            remaining -= wrote;
         }
         if(NULL != progress_cb) {
             progress.count += read;
