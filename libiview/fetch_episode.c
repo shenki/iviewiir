@@ -28,25 +28,37 @@ static ssize_t generate_video_uri(const struct iv_auth *auth,
     char *playpath = NULL;
     const int playpath_len = asprintf(&playpath, "%s%s",
             (char *)(auth->free ? BAD_CAST("") : auth->prefix), item->url);
-    if(-1 == playpath_len) {
-        return -(errno);
+    if(-1 == playpath_len) { return -(errno); }
+    // The extension should be .flv or .mp4, thus we have a minimum of four
+    // characters.
+    if(5 > playpath_len) {
+        return_val = -IV_EURIPARSE;
+        goto done;
     }
     // Trim the extension for RTMP URI generation
-    playpath[strlen(playpath)-4] = '\0';
+    playpath[playpath_len-4] = '\0';
+    const size_t url_len = strlen(item->url);
+    // Below we perform a compare against the last three characters of the item
+    // path (url), thus it should be more than 3 characters for the comparison
+    // to be valid.
+    if(4 > url_len) {
+        return_val = -IV_EURIPARSE;
+        goto done;
+    }
     const char *prefix =
-        !strcmp("flv", &item->url[strlen(item->url)-3]) ?
-            "" : "mp4:";
+        !strcmp("flv", &item->url[strlen(item->url)-3]) ?  "" : "mp4:";
     const int rtmp_uri_len = asprintf(&rtmp_uri,
             "%s?auth=%s playpath=%s%s swfUrl=%s swfVfy=1 swfAge=0",
             auth->server, auth->token, prefix, playpath, IV_SWF_URL);
-    IV_DEBUG("Video URI: %s\n", rtmp_uri);
-    return_val = rtmp_uri_len;
     if(-1 == rtmp_uri_len) {
         return_val = -(errno);
         *uri = NULL;
     } else {
+        return_val = rtmp_uri_len;
         *uri = rtmp_uri;
     }
+    IV_DEBUG("Video URI: %s\n", rtmp_uri);
+done:
     free(playpath);
     return return_val;
 }
