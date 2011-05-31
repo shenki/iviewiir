@@ -130,6 +130,10 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
             progress_cb((const struct iv_progress *)&progress, user_data);
         }
     }
+    if(NULL != progress_cb) {
+        progress.done = 1;
+        progress_cb((const struct iv_progress *)&progress, user_data);
+    }
 done:
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
