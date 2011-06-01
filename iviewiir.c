@@ -262,6 +262,11 @@ int download_item(struct iv_config *config, struct iv_series *index,
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
     char const *path = basename((char *)items[item_index].url);
+    struct stat st;
+    if (0 == stat(path, &st)) {
+        printf("File \"%s\" exists. Aborting download.\n", path);
+        return -1;
+    }
     const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
     if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
