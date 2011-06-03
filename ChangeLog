@@ -1,3 +1,13 @@
+Tag v0.5:
+--------
+* Rename many of the public functions in libiview
+* Add a callback implementation of iv_fetch_episode()
+* iviewiir now separates the SID and description with '-' for -s
+* libiview now fetches the JSON series data instead of RSS XML
+* Quotes ('"') are now stripped from output
+* Add some unit tests for libiview parsing functions
+* Miscellaneous cleanups and leak fixes
+
 Tag v0.4.1:
 ----------
 * All libiview functions return negative values on error

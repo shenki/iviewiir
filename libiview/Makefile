@@ -2,7 +2,7 @@
 # Joel Stanley <joel@jms.id.au>
 
 SONAME := libiview.so
-VERSION := v0.4.1
+VERSION := v0.5
 
 # Uncomment when building for the wii, or provide on the command line
 # CROSS_COMPILE=powerpc-eabi-
