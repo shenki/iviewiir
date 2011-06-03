@@ -240,6 +240,7 @@ static int print_percentage(const struct iv_progress *progress,
 int download_item(struct iv_config *config, struct iv_series *index,
         const unsigned int index_len, const unsigned int sid,
         const unsigned int pid) {
+    int return_val = 0;
     struct iv_episode *items;
     // Fetch episode lists for the SID
     debug("sid: %d\n", sid);
@@ -257,7 +258,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
     int item_index;
     if(-1 == (item_index = iv_find_episode(pid, items, items_len, NULL))) {
         printf("Failed to find specified episode\n");
-        return -1;
+        return_val = -1;
+        goto done;
     }
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
@@ -265,7 +267,8 @@ int download_item(struct iv_config *config, struct iv_series *index,
     struct stat st;
     if (0 == stat(path, &st)) {
         printf("File \"%s\" exists. Aborting download.\n", path);
-        return -1;
+        return_val = -1;
+        goto done;
     }
     const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
@@ -277,10 +280,12 @@ int download_item(struct iv_config *config, struct iv_series *index,
         printf("\rComplete: %s - %.01fMB\n", path, size_mb);
     } else {
         printf("\rDownload failed :(\n");
+        return_val = -1;
     }
     close(fd);
+done:
     iv_destroy_series(items, items_len);
-    return 0;
+    return return_val;
 }
 
 int main(int argc, char **argv) {
