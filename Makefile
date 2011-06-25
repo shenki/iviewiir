@@ -3,6 +3,8 @@ IVIEWIIR_SRC := iviewiir.c xdg-user-dir-lookup.c ccan/opt/helpers.c \
 
 IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 
+-include $(IVIEWIIR_OBJS:.o=.d)
+
 IVIEWIIR_LIB := $(shell pkg-config --libs json librtmp libxml-2.0)
 IVIEWIIR_LIB_STATIC := libjson.a librtmp.a libpolarssl.a libxml2.a -lz
 

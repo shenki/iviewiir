@@ -73,6 +73,8 @@ SRC := get_http_buffer.c \
 
 OBJ := $(SRC:.c=.o)
 
+-include $(OBJ:.o=.d)
+
 TEST_PROGRAM := ./test/test-executor
 TEST_SRC := test/CuTest.c \
     	$(TEST_PROGRAM).c
