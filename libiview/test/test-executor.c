@@ -12,6 +12,7 @@ CuSuite *iv_parse_config_get_cusuite();
 CuSuite *iv_parse_index_get_cusuite();
 CuSuite *iv_parse_series_get_cusuite();
 CuSuite *iv_parse_auth_get_cusuite();
+CuSuite *iv_parse_categories_get_cusuite();
 
 #define SUITE_COUNT(s) (sizeof(s)/sizeof(CuSuite *))
 
@@ -23,6 +24,7 @@ int main() {
         iv_parse_index_get_cusuite(),
         iv_parse_series_get_cusuite(),
         iv_parse_auth_get_cusuite(),
+        iv_parse_categories_get_cusuite(),
     };
     CuString *output = CuStringNew();
     CuSuite *suite = CuSuiteNew();

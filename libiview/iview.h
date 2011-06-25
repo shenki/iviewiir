@@ -491,6 +491,23 @@ struct iv_category_list {
     struct iv_category_list *next;
 };
 
+/* iv_parse_categories
+ *
+ * Parses a categories XML buffer into an array of categories. Freeing the
+ * array is the responsibility of the caller.
+ *
+ * @buf: The categories XML buffer to parse. Must be null terminated.
+ * @categories_ptr: A container for the categories list.
+ *
+ * @return: Greater than or equal to zero 0 on success, less than zero on
+ * failure. If the call is successful categories_ptr contains a list of
+ * categories and the return value represents the number of elements in the
+ * list. If the call is not successful the value contained in categories_ptr is
+ * invalid.
+ */
+int iv_parse_categories(const char *buf, size_t len,
+        struct iv_category **categories_ptr);
+
 /* iv_destroy_categories
  *
  * Destroys the category hierarchy provided by iv_parse_categories().
