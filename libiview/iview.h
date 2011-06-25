@@ -73,6 +73,8 @@ struct iv_episode {
     const char *thumbnail;
     const char *date;
     const char *rating;
+    int size_mb;
+    int length_sec;
 };
 
 /* struct iv_auth

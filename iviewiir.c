@@ -178,8 +178,8 @@ void list_all(struct iv_config *config, struct iv_series *index,
         printf("%s\n", index[i].title);
         int j;
         for(j=0; j<items_len; j++) {
-            printf("%d:%d - %s\n", index[i].id, items[j].id,
-                    items[j].title);
+            printf("%d:%d - %s (%dMB)\n", index[i].id, items[j].id,
+                    items[j].title, items[j].size_mb);
         }
         printf("\n");
         iv_destroy_series(items, items_len);
@@ -204,8 +204,8 @@ int list_items(struct iv_config *config, struct iv_series *index,
         return -1;
     }
     for(i=0; i<items_len; i++) {
-        printf("%d:%d - %s\n",
-                sid, items[i].id, items[i].title);
+        printf("%d:%d - %s (%dMB)\n",
+                sid, items[i].id, items[i].title, items[i].size_mb);
     }
     iv_destroy_series(items, items_len);
     return 0;

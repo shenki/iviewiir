@@ -110,6 +110,12 @@ int iv_parse_series(const char *buf, struct iv_episode **items) {
         (*items)[i].rating =
                 extract_json_string(json_object_object_get(json_element,
                         JSON_EPISODE_CLASSIFICATION));
+        // Populate size
+        obj = json_object_object_get(json_element, JSON_EPISODE_SIZE_MB);
+        (*items)[i].size_mb = json_object_get_int(obj);
+        // Populate length
+        obj = json_object_object_get(json_element, JSON_EPISODE_LENGTH_SEC);
+        (*items)[i].length_sec = json_object_get_int(obj);
     }
     array_list_free(json_object_get_array(json_series));
     free(json_series);
@@ -191,6 +197,8 @@ void test_iv_parse_series(CuTest *tc) {
     CuAssertStrEquals(tc, "2011-05-05 07:00:00", episodes[0].date);
     CuAssertPtrNotNull(tc, episodes[0].rating);
     CuAssertStrEquals(tc, "G", episodes[0].rating);
+    CuAssertIntEquals(tc, 55, episodes[0].size_mb);
+    CuAssertIntEquals(tc, 660, episodes[0].length_sec);
 
     CuAssertIntEquals(tc, 635499, episodes[1].id);
     CuAssertPtrNotNull(tc, episodes[1].title);
@@ -205,6 +213,8 @@ void test_iv_parse_series(CuTest *tc) {
     CuAssertStrEquals(tc, "2011-04-28 07:00:00", episodes[1].date);
     CuAssertPtrNotNull(tc, episodes[1].rating);
     CuAssertStrEquals(tc, "G", episodes[1].rating);
+    CuAssertIntEquals(tc, 55, episodes[1].size_mb);
+    CuAssertIntEquals(tc, 660, episodes[1].length_sec);
 
     CuAssertIntEquals(tc, 633855, episodes[2].id);
     CuAssertPtrNotNull(tc, episodes[2].title);
@@ -219,6 +229,8 @@ void test_iv_parse_series(CuTest *tc) {
     CuAssertStrEquals(tc, "2011-04-21 07:10:00", episodes[2].date);
     CuAssertPtrNotNull(tc, episodes[2].rating);
     CuAssertStrEquals(tc, "G", episodes[2].rating);
+    CuAssertIntEquals(tc, 55, episodes[2].size_mb);
+    CuAssertIntEquals(tc, 660, episodes[2].length_sec);
     iv_destroy_series(episodes, result);
 }
 
