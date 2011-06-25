@@ -140,7 +140,7 @@ ssize_t iv_get_http_buffer(const char *uri, char **buf_ptr);
  *
  * For freeing buffers allocated by calls to iv_get_http_buffer()
  */
-#define iv_destroy_http_buffer(buf) free(buf)
+void iv_destroy_http_buffer(char *buf);
 
 /* iv_parse_config
  *
