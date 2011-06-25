@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <libxml/xmlstring.h>
 
+#define IV_IVIEW_URI "http://www.abc.net.au/iview/"
 #define IV_SERIES_URI "http://tviview.abc.net.au/iview/api2/"
 #define IV_AKAMAI_PREFIX "/flash/playback/_definst_/"
 #define IV_SWF_HASH "96cc76f1d5385fb5cda6e2ce5c73323a399043d0bb6c687edd807e5c73c42b37"

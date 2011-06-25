@@ -59,7 +59,8 @@ SRC := get_http_buffer.c \
 	strrpl.c \
 	parse_auth.c \
 	easy_auth.c \
-	destroy_http_buffer.c
+	destroy_http_buffer.c \
+	get_categories.c
 
 OBJ := $(SRC:.c=.o)
 

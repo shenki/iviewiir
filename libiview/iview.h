@@ -449,6 +449,23 @@ int iv_easy_fetch_episode_async(const struct iv_config *config,
         const struct iv_episode *item, const int fd,
         iv_download_progress_cb *progress_cb, void *user_data);
 
+/* iv_get_categories
+ *
+ * Creates a buffer containing the categories XML data from iView. The buffer
+ * should be passed to iv_parse_categories().
+ *
+ * It is the responsibility of the caller to free the populated XML buffer.
+ *
+ * @config: The configuration context returned by iv_parse_config()
+ * @buf_ptr: A container for the categories XML data
+ *
+ * @return: Greater than or equal to zero on success, less than zero on
+ * failure. If the result is greater than or equal to zero it represents the
+ * size of the buffer held in buf_ptr. Otherwise the value represents the
+ * negated error code and buf_ptr is invalid.
+ */
+ssize_t iv_get_categories(const struct iv_config *config, char **buf_ptr);
+
 #ifdef __cplusplus
 };
 #endif
