@@ -515,6 +515,23 @@ int iv_parse_categories(const char *buf, size_t len,
  * @categories: The category hierarchy to free.
  */
 void iv_destroy_categories(struct iv_category *categories);
+
+/* iv_easy_categories
+ *
+ * Get a populated categories list without the bother of fetching XML buffers.
+ *
+ * @config: The configuration context as returned by iv_parse_config()
+ * @categories: A container for the tree of categories
+ *
+ * @return: Greater than or equal to zero on success, less than zero on
+ * failure. If the call is successful categories_ptr contains a list of valid
+ * categories and the return value represents the number of elements in the
+ * list. If the call is not successful the value contained in categories_ptr is
+ * invalid.
+ */
+int iv_easy_categories(const struct iv_config *config,
+        struct iv_category **categories_ptr);
+
 #ifdef __cplusplus
 };
 #endif
