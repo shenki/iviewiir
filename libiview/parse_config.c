@@ -21,7 +21,7 @@ static void param_handler(struct config_parse_ctx *ctx, const xmlChar **attrs) {
     xmlChar *v = xmlStrdup(IV_XML_ATTR_VALUE(attrs));
     struct iv_config *c = ctx->config;
     if(NULL == v) {
-        ctx->return_value = -(errno);
+        ctx->return_value = errno;
     } else if(!xmlStrcmp(BAD_CAST("api"), n)) {
         c->api = v;
     } else if(!xmlStrcmp(BAD_CAST("auth"), n)) {
@@ -99,8 +99,14 @@ static void end_element(void *_ctx, const xmlChar *name) {
 
 int iv_parse_config(const char *buf, size_t len, struct iv_config **config) {
     *config = malloc(sizeof(struct iv_config));
+    if(!*config) { return -(errno); }
     // Instantiate SAX parser
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    if(!handler) {
+        int _errno = errno;
+        free(*config);
+        return -_errno;
+    }
     handler->initialized = XML_SAX2_MAGIC;
     handler->startElement = start_element;
     handler->endElement = end_element;
@@ -112,8 +118,8 @@ int iv_parse_config(const char *buf, size_t len, struct iv_config **config) {
     };
     // Parse document
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
-        free(handler);
-        return -IV_ESAXPARSE;
+        free(*config);
+        *config = NULL;
     }
     free(handler);
     return -(ctx.return_value);

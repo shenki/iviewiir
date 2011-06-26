@@ -59,11 +59,11 @@ static void content_handler(void *_ctx, const xmlChar *data, int len) {
     switch(ctx->state) {
         case st_token:
             ctx->auth->token = xmlStrndup(data, len);
-            if(!ctx->auth->token) { ctx->return_value = -(errno); }
+            if(!ctx->auth->token) { ctx->return_value = errno; }
             break;
         case st_server:
             ctx->auth->server = xmlStrndup(data, len);
-            if(!ctx->auth->server) { ctx->return_value = -(errno); }
+            if(!ctx->auth->server) { ctx->return_value = errno; }
             break;
         case st_free:
 #define FREE_VALUE "yes"
@@ -83,6 +83,11 @@ int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth) {
     if(!*auth) { return -(errno); }
     // Parse auth xml
     xmlSAXHandlerPtr handler = calloc(1, sizeof(xmlSAXHandler));
+    if(!handler) {
+        int _errno = errno;
+        free(*auth);
+        return -_errno;
+    }
     handler->initialized = XML_SAX2_MAGIC;
     handler->startElement = start_element;
     handler->endElement = end_element;
@@ -93,8 +98,8 @@ int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth) {
         .auth = *auth
     };
     if(0 > xmlSAXUserParseMemory(handler, &ctx, buf, len)) {
-        IV_DEBUG("Failure in parsing xml\n");
-        return -IV_ESAXPARSE;
+        free(*auth);
+        *auth = NULL;
     }
     free(handler);
     return -(ctx.return_value);
