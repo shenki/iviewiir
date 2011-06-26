@@ -40,6 +40,15 @@ struct iv_auth {
     short free;
 };
 
+struct iv_category_mgmt {
+    short genre;
+    short index;
+    struct iv_category *parent;
+    struct iv_category *sub_head;
+    struct iv_category *sub_tail;
+    struct iv_category *next;
+};
+
 /* strtrim
  *
  * Creates a copy of the provided string placed in |out| with |chars| stripped

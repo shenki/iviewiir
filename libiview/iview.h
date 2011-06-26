@@ -466,6 +466,38 @@ int iv_easy_fetch_episode_async(const struct iv_config *config,
  */
 ssize_t iv_get_categories(const struct iv_config *config, char **buf_ptr);
 
+/* struct iv_category
+ *
+ * Represents an element of the category tree provided by iView (see
+ * iv_parse_categories() implementation or the categories.xml file from iView
+ * for more information). Allows the user to sort series and episodes by
+ * category/genre. A partial definition of iv_category_mgmt is provided for
+ * type safety and general avoidance of void* declarations. Operations on
+ * category structures should be carried out with the associated helpers.
+ */
+struct iv_category_mgmt;
+struct iv_category {
+    char *id;
+    char *name;
+    struct iv_category_mgmt *mgmt;
+};
+
+/* struct iv_category_list
+ *
+ * Used to create a list of genres, indexes and categories from the category tree.
+ */
+struct iv_category_list {
+    struct iv_category *category;
+    struct iv_category_list *next;
+};
+
+/* iv_destroy_categories
+ *
+ * Destroys the category hierarchy provided by iv_parse_categories().
+ *
+ * @categories: The category hierarchy to free.
+ */
+void iv_destroy_categories(struct iv_category *categories);
 #ifdef __cplusplus
 };
 #endif
