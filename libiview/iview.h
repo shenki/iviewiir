@@ -553,6 +553,19 @@ void iv_destroy_category_list(struct iv_category_list *list);
 int iv_list_categories(const struct iv_category *categories,
         struct iv_category_list **list);
 
+/* iv_list_genres
+ *
+ * Provides a linked list containing all genres described in the category tree
+ * provided by iv_(parse|easy)_categories() (must be the root node).
+ *
+ * @categories: The root or a subcategory as provided by iv_(parse|easy)_categories()
+ * @list: A container for the list of genres.
+ *
+ * @return: IV_OK on success, less than 0 on failure.
+ */
+int iv_list_genres(const struct iv_category *categories,
+        struct iv_category_list **list);
+
 #ifdef __cplusplus
 };
 #endif
