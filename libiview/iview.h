@@ -566,6 +566,19 @@ int iv_list_categories(const struct iv_category *categories,
 int iv_list_genres(const struct iv_category *categories,
         struct iv_category_list **list);
 
+/* iv_list_indicies
+ *
+ * Provides a linked list containing all indices described in the category tree
+ * provided by iv_(parse|easy)_categories() (must be the root node).
+ *
+ * @categories: The root or a subcategory as provided by iv_(parse|easy)_categories()
+ * @list: A container for the list of indices.
+ *
+ * @return: IV_OK on success, less than 0 on failure.
+ */
+int iv_list_indices(const struct iv_category *categories,
+        struct iv_category_list **list);
+
 #ifdef __cplusplus
 };
 #endif
