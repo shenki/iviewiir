@@ -63,7 +63,8 @@ SRC := get_http_buffer.c \
 	get_categories.c \
 	destroy_categories.c \
 	parse_categories.c \
-	easy_categories.c
+	easy_categories.c \
+	destroy_category_list.c
 
 OBJ := $(SRC:.c=.o)
 

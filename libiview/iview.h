@@ -532,6 +532,14 @@ void iv_destroy_categories(struct iv_category *categories);
 int iv_easy_categories(const struct iv_config *config,
         struct iv_category **categories_ptr);
 
+/* iv_destroy_category_list
+ *
+ * Deallocates a linked list created by one of the iv_list_*() functions.
+ *
+ * @list: The list to free
+ */
+void iv_destroy_category_list(struct iv_category_list *list);
+
 #ifdef __cplusplus
 };
 #endif
