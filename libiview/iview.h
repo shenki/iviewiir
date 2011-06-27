@@ -36,6 +36,7 @@ extern "C"
 #define IV_EREQUEST 1002
 #define IV_ESAXPARSE 1003
 #define IV_EXML 1004
+#define IV_EEMPTY 1005
 
 /* struct iv_config:
  *
@@ -539,6 +540,18 @@ int iv_easy_categories(const struct iv_config *config,
  * @list: The list to free
  */
 void iv_destroy_category_list(struct iv_category_list *list);
+
+/* iv_list_categories
+ *
+ * Provides a linked list of all catories associated categories.
+ *
+ * @categories: The root or a subcategory as provided by iv_(parse|easy)_categories()
+ * @list: A container for the list of categories
+ *
+ * @return: IV_OK on success, less than 0 on failure.
+ */
+int iv_list_categories(const struct iv_category *categories,
+        struct iv_category_list **list);
 
 #ifdef __cplusplus
 };
