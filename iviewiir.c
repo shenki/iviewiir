@@ -289,11 +289,13 @@ done:
 }
 
 int main(int argc, char **argv) {
-    static bool show_series = false, show_all = false, use_cache = true;
+    static bool show_series = false, show_all = false, use_cache = true,
+        show_categories = false, show_genres = false, show_indices = false;
+    static char *category = NULL;
     static int i_sid = 0;
     static char usage_str[] = "[SID[:PID]]";
     static struct opt_table opts[] = {
-        OPT_WITH_ARG("--items-list|-i", opt_set_intval, NULL, &i_sid,
+        OPT_WITH_ARG("--episode-list|-e", opt_set_intval, NULL, &i_sid,
                 "List episodes in a series. Requires a SID as a parameter."),
         OPT_WITHOUT_ARG("--series-list|-s", opt_set_bool, &show_series,
                 "List the series available. The first element is the SID."),
@@ -301,6 +303,12 @@ int main(int argc, char **argv) {
                 "List all items in all non-empty series."),
         OPT_WITHOUT_ARG("--force|-f", opt_set_invbool, &use_cache,
                 "Force bypass the cached metadata."),
+        OPT_WITHOUT_ARG("--categories|-c", opt_set_bool, &show_categories,
+                "List categories of series/episodes."),
+        OPT_WITHOUT_ARG("--genres|-g", opt_set_bool, &show_genres,
+                "List genres of series/episodes."),
+        OPT_WITHOUT_ARG("--indices|-i", opt_set_bool, &show_indices,
+                "List indices of series/episodes."),
         OPT_WITHOUT_ARG("--help|-h", opt_usage_and_exit,
                 usage_str, "Show this message."),
         OPT_ENDTABLE
@@ -310,10 +318,10 @@ int main(int argc, char **argv) {
         /* opt_parse will print an error to stderr. */
         exit(1);
     }
-    if (!show_all && !show_series && !i_sid && (argc == 1)) {
+    if (!show_all && !show_series && !show_categories && !show_genres
+            && !show_indices && !category && !i_sid && (argc == 1)) {
         opt_usage_and_exit(usage_str);
     }
-
     struct iv_series *index;
     struct iv_config *config;
     int return_val = 0;
@@ -321,6 +329,40 @@ int main(int argc, char **argv) {
     if(NULL == (config = iviewiir_configure())) {
         fprintf(stderr, "Couldn't configure iviewiir, exiting\n");
         return 1;
+    }
+    /* Check if they wanted a category list */
+    if(show_categories || show_genres || show_indices) {
+        // Create the category tree
+        struct iv_category *categories;
+        if(0 > iv_easy_categories(config, &categories)) {
+            return_val = 1;
+            goto config_cleanup;
+        }
+        // Generate the list of root categories
+        struct iv_category_list *head, *current;
+        int result;
+        if(show_categories) {
+            result = iv_list_categories(categories, &head);
+        } else if(show_genres) {
+            result = iv_list_genres(categories, &head);
+        } else if(show_indices) {
+            result = iv_list_indices(categories, &head);
+        }
+        if(0 > result) {
+            iv_destroy_categories(categories);
+            return_val = -1;
+            goto config_cleanup;
+        }
+        // Print the root category list
+        current = head;
+        do {
+            printf("%s :\t%s\n", current->category->id, current->category->name);
+            current = current->next;
+        } while(current);
+        // Clean up category structures
+        iv_destroy_category_list(head);
+        iv_destroy_categories(categories);
+        goto config_cleanup;
     }
     int index_len = iviewiir_index(config, &index);
     if(0 >= index_len) {
