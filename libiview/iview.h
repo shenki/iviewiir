@@ -597,6 +597,13 @@ struct iv_series_list {
  */
 void iv_destroy_series_list(struct iv_series_list *list);
 
+/* iv_list_series_by
+ *
+ * Filter the whole series list by a category.
+ */
+int iv_list_series_by(const char *id, struct iv_series *series,
+        const int num_series, struct iv_series_list **list);
+
 #ifdef __cplusplus
 };
 #endif
