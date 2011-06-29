@@ -56,6 +56,7 @@ struct iv_config;
 struct iv_series {
     unsigned int id;
     const char *title;
+    const char *keywords;
 };
 
 /* struct iv_episode

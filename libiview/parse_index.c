@@ -12,7 +12,7 @@ static int cmpseries(const void *l, const void *r) {
 }
 
 int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
-    json_object *json_index, *json_element, *json_series;
+    json_object *json_index, *json_element, *json_series, *json_keywords;
     json_index = json_tokener_parse(buf);
     const int index_len = json_object_array_length(json_index);
     *index_ptr =
@@ -21,12 +21,19 @@ int iv_parse_index(const char *buf, struct iv_series **index_ptr) {
     int i;
     for(i=0; i<index_len; i++) {
         json_element = json_object_array_get_idx(json_index, i);
-        json_object *json_id = json_object_object_get(json_element, JSON_SERIES_ID);
+        json_object *json_id =
+            json_object_object_get(json_element, JSON_SERIES_ID);
         (*index_ptr)[i].id = json_object_get_int(json_id);
         json_series = json_object_object_get(json_element, JSON_SERIES_NAME);
         const char *title = json_object_to_json_string(json_series);
         if(-1 == strtrim((char **)&(*index_ptr)[i].title, title, "\"")) {
             (*index_ptr)[i].title = NULL;
+        }
+        json_keywords =
+            json_object_object_get(json_element, JSON_SERIES_KEYWORDS);
+        const char *keywords = json_object_to_json_string(json_keywords);
+        if(-1 == strtrim((char **)&(*index_ptr)[i].keywords, keywords, "\"")) {
+            (*index_ptr)[i].keywords = NULL;
         }
     }
     array_list_free(json_object_get_array(json_index));
@@ -48,6 +55,10 @@ void test_iv_parse_index(CuTest *tc) {
     CuAssertIntEquals(tc, 3094182, series[0].id);
     CuAssertPtrNotNull(tc, series[0].title);
     CuAssertStrEquals(tc, "Scrapheap Challenge Series 8", series[0].title);
+    CuAssertPtrNotNull(tc, series[0].keywords);
+    CuAssertStrEquals(tc,
+            "scrapheap challenge lifestyle abc2 reality recent last-chance",
+            series[0].keywords);
     iv_destroy_index(series, index_len);
 }
 
