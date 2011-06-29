@@ -46,6 +46,7 @@ void test_iv_parse_index(CuTest *tc) {
     const int index_len = iv_parse_index(index_buf, &series);
     CuAssertIntEquals(tc, 1, index_len);
     CuAssertIntEquals(tc, 3094182, series[0].id);
+    CuAssertPtrNotNull(tc, series[0].title);
     CuAssertStrEquals(tc, "Scrapheap Challenge Series 8", series[0].title);
     iv_destroy_index(series, index_len);
 }
