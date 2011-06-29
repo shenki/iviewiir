@@ -580,6 +580,23 @@ int iv_list_genres(const struct iv_category *categories,
 int iv_list_indices(const struct iv_category *categories,
         struct iv_category_list **list);
 
+/* iv_series_list
+ *
+ * Used to create a list of series filtered on some criteria, for example genre.
+ */
+struct iv_series_list {
+    struct iv_series *series;
+    struct iv_series_list *next;
+};
+
+/* iv_destroy_series_list
+ *
+ * Dispose of a series list as returned by iv_list_series_by or similar.
+ *
+ * @list: The list to deallocate.
+ */
+void iv_destroy_series_list(struct iv_series_list *list);
+
 #ifdef __cplusplus
 };
 #endif
