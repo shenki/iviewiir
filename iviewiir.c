@@ -311,6 +311,8 @@ int main(int argc, char **argv) {
                 "List indices of series/episodes."),
         OPT_WITHOUT_ARG("--help|-h", opt_usage_and_exit,
                 usage_str, "Show this message."),
+        OPT_WITH_ARG("--series-by|-b", opt_set_charp, NULL, &category,
+                "List series tagged with the provided category"),
         OPT_ENDTABLE
     };
     opt_register_table(opts, NULL);
@@ -369,6 +371,22 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No items in index, exiting\n");
         return_val = 1;
         goto config_cleanup;
+    }
+    if(category) {
+        struct iv_series_list *head, *current;
+        const int result =
+            iv_list_series_by(category, index, index_len, &head);
+        if(0 > result) {
+            return_val = -1;
+            goto index_cleanup;
+        }
+        current = head;
+        do {
+            printf("%d - %s\n", current->series->id, current->series->title);
+            current = current->next;
+        } while(current);
+        iv_destroy_series_list(head);
+        goto index_cleanup;
     }
     /* Check if they want everything listed */
     if(show_all) {
