@@ -40,7 +40,7 @@ SRC := destroy_ctx.c \
     	destroy_tag_body.c \
     	destroy_tag.c \
     	extract_tag.c \
-    	find_last_keyframe.c \
+    	get_last_keyframe.c \
     	get_first_tag.c \
     	get_last_tag.c \
     	get_next_tag.c \
