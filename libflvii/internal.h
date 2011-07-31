@@ -1,3 +1,6 @@
+#ifndef FLVII_INTERNAL_H
+#define FLVII_INTERNAL_H
+
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -45,7 +48,4 @@ struct flvii_tag {
 int flvii_extract_tag(struct flvii_ctx *ctx, off_t file_offset,
         struct flvii_tag *tag);
 
-ssize_t flvii_extract_tag_body(const struct flvii_ctx *ctx,
-        const struct flvii_tag *tag, char **buf);
-
-#define flvii_destroy_tag_body(buf) free(buf);
+#endif /* FLVII_INTERNAL_H */

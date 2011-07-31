@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <librtmp/amf.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "flvii.h"
