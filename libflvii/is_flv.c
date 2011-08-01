@@ -69,11 +69,7 @@ static int find_metadata(struct flvii_ctx *ctx) {
                 FLVII_DEBUG("Failed to find next tag: %d\n", result);
                 return result;
             }
-            {
-                // Flip the buffers
-                struct flvii_tag *tmp = current;
-                current = next, next = tmp;
-            }
+            FLVII_FLIP(current, next);
             memset(next, 0, sizeof(struct flvii_tag));
         }
     }

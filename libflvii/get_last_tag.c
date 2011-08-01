@@ -9,8 +9,7 @@ static int find_last_tag(struct flvii_ctx *ctx, struct flvii_tag *tag) {
     int result = flvii_get_first_tag(ctx, next);
     if(0 > result) { return result; }
     do {
-        struct flvii_tag *tmp = current;
-        current = next, next = tmp;
+        FLVII_FLIP(current, next);
         result = flvii_get_next_tag(ctx, current, next);
     } while(FLVII_OK == result && ctx->file_size > current->file_offset);
     memcpy(tag, current, sizeof(struct flvii_tag));

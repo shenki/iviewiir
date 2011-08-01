@@ -17,11 +17,8 @@ int flvii_find_last_keyframe(struct flvii_ctx *ctx, struct flvii_tag *tag) {
     }
     bool is_videoframe, is_audioframe, is_keyframe;
     do {
-        {
-            struct flvii_tag *tmp = current;
-            current = prev, prev = tmp;
-            memset(prev, 0, sizeof(struct flvii_tag));
-        }
+        FLVII_FLIP(current, prev);
+        memset(prev, 0, sizeof(struct flvii_tag));
         is_videoframe = ((AV == ctx->type || VIDEO == ctx->type)
                 && FLVII_TAG_VIDEO == current->tag_type);
         is_audioframe =

@@ -346,6 +346,8 @@ ssize_t flvii_extract_tag_body(const struct flvii_ctx *ctx,
  */
 void flvii_destroy_tag_body(char *buf);
 
+#define FLVII_FLIP(a,b) ( { typeof(a) tmp; tmp = a, a = b, b = tmp; } )
+
 #ifdef __cplusplus
 };
 #endif
