@@ -50,7 +50,8 @@ SRC := destroy_ctx.c \
     	is_flv.c \
     	is_last_tag.c \
     	new_ctx.c \
-    	new_tag.c
+    	new_tag.c \
+	get_duration.c
 
 OBJ := $(SRC:.c=.o)
 

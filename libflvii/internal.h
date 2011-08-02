@@ -34,6 +34,7 @@ struct flvii_ctx {
     off_t last_offset;
     char *metadata;
     size_t metadata_size;
+    double duration_sec;
 };
 
 struct flvii_tag {

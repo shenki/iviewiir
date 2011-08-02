@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <librtmp/amf.h>
+#include <librtmp/rtmp.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@
 // Const version of AVC
 #define AVCC(str) {(char *)str, sizeof(str)-1}
 const AVal av_onMetaData = AVCC("onMetaData");
+const AVal av_duration = AVCC("duration");
 
 /* @return: 0 if decoding was successful, le if it was not. */
 static int extract_metadata(struct flvii_ctx *ctx,
@@ -37,6 +39,16 @@ static int extract_metadata(struct flvii_ctx *ctx,
     ctx->metadata = (char *) malloc(len);
     memcpy(ctx->metadata, buf, len);
     ctx->metadata_size = len;
+    // Determine the duration for future reference
+    ctx->duration_sec = -1;
+    {
+        AMFObjectProperty prop;
+        if (RTMP_FindFirstMatchingProperty(&meta_obj, &av_duration, &prop))
+        {
+            ctx->duration_sec = AMFProp_GetNumber(&prop);
+            FLVII_DEBUG("Duration: %lf\n", ctx->duration_sec);
+        }
+    }
     return 0;
 }
 

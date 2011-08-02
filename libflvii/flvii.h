@@ -182,6 +182,17 @@ void flvii_destroy_ctx(struct flvii_ctx *ctx);
  */
 int flvii_is_flv(struct flvii_ctx *ctx);
 
+/* flvii_get_duration
+ *
+ * Retrieves the duration as specified by the metadata, if present. Duration
+ * value is represented as a floating point in second units.
+ *
+ * @ctx    The context to extract the duration of.
+ *
+ * @return The duration of the FLV in seconds.
+ */
+double flvii_get_duration(const struct flvii_ctx *ctx);
+
 /* flvii_new_tag
  *
  * Once the context has been verified as valid, stream tags are navigated by
