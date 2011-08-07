@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -392,11 +393,14 @@ void iv_destroy_auth(struct iv_auth *auth);
  * @item: A element of the item list returned by iv_get_series(), the
  * item that wants
  * @fd: The file descriptor to write the downloaded data to.
+ * @offset: The number of milliseconds into the stream to start downloading.
  *
  * @return: IV_OK on success, negated error code on failure.
  */
-int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd);
+int iv_fetch_episode(const struct iv_auth *auth,
+        const struct iv_episode *item,
+        const int fd,
+        const uint32_t offset);
 
 /* iv_fetch_episode_async
  *
@@ -407,6 +411,7 @@ int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
  * @item: A element of the item list returned by iv_get_series(), the
  * item that wants
  * @fd: The file descriptor to write the downloaded data to.
+ * @offset: The number of milliseconds into the stream to start downloading.
  * @progress_cb: The progress callback function to trigger throughout the
  * download. Can be NULL if not required.
  * @user_data: The user data to provide to progress_cb. Can be NULL if not
@@ -414,8 +419,12 @@ int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
  *
  * @return: IV_OK on success, negated error code on failure.
  */
-int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd, iv_download_progress_cb *progress_cb, void *user_data);
+int iv_fetch_episode_async(const struct iv_auth *auth,
+        const struct iv_episode *item,
+        const int fd,
+        const uint32_t offset,
+        iv_download_progress_cb *progress_cb,
+        void *user_data);
 
 /* iv_easy_fetch_episode
  *
@@ -425,11 +434,14 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
  * @config: The configuration context as provided by iv_parse_config().
  * @item: The episode to download.
  * @fd: The file descriptor to write the downloaded data to.
+ * @offset: The number of milliseconds into the stream to start downloading.
  *
  * @return: IV_OK on success, negated error code on failure.
  */
 int iv_easy_fetch_episode(const struct iv_config *config,
-        const struct iv_episode *item, const int fd);
+        const struct iv_episode *item,
+        const int fd,
+        const uint32_t offset);
 
 /* iv_easy_fetch_episode_async
  *
@@ -440,6 +452,7 @@ int iv_easy_fetch_episode(const struct iv_config *config,
  * @config: The configuration context as provided by iv_parse_config().
  * @item: The episode to download.
  * @fd: The file descriptor to write the downloaded data to.
+ * @offset: The number of milliseconds into the stream to start downloading.
  * @progress_cb: The progress callback function to trigger throughout the
  * download. Can be NULL if not required.
  * @user_data: The user data to provide to progress_cb. Can be NULL if not
@@ -447,9 +460,13 @@ int iv_easy_fetch_episode(const struct iv_config *config,
  *
  * @return: IV_OK on success, negated error code on failure.
  */
-int iv_easy_fetch_episode_async(const struct iv_config *config,
-        const struct iv_episode *item, const int fd,
-        iv_download_progress_cb *progress_cb, void *user_data);
+int iv_easy_fetch_episode_async(
+        const struct iv_config *config,
+        const struct iv_episode *item,
+        const int fd,
+        const uint32_t offset,
+        iv_download_progress_cb *progress_cb,
+        void *user_data);
 
 /* iv_get_categories
  *

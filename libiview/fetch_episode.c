@@ -64,12 +64,16 @@ done:
 }
 
 int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd) {
-    return iv_fetch_episode_async(auth, item, fd, NULL, NULL);
+        const int fd, const uint32_t offset) {
+    return iv_fetch_episode_async(auth, item, fd, offset, NULL, NULL);
 }
 
-int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd, iv_download_progress_cb *progress_cb, void *user_data) {
+int iv_fetch_episode_async(const struct iv_auth *auth,
+        const struct iv_episode *item,
+        const int fd,
+        const uint32_t offset,
+        iv_download_progress_cb *progress_cb,
+        void *user_data) {
     int return_val = IV_OK;
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
@@ -84,7 +88,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth, const struct iv_episode *
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
     RTMP_Connect(rtmp, NULL);
-    RTMP_ConnectStream(rtmp, 0);
+    RTMP_ConnectStream(rtmp, offset);
     // Determine duration if one exists - otherwise set a default
     struct iv_progress progress = {0, 0.0, 0.0, 0, 0};
 #define DEFAULT_DURATION_SEC (2 * 3600)

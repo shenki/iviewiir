@@ -272,7 +272,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
     }
     const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
-    if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
+    if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd, 0,
             &print_percentage, &progress)) {
         struct stat stat_buf;
         stat(path, &stat_buf);
