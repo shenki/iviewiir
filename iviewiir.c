@@ -32,6 +32,7 @@
 
 #include "iviewiir.h"
 #include "libiview/iview.h"
+#include "libflvii/flvii.h"
 
 #define CONFIG_FILE "iview.config"
 #define INDEX_FILE  "iview.index"
@@ -237,6 +238,35 @@ static int print_percentage(const struct iv_progress *progress,
     return 0;
 }
 
+uint32_t find_resume_offset(const char *path) {
+    uint32_t return_val = 0;
+    int result;
+    struct flvii_ctx *ctx;
+    result = flvii_new_ctx(path, &ctx);
+    if(0 > result) {
+        return return_val;
+    }
+    result = flvii_is_flv(ctx);
+    if (1 > result) {
+        goto ctx_cleanup;
+    }
+    struct flvii_tag *tag;
+    result = flvii_new_tag(&tag);
+    if(0 > result) {
+        goto ctx_cleanup;
+    }
+    result = flvii_find_last_keyframe(ctx, tag);
+    if(0 > result) {
+        goto tag_cleanup;
+    }
+    return_val = flvii_get_tag_timestamp(tag);
+tag_cleanup:
+    flvii_destroy_tag(tag);
+ctx_cleanup:
+    flvii_destroy_ctx(ctx);
+    return return_val;
+}
+
 int download_item(struct iv_config *config, struct iv_series *index,
         const unsigned int index_len, const unsigned int sid,
         const unsigned int pid) {
@@ -264,16 +294,22 @@ int download_item(struct iv_config *config, struct iv_series *index,
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
     char const *path = basename((char *)items[item_index].url);
+    uint32_t offset = 0;
     struct stat st;
     if (0 == stat(path, &st)) {
-        printf("File \"%s\" exists. Aborting download.\n", path);
-        return_val = -1;
-        goto done;
+        offset = find_resume_offset(path);
+        if(0 == offset) {
+            printf("File \"%s\" exists and is not an FLV."
+                    " Aborting download.\n", path);
+            return_val = -1;
+            goto done;
+        }
     }
+    printf("Beginning download from %dms\n", offset);
     const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
-    if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd, 0,
-            &print_percentage, &progress)) {
+    if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
+                offset, &print_percentage, &progress)) {
         struct stat stat_buf;
         stat(path, &stat_buf);
         double size_mb = stat_buf.st_size / (1024.0 * 1024.0);
