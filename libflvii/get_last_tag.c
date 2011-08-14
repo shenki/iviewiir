@@ -20,6 +20,9 @@ int flvii_get_last_tag(struct flvii_ctx *ctx, struct flvii_tag *tag) {
     if(!(UNKNOWN == ctx->state || FLV == ctx->state)) {
         return -FLVII_EMALFORMED;
     }
+    if(ctx->last_offset) {
+        return flvii_extract_tag(ctx, ctx->last_offset, tag);
+    }
     char buffer[16];
     uint32_t prev_tag_size = 0;
     // Find the the last prevTagSize value
