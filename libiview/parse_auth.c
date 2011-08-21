@@ -78,6 +78,7 @@ static void content_handler(void *_ctx, const xmlChar *data, int len) {
 }
 
 int iv_parse_auth(const char *buf, size_t len, struct iv_auth **auth) {
+    IV_DEBUG("Parsing auth XML:\n%s\n", buf);
     // Initialise and fetch auth xml
     *auth = calloc(1, sizeof(struct iv_auth));
     if(!*auth) { return -(errno); }

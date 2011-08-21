@@ -2,6 +2,8 @@
 #include <stdio.h>
 #undef _GNU_SOURCE
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <librtmp/rtmp.h>
@@ -64,14 +66,16 @@ done:
 }
 
 int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd, const uint32_t offset) {
-    return iv_fetch_episode_async(auth, item, fd, offset, NULL, NULL);
+        const int fd, const off_t fd_offset, const uint32_t time_offset) {
+    return iv_fetch_episode_async(auth, item, fd, fd_offset, time_offset,
+            NULL, NULL);
 }
 
 int iv_fetch_episode_async(const struct iv_auth *auth,
         const struct iv_episode *item,
         const int fd,
-        const uint32_t offset,
+        const off_t fd_offset,
+        const uint32_t time_offset,
         iv_download_progress_cb *progress_cb,
         void *user_data) {
     int return_val = IV_OK;
@@ -83,12 +87,16 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
     if(0 >= (rtmp_uri_len = generate_video_uri(auth, item, &rtmp_uri))) {
         return rtmp_uri_len;
     }
+    IV_DEBUG("RTMP URL: %s\n", rtmp_uri);
+    if(-1 == lseek(fd, fd_offset, SEEK_SET)) {
+        return -errno;
+    }
     // Start the RTMP session
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
     RTMP_Connect(rtmp, NULL);
-    RTMP_ConnectStream(rtmp, offset);
+    RTMP_ConnectStream(rtmp, time_offset);
     // Determine duration if one exists - otherwise set a default
     struct iv_progress progress = {0, 0.0, 0.0, 0, 0};
 #define DEFAULT_DURATION_SEC (2 * 3600)

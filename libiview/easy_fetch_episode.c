@@ -8,7 +8,7 @@ int iv_easy_fetch_episode(const struct iv_config *config,
     if(IV_OK != auth_result) {
         return auth_result;
     }
-    const int fetch_result = iv_fetch_episode(auth, item, fd, offset);
+    const int fetch_result = iv_fetch_episode(auth, item, fd, 0, offset);
     iv_destroy_auth(auth);
     return fetch_result;
 }
@@ -21,7 +21,7 @@ int iv_easy_fetch_episode_async(const struct iv_config *config,
     if(IV_OK != auth_result) {
         return auth_result;
     }
-    const int fetch_result = iv_fetch_episode_async(auth, item, fd, offset,
+    const int fetch_result = iv_fetch_episode_async(auth, item, fd, 0, offset,
             progress_cb, user_data);
     iv_destroy_auth(auth);
     return fetch_result;

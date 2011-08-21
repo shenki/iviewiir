@@ -38,19 +38,16 @@ LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
 SRC := destroy_ctx.c \
     	destroy_tag_body.c \
-    	destroy_tag.c \
-    	extract_tag.c \
+	extract_tag.c \
     	extract_tag_body.c \
     	get_last_keyframe.c \
     	get_first_tag.c \
     	get_last_tag.c \
     	get_next_tag.c \
     	get_prev_tag.c \
-	get_tag_timestamp.c \
     	is_flv.c \
     	is_last_tag.c \
     	new_ctx.c \
-    	new_tag.c \
 	get_duration.c
 
 OBJ := $(SRC:.c=.o)

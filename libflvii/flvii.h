@@ -193,34 +193,20 @@ int flvii_is_flv(struct flvii_ctx *ctx);
  */
 double flvii_get_duration(const struct flvii_ctx *ctx);
 
-/* flvii_new_tag
+/* flvii_tag
  *
- * Once the context has been verified as valid, stream tags are navigated by
- * the provided iterator functions. flvii_new_tag() provides the means to
- * create tag instances to be passed to the iterators/helpers.
- *
- * It is the responsibility of the caller to destroy tag objects (using
- * flvii_destroy_tag()) once finished with them.
- *
- * @tag    A container for the flvii_tag instance.
- *
- * @return FLVII_OK if the flvii_tag instance was successfully allocated, less
- *         than zero otherwise.
+ * Represents a stream tag from the FLV file. Provides insighful information
+ * for decoding the payload. The elements are defined by the FLV spec, thus are
+ * not an implementation detail.
  */
-int flvii_new_tag(struct flvii_tag **tag);
-
-/* flvii_destroy_tag
- *
- * Cleans up and frees memory associated with a flvii_tag instance. Once the
- * instance has been destroyed any further operations on it are invalid.
- */
-void flvii_destroy_tag(struct flvii_tag *tag);
-
-/* flvii_get_tag_timestamp
- *
- * @return The tag time in milliseconds relative to the first frame.
- */
-uint32_t flvii_get_tag_timestamp(const struct flvii_tag *tag);
+struct flvii_tag {
+    off_t file_offset;
+    uint32_t prev_tag_size;
+    uint32_t body_length;
+    uint32_t timestamp;
+    uint8_t tag_type;
+    uint8_t payload_type;
+};
 
 /* flvii_find_last_keyframe
  *

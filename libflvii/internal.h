@@ -37,15 +37,6 @@ struct flvii_ctx {
     double duration_sec;
 };
 
-struct flvii_tag {
-    off_t file_offset;
-    uint32_t prev_tag_size;
-    uint32_t body_length;
-    uint32_t timestamp;
-    uint8_t tag_type;
-    uint8_t payload_type;
-};
-
 int flvii_extract_tag(struct flvii_ctx *ctx, off_t file_offset,
         struct flvii_tag *tag);
 
