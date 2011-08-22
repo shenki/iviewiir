@@ -305,7 +305,10 @@ int download_item(struct iv_config *config, struct iv_series *index,
             goto done;
         }
     }
-    printf("Beginning download from %dms\n", offset);
+    /* Don't print when starting from zero. */
+    if (offset) {
+        printf("Beginning download from %dms\n", offset);
+    }
     const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
     if(IV_OK == iv_easy_fetch_episode_async(config, &(items[item_index]), fd,
