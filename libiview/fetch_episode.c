@@ -88,7 +88,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
         return rtmp_uri_len;
     }
     IV_DEBUG("RTMP URL: %s\n", rtmp_uri);
-    if(-1 == lseek(fd, fd_offset, SEEK_SET)) {
+    if(fd_offset != lseek(fd, fd_offset, SEEK_SET)) {
         return -errno;
     }
     // Start the RTMP session

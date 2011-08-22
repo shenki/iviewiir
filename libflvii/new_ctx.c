@@ -10,7 +10,7 @@ int flvii_new_ctx(const char *path, struct flvii_ctx **ctx) {
     _ctx = calloc(1, sizeof(struct flvii_ctx));
     if(!_ctx) { return -errno; }
     _ctx->path = path;
-    _ctx->file = fopen(_ctx->path, "r+b");
+    _ctx->file = fopen(_ctx->path, "rb");
     if(!_ctx->file) {
         int _errno = errno;
         free(_ctx);

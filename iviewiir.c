@@ -291,6 +291,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
     char const *path = basename((char *)items[item_index].url);
     uint32_t time_offset = 0;
     off_t file_offset = 0;
+    int fd;
     struct stat st;
     if (0 == stat(path, &st)) {
         struct flvii_tag _tag, *tag=&_tag;
@@ -307,9 +308,11 @@ int download_item(struct iv_config *config, struct iv_series *index,
         }
         time_offset = tag->timestamp;
         file_offset = tag->file_offset;
+        fd = open(path, O_RDWR);
+        printf("Beginning download from %dms (%ldb)\n", time_offset, file_offset);
+    } else {
+        fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     }
-    printf("Beginning download from %dms (%ldb)\n", time_offset, file_offset);
-    const int fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     double progress = 0;
     struct iv_auth *auth;
     if(IV_OK != iv_easy_auth(config, &auth)) {
