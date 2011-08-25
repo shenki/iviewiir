@@ -16,9 +16,8 @@
 
 int main(void) {
     struct flvii_ctx *ctx;
-    struct flvii_tag *lkf;
+    struct flvii_tag _lkf, *lkf=&_lkf;
     int result = 0, ret_val = 0;
-    uint32_t timestamp;
     result = flvii_new_ctx("test.flv", &ctx);
     if(FLVII_OK != result) {
         puts("Failed to create context!");
@@ -31,22 +30,14 @@ int main(void) {
         goto ctx_cleanup;
     }
     puts("It's an FLV!");
-    result = flvii_new_tag(&lkf);
-    if(FLVII_OK != result) {
-        ret_val = -1;
-        goto ctx_cleanup;
-    }
     result = flvii_find_last_keyframe(ctx, lkf);
     if(FLVII_OK != result) {
         printf("Failed to find last keyframe: %d\n", result);
         ret_val = -1;
-        goto tag_cleanup;
+        goto ctx_cleanup;
     }
     puts("Found last keyframe!");
-    timestamp = flvii_get_tag_timestamp(lkf);
-    printf("Can resume from %dms\n", timestamp);
-tag_cleanup:
-    flvii_destroy_tag(lkf);
+    printf("Can resume from %dms\n", lkf->timestamp);
 ctx_cleanup:
     flvii_destroy_ctx(ctx);
     return ret_val;
