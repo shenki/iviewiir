@@ -117,16 +117,6 @@ extern "C"
  */
 struct flvii_ctx;
 
-/* flvii_tag
- *
- * Represents a single tag in the FLV tag stream. Tag data can be queried with
- * various helper functions, for example the timestamp or content of the tag.
- * The internals of the tag struct are currently determined by the FLV
- * specification and are viewed as an implementation detail; thus here it is a
- * partial declaration.
- */
-struct flvii_tag;
-
 /* flvii_new_ctx
  *
  * Creates a context structure for operations on FLV files. It is the
