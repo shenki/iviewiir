@@ -90,13 +90,6 @@ static int find_metadata(struct flvii_ctx *ctx) {
 
 int flvii_is_flv(struct flvii_ctx *ctx) {
     int return_val = 0;
-    // Check the size
-    fseek(ctx->file, 0, SEEK_END);
-    ctx->file_size = ftello(ctx->file);
-    fseek(ctx->file, 0, SEEK_SET);
-    if(0 >= ctx->file_size) {
-        return 0;
-    }
     // Check the headers
     {
 #define HEADER_SIZE (9)

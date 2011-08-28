@@ -127,15 +127,17 @@ struct flvii_ctx;
  * flvii_destroy_ctx()) should be a call to flvii_is_flv() to determine whether
  * the file is a valid FLV.
  *
- * @path   The path to the FLV file to inspect.
+ * @fd     The file descriptor of the FLV to inspect. Must be backed by a file
+ *         and read-only. The file descriptor is duplicated internally, leaving
+ *         management of the passed fd the responsibility of the caller.
  * @ctx    A container for a context pointer. The context instances itself
- *         is created internally.
+ *         is created and managed internally.
  *
  * @return FLVII_OK if a context struct was successfully created, less than zero
  *         otherwise. If the return value is not FLVII_OK then the pointer in
  *         the ctx parameter is invalid.
  */
-int flvii_new_ctx(const char *path, struct flvii_ctx **ctx);
+int flvii_new_ctx(const int fd, struct flvii_ctx **ctx);
 
 /* flvii_destroy_ctx
  *

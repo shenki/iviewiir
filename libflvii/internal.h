@@ -25,7 +25,6 @@ enum FLVII_STATE { UNKNOWN, FLV, NOT_FLV, MALFORMED_FLV };
 enum FLVII_TYPE { AUDIO, VIDEO, AV };
 
 struct flvii_ctx {
-    const char *path;
     FILE *file;
     off_t file_size;
     enum FLVII_STATE state;
