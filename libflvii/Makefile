@@ -48,7 +48,8 @@ SRC := destroy_ctx.c \
     	is_flv.c \
     	is_last_tag.c \
     	new_ctx.c \
-	get_duration.c
+	get_duration.c \
+	get_metadata.c
 
 OBJ := $(SRC:.c=.o)
 -include $(OBJ:.o=.d)

@@ -326,6 +326,25 @@ ssize_t flvii_extract_tag_body(const struct flvii_ctx *ctx,
  */
 void flvii_destroy_tag_body(char *buf);
 
+/* flvii_get_metadata
+ *
+ * Returns a newly allocated buffer containing the metadata for the FLV stream.
+ * It is the responsibility of the caller to free the pointer contained in the
+ * buf parameter once they are finished with it.
+ *
+ * @ctx    The context struct as produced by calling flvii_new_ctx() and
+ *         validated with flvii_is_flv();
+ *
+ * @buf    A container for the buffer holding the stream metadata. The buffer
+ *         is allocated internally and assigned to buf. Whether the pointer
+ *         value held in buf is valid is determined by the return value.
+ *
+ * @return The size of the buffer if the allocation and copy was successful,
+ *         less than zero otherwise. If the return value is less than zero then
+ *         any value held in the buf parameter is invalid.
+ */
+ssize_t flvii_get_metadata(struct flvii_ctx *ctx, char **buf);
+
 #define FLVII_FLIP(a,b) ( { typeof(a) tmp; tmp = a, a = b, b = tmp; } )
 
 #ifdef __cplusplus
