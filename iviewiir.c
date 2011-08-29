@@ -32,7 +32,6 @@
 
 #include "iviewiir.h"
 #include "libiview/iview.h"
-#include "libflvii/flvii.h"
 
 #define CONFIG_FILE "iview.config"
 #define INDEX_FILE  "iview.index"
@@ -238,30 +237,6 @@ static int print_percentage(const struct iv_progress *progress,
     return 0;
 }
 
-uint32_t find_resume_offset(const char *path, struct flvii_tag *tag) {
-    uint32_t return_val = 0;
-    int result;
-    struct flvii_ctx *ctx;
-    result = flvii_new_ctx(path, &ctx);
-    if(0 > result) {
-        return return_val;
-    }
-    result = flvii_is_flv(ctx);
-    if (1 > result) {
-        return_val = result;
-        goto ctx_cleanup;
-    }
-    result = flvii_find_last_keyframe(ctx, tag);
-    if(0 > result) {
-        return_val = result;
-        goto ctx_cleanup;
-    }
-    return_val = tag->timestamp;
-ctx_cleanup:
-    flvii_destroy_ctx(ctx);
-    return return_val;
-}
-
 int download_item(struct iv_config *config, struct iv_series *index,
         const unsigned int index_len, const unsigned int sid,
         const unsigned int pid) {
@@ -289,29 +264,16 @@ int download_item(struct iv_config *config, struct iv_series *index,
     printf("%s : %s\n",
         items[item_index].title, basename((char *)items[item_index].url));
     char const *path = basename((char *)items[item_index].url);
-    uint32_t time_offset = 0;
-    off_t file_offset = 0;
     int fd;
     struct stat st;
     if (0 == stat(path, &st)) {
-        struct flvii_tag _tag, *tag=&_tag;
-        int result = find_resume_offset(path, tag);
-        if(0 > result) {
-            printf("Error occurred whilst determining offset\n");
-            return_val = -1;
-            goto done;
-        } else if(0 == result) {
-            printf("File \"%s\" exists and is not an FLV."
-                    " Aborting download.\n", path);
-            return_val = -1;
-            goto done;
-        }
-        time_offset = tag->timestamp;
-        file_offset = tag->file_offset;
         fd = open(path, O_RDWR);
-        printf("Beginning download from %dms (%ldb)\n", time_offset, file_offset);
     } else {
         fd = creat(path, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    }
+    if(-1 == fd) {
+        printf("Failed to open %s for writing\n", path);
+        goto done;
     }
     double progress = 0;
     struct iv_auth *auth;
@@ -320,7 +282,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
         goto done;
     }
     if(IV_OK == iv_fetch_episode_async(auth, &(items[item_index]), fd,
-                file_offset, time_offset, &print_percentage, &progress)) {
+                &print_percentage, &progress)) {
         struct stat stat_buf;
         stat(path, &stat_buf);
         double size_mb = stat_buf.st_size / (1024.0 * 1024.0);

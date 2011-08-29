@@ -32,9 +32,12 @@ WARNINGS := -Wall -Wextra -Wwrite-strings -Werror
 
 DEPS := libxml-2.0 json librtmp
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
-	-fPIC $(EXTRA_CFLAGS) $(WARNINGS)
-LDFLAGS += -Wl,-Map,$(notdir $@).map -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS)
-LDLIBS := $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
+	-fPIC $(EXTRA_CFLAGS) $(WARNINGS) \
+	-I../libflvii
+LDFLAGS += -Wl,--as-needed -Wl,-Map,$(notdir $@).map \
+	   -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS) \
+	   -L../libflvii
+LDLIBS := libflvii.a $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
 SRC := get_http_buffer.c \
 	parse_config.c \

@@ -8,14 +8,14 @@ IVIEWIIR_OBJ := $(IVIEWIIR_SRC:.c=.o)
 IVIEWIIR_LIB := $(shell pkg-config --libs json librtmp libxml-2.0)
 IVIEWIIR_LIB_STATIC := libjson.a librtmp.a libpolarssl.a libxml2.a -lz
 
-LIBIVIEW := libiview/libiview.a
 LIBFLVII := libflvii/libflvii.a
+LIBIVIEW := libiview/libiview.a
 
 PROGRAM := iviewiir
 
 WARNINGS := -Wall -Wextra -Wwrite-strings -Werror
 CFLAGS := $(CFLAGS) $(shell pkg-config --cflags libxml-2.0) $(WARNINGS) -I.
-LDFLAGS :=
+LDFLAGS := -Wl,--as-needed
 
 all: $(PROGRAM)
 
@@ -28,11 +28,11 @@ static: $(IVIEWIIR_OBJ) $(LIBIVIEW) $(LIBFLVII) nanohttp.o
 # Hack to ensure recursive call is made
 FORCE:
 
-$(LIBIVIEW): FORCE
-	@cd libiview; $(MAKE) libiview.a
-
 $(LIBFLVII): FORCE
 	@cd libflvii; $(MAKE) libflvii.a
+
+$(LIBIVIEW): FORCE
+	@cd libiview; $(MAKE) libiview.a
 
 %.o: %.c
 	$(COMPILE.c) -MMD -MF $(subst .o,.d,$@) $(OUTPUT_OPTION) $<

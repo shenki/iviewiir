@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <librtmp/rtmp.h>
+#include "flvii.h"
 #include "iview.h"
 #include "internal.h"
 
@@ -66,50 +67,133 @@ done:
 }
 
 int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
-        const int fd, const off_t fd_offset, const uint32_t time_offset) {
-    return iv_fetch_episode_async(auth, item, fd, fd_offset, time_offset,
-            NULL, NULL);
+        const int fd) {
+    return iv_fetch_episode_async(auth, item, fd, NULL, NULL);
+}
+
+static int configure_resume(const int fd, RTMP *rtmp) {
+    int result, return_val = 0;
+    struct stat fd_stat;
+    struct flvii_ctx *ctx;
+    struct flvii_tag _lkf, *lkf=&_lkf;
+    char *metadata, *tagdata;
+    ssize_t metadata_size, tagdata_size;
+    // Preparation for resume:
+    //
+    // Determine whether we're dealing with a file or some other form of
+    // descriptor. If we're dealing with a file we'll attempt to resume the
+    // download where it left off.
+    if(-1 == fstat(fd, &fd_stat)) {
+        return -(errno);
+    }
+    if(!(S_ISREG(fd_stat.st_mode) && fd_stat.st_size)) {
+        // Early (okay) exit - we're dealing with a stream that isn't backed by
+        // a file, so download from the beginning
+        return 0;
+    }
+    // FD is backed by a file, test if it's an FLV
+    result = flvii_new_ctx(fd, &ctx);
+    if(0 > result) {
+        return return_val;
+    }
+    result = flvii_is_flv(ctx);
+    if (1 > result) {
+        return_val = result;
+        goto ctx_cleanup;
+    }
+    // It's an FLV, find an appropriate resume point
+    result = flvii_find_last_keyframe(ctx, lkf);
+    if(0 > result) {
+        return_val = result;
+        goto ctx_cleanup;
+    }
+    // Gather all the resume data before manipulating the rtmp struct
+    metadata_size = flvii_get_metadata(ctx, &metadata);
+    if(0 >= metadata_size) {
+        return_val =
+            metadata_size ? metadata_size : -FLVII_ENOMETADATA;
+        goto ctx_cleanup;
+    }
+    // Allocate space for tag data off the stack
+    tagdata_size = FLVII_TAG_HEADER_SIZE + lkf->body_length;
+    tagdata = malloc(tagdata_size);
+    if(!tagdata) {
+        return_val = -(errno);
+        goto metadata_cleanup;
+    }
+    // Grab the bytes composing the tag from the file, required for rtmp.
+    if(-1 == lseek(fd, lkf->file_offset+sizeof(lkf->prev_tag_size), SEEK_SET)) {
+        return_val = -(errno);
+        goto tagdata_cleanup;
+    }
+    if(tagdata_size != read(fd, tagdata, tagdata_size)) {
+        return_val =
+            (-1 == tagdata_size) ? -(errno) : FLVII_ESHORTREAD;
+        goto tagdata_cleanup;
+    }
+    // Seek to the end of the last key frame ready for resume
+    {
+        const off_t file_offset =
+            lkf->file_offset
+            + sizeof(lkf->prev_tag_size)
+            + FLVII_TAG_HEADER_SIZE
+            + lkf->body_length;
+        if(-1 == lseek(fd, file_offset, SEEK_SET)) {
+            return_val = -(errno);
+            goto metadata_cleanup;
+        }
+    }
+    // Configure RTMP session for resume
+    rtmp->m_read.flags |= RTMP_READ_RESUME;
+    rtmp->m_read.nResumeTS = lkf->timestamp;
+    rtmp->m_read.metaHeader = metadata;
+    rtmp->m_read.nMetaHeaderSize = metadata_size;
+    rtmp->m_read.initialFrameType = lkf->tag_type;
+    rtmp->m_read.initialFrame = tagdata;
+    rtmp->m_read.nInitialFrameSize = tagdata_size;
+ctx_cleanup:
+    flvii_destroy_ctx(ctx);
+    return return_val;
+tagdata_cleanup:
+    free(tagdata);
+metadata_cleanup:
+    free(metadata);
+    goto ctx_cleanup;
 }
 
 int iv_fetch_episode_async(const struct iv_auth *auth,
         const struct iv_episode *item,
         const int fd,
-        const off_t fd_offset,
-        const uint32_t time_offset,
         iv_download_progress_cb *progress_cb,
         void *user_data) {
     int return_val = IV_OK;
-#define BUF_SZ (64*1024)
-    char *buf = malloc(BUF_SZ);
-    if(!buf) { return -(errno); }
+    int read;
     char *rtmp_uri = NULL;
     ssize_t rtmp_uri_len;
+    double tmp_duration = (2 * 3600) * 1000;
+    struct iv_progress progress = { 0, tmp_duration, 0.0, 0, 0 };
+    // Generate the RTMP URI
     if(0 >= (rtmp_uri_len = generate_video_uri(auth, item, &rtmp_uri))) {
         return rtmp_uri_len;
     }
     IV_DEBUG("RTMP URL: %s\n", rtmp_uri);
-    if(fd_offset != lseek(fd, fd_offset, SEEK_SET)) {
-        return -errno;
-    }
-    // Start the RTMP session
+    // Start the RTMP session, initialising rtmp struct
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
     RTMP_Connect(rtmp, NULL);
-    RTMP_ConnectStream(rtmp, time_offset);
-    // Determine duration if one exists - otherwise set a default
-    struct iv_progress progress = {0, 0.0, 0.0, 0, 0};
-#define DEFAULT_DURATION_SEC (2 * 3600)
-    double tmp_duration = DEFAULT_DURATION_SEC * 1000; // convert to ms
-    progress.duration = tmp_duration;
-    progress.valid = 0;
     RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
     RTMP_UpdateBufferMS(rtmp);
-    int read;
-    // Determine whether we should fire the progress callback
+    // Configure resume
+    configure_resume(fd, rtmp);
+    // Done configuring resume, fire the progress callback to signal
+    // downloading has begun.
     if(NULL != progress_cb) {
         progress_cb((const struct iv_progress *)&progress, user_data);
     }
+#define BUF_SZ (64*1024)
+    char *buf = malloc(BUF_SZ);
+    if(!buf) { return -(errno); }
     while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
         if(!progress.valid && 0 < (tmp_duration = RTMP_GetDuration(rtmp))) {
             // Now that we have a valid duration, report we have an extra few
@@ -142,6 +226,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
             progress_cb((const struct iv_progress *)&progress, user_data);
         }
     }
+#undef BUF_SZ
     if(NULL != progress_cb) {
         progress.done = 1;
         progress_cb((const struct iv_progress *)&progress, user_data);

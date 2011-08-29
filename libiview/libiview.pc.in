@@ -5,7 +5,7 @@ incdir=${prefix}/include
 
 Name: libiview
 Description: A library for listing and downloading ABC iView content
-Requires: json librtmp
+Requires: flvii json librtmp
 Version: @VERSION@
 Libs: -L${libdir} -liview
 Cflags: -I${incdir}
