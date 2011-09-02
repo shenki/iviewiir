@@ -144,13 +144,19 @@ static int configure_resume(const int fd, RTMP *rtmp) {
         }
     }
     // Configure RTMP session for resume
-    rtmp->m_read.flags |= RTMP_READ_RESUME;
-    rtmp->m_read.nResumeTS = lkf->timestamp;
-    rtmp->m_read.metaHeader = metadata;
-    rtmp->m_read.nMetaHeaderSize = metadata_size;
-    rtmp->m_read.initialFrameType = lkf->tag_type;
-    rtmp->m_read.initialFrame = tagdata;
-    rtmp->m_read.nInitialFrameSize = tagdata_size;
+    if(RTMP_ConnectStream(rtmp, lkf->timestamp) && 0 < tagdata_size) {
+        IV_DEBUG("RTMP_ConnectStream successful, configuring resume\n");
+        rtmp->m_read.flags |= RTMP_READ_RESUME;
+        rtmp->m_read.timestamp = lkf->timestamp;
+        rtmp->m_read.nResumeTS = lkf->timestamp;
+        rtmp->m_read.metaHeader = metadata;
+        rtmp->m_read.nMetaHeaderSize = metadata_size;
+        rtmp->m_read.initialFrameType = lkf->tag_type;
+        rtmp->m_read.initialFrame = tagdata;
+        rtmp->m_read.nInitialFrameSize = tagdata_size;
+    } else {
+        IV_DEBUG("RTMP_ConnectStream failed :(\n");
+    }
 ctx_cleanup:
     flvii_destroy_ctx(ctx);
     return return_val;
@@ -166,7 +172,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
         const int fd,
         iv_download_progress_cb *progress_cb,
         void *user_data) {
-    int return_val = IV_OK;
+    int result, return_val = IV_OK;
     int read;
     char *rtmp_uri = NULL;
     ssize_t rtmp_uri_len;
@@ -185,7 +191,11 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
     RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
     RTMP_UpdateBufferMS(rtmp);
     // Configure resume
-    configure_resume(fd, rtmp);
+    result = configure_resume(fd, rtmp);
+    if(0 > result) {
+        return_val = result;
+        goto rtmp_cleanup;
+    }
     // Done configuring resume, fire the progress callback to signal
     // downloading has begun.
     if(NULL != progress_cb) {
@@ -194,7 +204,9 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
     if(!buf) { return -(errno); }
-    while(0 < (read = RTMP_Read(rtmp, buf, BUF_SZ))) {
+    while(-1 < (read = RTMP_Read(rtmp, buf, BUF_SZ))
+            && RTMP_IsConnected(rtmp)) {
+        IV_DEBUG("Read from stream: %d\n", read);
         if(!progress.valid && 0 < (tmp_duration = RTMP_GetDuration(rtmp))) {
             // Now that we have a valid duration, report we have an extra few
             // seconds of buffer space to ensure we download the entire video
@@ -211,7 +223,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
             wrote = write(fd, &buf[(read - remaining)], remaining);
             if(0 > wrote) {
                 return_val = -(errno);
-                goto done;
+                goto buf_cleanup;
             }
             remaining -= wrote;
         }
@@ -226,15 +238,17 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
             progress_cb((const struct iv_progress *)&progress, user_data);
         }
     }
+    IV_DEBUG("Stream complete: %d\n", read);
 #undef BUF_SZ
     if(NULL != progress_cb) {
         progress.done = 1;
         progress_cb((const struct iv_progress *)&progress, user_data);
     }
-done:
+buf_cleanup:
+    free(buf);
+rtmp_cleanup:
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
-    free(buf);
     free(rtmp_uri);
     return return_val;
 }

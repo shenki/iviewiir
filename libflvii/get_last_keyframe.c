@@ -21,15 +21,15 @@ int flvii_find_last_keyframe(struct flvii_ctx *ctx, struct flvii_tag *tag) {
         memset(prev, 0, sizeof(struct flvii_tag));
         is_videoframe = ((AV == ctx->type || VIDEO == ctx->type)
                 && FLVII_TAG_VIDEO == current->tag_type);
+        is_keyframe = (FLVII_VIDEO_FRAME_TYPE(current->payload_type)
+                == FLVII_VIDEO_KEYFRAME);
         is_audioframe =
             (AUDIO == ctx->type && FLVII_TAG_AUDIO == current->tag_type);
-        is_keyframe = (FLVII_VIDEO_FRAME_TYPE(current->payload_type)
-                != FLVII_VIDEO_KEYFRAME);
         result = flvii_get_prev_tag(ctx, current, prev);
         if(0 > result) {
             return result;
         }
-    } while(!(is_keyframe || is_videoframe || is_audioframe));
+    } while(!((is_keyframe && is_videoframe) || is_audioframe));
     memcpy(tag, current, sizeof(struct flvii_tag));
     return FLVII_OK;
 }
