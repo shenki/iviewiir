@@ -255,6 +255,12 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
 buf_cleanup:
     free(buf);
 rtmp_cleanup:
+    if(rtmp->m_read.metaHeader) {
+        free(rtmp->m_read.metaHeader);
+    }
+    if(rtmp->m_read.initialFrame) {
+        free(rtmp->m_read.initialFrame);
+    }
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
     free(rtmp_uri);
