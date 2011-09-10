@@ -79,7 +79,11 @@ size_t load_buf(char **buf, const char *fname) {
     if((time(NULL) - fstats.st_mtime) > CACHE_VALID_SECONDS) {
         goto end;
     }
-    *buf = malloc(fstats.st_size);
+    *buf = malloc(fstats.st_size + 1);
+    if(!*buf) {
+        goto end;
+    }
+    (*buf)[fstats.st_size] = '\0';
     FILE *fs = fopen(fpath, "r");
     if (fs == NULL) {
       perror(fpath);
@@ -87,9 +91,7 @@ size_t load_buf(char **buf, const char *fname) {
     }
     sz = fread(*buf, sizeof(char), fstats.st_size, fs);
     fclose(fs);
-    if (sz == fstats.st_size) {
-        sz = fstats.st_size;
-    } else {
+    if (sz != fstats.st_size) {
         sz = 0;
         free(*buf);
     }
@@ -155,6 +157,9 @@ int iviewiir_index(struct iv_config *config, struct iv_series **index) {
         debug("Didn't load index from cache, fetching it\n");
         index_buf_len = iv_get_index(config, &index_xml_buf);
         dump_buf(index_xml_buf, index_buf_len, INDEX_FILE);
+    }
+    if(index_buf_len == 0) {
+        return -1;
     }
     debug("index length %zd:\n%s\n", index_buf_len, index_xml_buf);
     int index_len = iv_parse_index(index_xml_buf, index);
@@ -292,6 +297,7 @@ int download_item(struct iv_config *config, struct iv_series *index,
         return_val = -1;
     }
     close(fd);
+    iv_destroy_auth(auth);
 done:
     iv_destroy_series(items, items_len);
     return return_val;
