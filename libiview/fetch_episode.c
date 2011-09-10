@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <librtmp/rtmp.h>
+#include <librtmp/log.h>
 #include "flvii.h"
 #include "iview.h"
 #include "internal.h"
@@ -131,6 +132,7 @@ static int configure_resume(const int fd, RTMP *rtmp) {
             (-1 == tagdata_size) ? -(errno) : FLVII_ESHORTREAD;
         goto tagdata_cleanup;
     }
+    //RTMP_LogHex(RTMP_LOGDEBUG, (uint8_t *)tagdata, tagdata_size);
     // Seek to the end of the last key frame ready for resume
     {
         const off_t file_offset =
@@ -154,6 +156,8 @@ static int configure_resume(const int fd, RTMP *rtmp) {
         rtmp->m_read.initialFrameType = lkf->tag_type;
         rtmp->m_read.initialFrame = tagdata;
         rtmp->m_read.nInitialFrameSize = tagdata_size;
+        RTMP_Log(RTMP_LOGDEBUG, "Expecting packet with type: %02X, size: %d, TS: %d ms",
+                rtmp->m_read.initialFrameType, rtmp->m_read.nInitialFrameSize, rtmp->m_read.timestamp);
     } else {
         IV_DEBUG("RTMP_ConnectStream failed :(\n");
     }
@@ -184,6 +188,9 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
     }
     IV_DEBUG("RTMP URL: %s\n", rtmp_uri);
     // Start the RTMP session, initialising rtmp struct
+#ifdef DEBUG
+    RTMP_LogSetLevel(RTMP_LOGDEBUG);
+#endif
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
     RTMP_SetupURL(rtmp, rtmp_uri);
@@ -204,9 +211,10 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
 #define BUF_SZ (64*1024)
     char *buf = malloc(BUF_SZ);
     if(!buf) { return -(errno); }
+    IV_DEBUG("RTMP flags: %x\n", rtmp->m_read.flags);
     while(-1 < (read = RTMP_Read(rtmp, buf, BUF_SZ))
             && RTMP_IsConnected(rtmp)) {
-        IV_DEBUG("Read from stream: %d\n", read);
+        IV_DEBUG("Read from stream: %d (%d)\n", read, rtmp->m_read.status);
         if(!progress.valid && 0 < (tmp_duration = RTMP_GetDuration(rtmp))) {
             // Now that we have a valid duration, report we have an extra few
             // seconds of buffer space to ensure we download the entire video
@@ -238,7 +246,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
             progress_cb((const struct iv_progress *)&progress, user_data);
         }
     }
-    IV_DEBUG("Stream complete: %d\n", read);
+    IV_DEBUG("Stream complete: %d, (%d)\n", read, rtmp->m_read.status);
 #undef BUF_SZ
     if(NULL != progress_cb) {
         progress.done = 1;

@@ -105,7 +105,8 @@ int flvii_is_flv(struct flvii_ctx *ctx) {
             return 0;
         }
         if(FLVII_STREAM_AV != FLVII_STREAM_TYPE(data[4])) {
-            FLVII_DEBUG("Stream type is not A/V\n");
+            FLVII_DEBUG("Stream type is not A/V (%d)\n",
+                    FLVII_STREAM_TYPE(data[4]));
             ctx->state = MALFORMED_FLV;
             return 0;
         }
