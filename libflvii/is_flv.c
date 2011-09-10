@@ -49,6 +49,7 @@ static int extract_metadata(struct flvii_ctx *ctx,
             FLVII_DEBUG("Duration: %lf\n", ctx->duration_sec);
         }
     }
+    AMF_Reset(&meta_obj);
     return 0;
 }
 
