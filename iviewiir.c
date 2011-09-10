@@ -67,7 +67,7 @@ char* join_path(const char *dirname, const char *fname) {
  * size is non-zero.
  * Return value is the size of file read, or zero if it was not read. */
 size_t load_buf(char **buf, const char *fname) {
-    if (use_cache)
+    if (!use_cache)
         return 0;
     struct stat fstats;
     int sz = 0;
