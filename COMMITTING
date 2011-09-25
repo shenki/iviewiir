@@ -1,17 +1,22 @@
 Before committing your should be able to answer yes to the following questions:
 
 1. Does it compile with Clang and GCC?
-        (clean and rebuild iviewiir)
+        for BASECC in gcc clang; do FULLCC=$(which $BASECC); if [ -e "$FULLCC" ]; then make clean; CC="$FULLCC" make || break; fi; done
 
-2. Does libiview cross-compile to powerpc?
+2. Does it compile with resume support?
+        for BASECC in gcc clang; do FULLCC=$(which $BASECC); if [ -e "$FULLCC" ]; then make clean; CC="$FULLCC" CFLAGS="-DCONFIG_RESUME" make || break; fi; done
 
-3. Does libiview pass all tests?
+3. Does lib(flvii|iview) cross-compile to powerpc?
+        Uncomment necessary parts of respective Makefiles. libflvii must be uncommented prior to libiview if building with -DCONFIG_RESUME
+
+4. Does libiview pass all tests?
         (cd libiview && make clean && make check)
 
-4. Does it introduce any new errors according to scan-build?
-        (scan-build make && cd libiview && scan-build make check)
+5. Does it introduce any new errors according to scan-build?
+        (CFLAGS="-DCONFIG_RESUME" scan-build make \
+                && cd libiview && scan-build make check)
 
-5. Does iviewiir execute correctly for all flags and parameter types?
+6. Does iviewiir execute correctly for all flags and parameter types?
 
-6. Is valgrind happy with your efforts (i.e. you haven't introduced new leaks)?
+7. Is valgrind happy with your efforts (i.e. you haven't introduced new leaks)?
         (valgrind --tool=memcheck --leak-check=full -- ./iviewiir -a)

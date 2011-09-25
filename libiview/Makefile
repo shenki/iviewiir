@@ -30,14 +30,21 @@ LIBDIR := $(PREFIX)/lib
 
 WARNINGS := -Wall -Wextra -Wwrite-strings -Werror
 
+ifneq (,$(findstring CONFIG_RESUME,$(CFLAGS)))
+RESUME_CFLAGS := -I../libflvii
+RESUME_LDFLAGS := -L../libflvii
+RESUME_LDLIBS := -lflvii
+endif
+
 DEPS := libxml-2.0 json librtmp
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --cflags $(DEPS)) \
-	-fPIC $(EXTRA_CFLAGS) $(WARNINGS) \
-	-I../libflvii
+	-fPIC $(RESUME_CFLAGS) $(EXTRA_CFLAGS) $(WARNINGS)
+
 LDFLAGS += -Wl,--as-needed -Wl,-Map,$(notdir $@).map \
-	   -Wl,-soname,$(SONAME) $(EXTRA_LDFLAGS) \
-	   -L../libflvii
-LDLIBS := libflvii.a $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
+	   -Wl,-soname,$(SONAME) $(RESUME_LDFLAGS) $(EXTRA_LDFLAGS)
+
+LDLIBS := $(RESUME_LDLIBS) \
+    $(shell PKG_CONFIG_PATH=$(PKGCONFIG) pkg-config --libs $(DEPS))
 
 SRC := get_http_buffer.c \
 	parse_config.c \
@@ -82,6 +89,7 @@ TEST_PROGRAM := ./test/test-executor
 TEST_SRC := test/CuTest.c \
     	$(TEST_PROGRAM).c
 TEST_OBJ := $(TEST_SRC:.c=.o)
+TEST_LDFLAGS := -Wl,--as-needed $(RESUME_LDFLAGS)
 
 check: CFLAGS += -DLIBIVIEW_TEST -ggdb
 
@@ -112,7 +120,7 @@ install: libiview.a libiview.pc
 	cp libiview.pc $(LIBDIR)/pkgconfig
 
 check: $(TEST_OBJ) libiview.a
-	$(CC) $^ $> -o $(TEST_PROGRAM) $(LDLIBS)
+	$(CC) $(TEST_LDFLAGS) $^ $> -o $(TEST_PROGRAM) $(LDLIBS)
 	$(TEST_PROGRAM)
 
 .PHONY: clean
