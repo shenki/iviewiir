@@ -8,7 +8,11 @@
 #include <errno.h>
 #include <librtmp/rtmp.h>
 #include <librtmp/log.h>
+
+#ifdef CONFIG_RESUME
 #include "flvii.h"
+#endif /* CONFIG_RESUME */
+
 #include "iview.h"
 #include "internal.h"
 
@@ -72,6 +76,7 @@ int iv_fetch_episode(const struct iv_auth *auth, const struct iv_episode *item,
     return iv_fetch_episode_async(auth, item, fd, NULL, NULL);
 }
 
+#ifdef CONFIG_RESUME
 static int configure_resume(const int fd, RTMP *rtmp) {
     int result, return_val = 0;
     struct stat fd_stat;
@@ -170,13 +175,17 @@ metadata_cleanup:
     free(metadata);
     goto ctx_cleanup;
 }
+#endif /* CONFIG_RESUME */
 
 int iv_fetch_episode_async(const struct iv_auth *auth,
         const struct iv_episode *item,
         const int fd,
         iv_download_progress_cb *progress_cb,
         void *user_data) {
-    int result, return_val = IV_OK;
+#ifdef CONFIG_RESUME
+    int result;
+#endif /* CONFIG_RESUME */
+    int return_val = IV_OK;
     int read;
     char *rtmp_uri = NULL;
     ssize_t rtmp_uri_len;
@@ -197,12 +206,14 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
     RTMP_Connect(rtmp, NULL);
     RTMP_SetBufferMS(rtmp, (uint32_t)progress.duration);
     RTMP_UpdateBufferMS(rtmp);
+#ifdef CONFIG_RESUME
     // Configure resume
     result = configure_resume(fd, rtmp);
     if(0 > result) {
         return_val = result;
         goto rtmp_cleanup;
     }
+#endif /* CONFIG_RESUME */
     // Done configuring resume, fire the progress callback to signal
     // downloading has begun.
     if(NULL != progress_cb) {
@@ -254,6 +265,7 @@ int iv_fetch_episode_async(const struct iv_auth *auth,
     }
 buf_cleanup:
     free(buf);
+#ifdef CONFIG_RESUME
 rtmp_cleanup:
     if(rtmp->m_read.metaHeader) {
         free(rtmp->m_read.metaHeader);
@@ -261,6 +273,7 @@ rtmp_cleanup:
     if(rtmp->m_read.initialFrame) {
         free(rtmp->m_read.initialFrame);
     }
+#endif /* CONFIG_RESUME */
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
     free(rtmp_uri);
